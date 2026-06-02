@@ -1,0 +1,49 @@
+<materials>
+
+  <!-- Air (uses elements N, O, C, Ar — all defined in elements.xml) -->
+  <material name="Air" state="gas">
+    <D unit="g/cm3" value="0.00120479"/>
+    <fraction n="0.000124" ref="C"/>
+    <fraction n="0.755268" ref="N"/>
+    <fraction n="0.231781" ref="O"/>
+    <fraction n="0.012827" ref="Ar"/>
+  </material>
+
+  <!-- Vacuum -->
+  <material name="Vacuum" state="gas">
+    <D unit="g/cm3" value="1e-25"/>
+    <fraction n="1.0" ref="N"/>
+  </material>
+
+  <!-- CarbonFiber — ECAL slab structural layer -->
+  <material name="CarbonFiber" state="solid">
+    <D unit="g/cm3" value="1.46667"/>
+    <fraction n="0.794092" ref="C"/>
+    <fraction n="0.058409" ref="H"/>
+    <fraction n="0.147499" ref="O"/>
+  </material>
+
+  <!-- PCB (FR4) — ECAL readout board -->
+  <material name="PCB" state="solid">
+    <D unit="g/cm3" value="1.7"/>
+    <fraction n="0.180774" ref="Si"/>
+    <fraction n="0.405633" ref="O"/>
+    <fraction n="0.278042" ref="C"/>
+    <fraction n="0.068443" ref="H"/>
+    <fraction n="0.067109" ref="Br"/>
+  </material>
+
+  <!-- TungstenDens1910 — ECAL absorber: >=99.95% W, density 19.10 g/cm3 -->
+  <material name="TungstenDens1910">
+    <D value="19.10" unit="g/cm3"/>
+    <fraction n="1.0" ref="W"/>
+  </material>
+
+  <!-- Polyvinyltoluene plastic scintillator (BC-408 / EJ-200 equivalent) -->
+  <material name="Scintillator" state="solid">
+    <D unit="g/cm3" value="1.032"/>
+    <fraction n="0.915" ref="C"/>
+    <fraction n="0.085" ref="H"/>
+  </material>
+
+</materials>

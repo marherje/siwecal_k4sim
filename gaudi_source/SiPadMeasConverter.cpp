@@ -1,0 +1,246 @@
+// Gaudi
+#include "Gaudi/Algorithm.h"
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/ServiceHandle.h"
+#include "k4FWCore/DataHandle.h"
+
+// edm4hep input
+#include "edm4hep/SimCalorimeterHitCollection.h"
+
+// edm4hep output
+#include "edm4hep/TrackerHit3DCollection.h"
+#include "edm4hep/MutableTrackerHit3D.h"
+#include "edm4hep/CovMatrix3f.h"
+#include "edm4hep/Vector3d.h"
+
+// DD4hep segmentation
+#include "DDSegmentation/BitFieldCoder.h"
+
+// ACTS
+#include "Acts/Definitions/Units.hpp"
+
+// SND geometry service
+#include "ISNDGeoSvc.h"
+
+// Standard
+#include <atomic>
+#include <cmath>
+#include <memory>
+#include <string>
+
+// ---------------------------------------------------------------------------
+// SiPadMeasConverter
+// ---------------------------------------------------------------------------
+
+class SiPadMeasConverter : public Gaudi::Algorithm {
+public:
+  SiPadMeasConverter(const std::string& name, ISvcLocator* svcLoc)
+      : Gaudi::Algorithm(name, svcLoc) {}
+
+  StatusCode initialize() override;
+  StatusCode execute(const EventContext&) const override;
+  StatusCode finalize() override;
+
+private:
+  // ---- Properties ----
+  Gaudi::Property<std::string> m_inputCollection{
+      this, "InputCollection", "SiPadHitsWindowed",
+      "Input SimCalorimeterHitCollection name"};
+
+  Gaudi::Property<std::string> m_outputCollection{
+      this, "OutputCollection", "SiPadMeasurements",
+      "Output TrackerHit3DCollection name"};
+
+  Gaudi::Property<std::string> m_bitField{
+      this, "BitField", "system:8,layer:8,slice:4,x:9,y:9",
+      "DD4hep BitField string for SiPad cellID decoding"};
+
+  Gaudi::Property<double> m_pixelSizeX{
+      this, "PixelSizeX", 5.5,
+      "Pixel size in X direction [mm] — used to compute measurement variance"};
+  Gaudi::Property<double> m_pixelSizeY{
+      this, "PixelSizeY", 5.5,
+      "Pixel size in Y direction [mm] — used to compute measurement variance"};
+
+  // ---- DataHandles ----
+  mutable std::unique_ptr<
+      k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>>
+      m_inputHandle;
+
+  mutable std::unique_ptr<
+      k4FWCore::DataHandle<edm4hep::TrackerHit3DCollection>>
+      m_outputHandle;
+
+  // ---- Services ----
+  ServiceHandle<ISNDGeoSvc> m_geoSvc{
+      this, "GeoSvc", "ACTSGeoSvc", "ACTS geometry service"};
+
+  // ---- Internal state ----
+  mutable std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_decoder;
+  mutable std::atomic<long long> m_eventCount{0};
+};
+
+// ---------------------------------------------------------------------------
+// initialize()
+// ---------------------------------------------------------------------------
+
+StatusCode SiPadMeasConverter::initialize() {
+  try {
+    StatusCode sc = Gaudi::Algorithm::initialize();
+    if (sc.isFailure()) return sc;
+
+    // Build DataHandles
+    m_inputHandle = std::make_unique<
+        k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>>(
+        m_inputCollection.value(), Gaudi::DataHandle::Reader, this);
+
+    m_outputHandle = std::make_unique<
+        k4FWCore::DataHandle<edm4hep::TrackerHit3DCollection>>(
+        m_outputCollection.value(), Gaudi::DataHandle::Writer, this);
+
+    // Build BitField decoder
+    m_decoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(
+        m_bitField.value());
+
+    // Retrieve geometry service
+    if (!m_geoSvc.retrieve().isSuccess()) {
+      error() << "[SiPadMeasConverter] Failed to retrieve ACTSGeoSvc."
+              << endmsg;
+      return StatusCode::FAILURE;
+    }
+
+    const std::size_t nSurfaces = m_geoSvc->allSurfaces().size();
+    info() << "[SiPadMeasConverter] Initialized. GeoSvc has "
+           << nSurfaces << " surfaces." << endmsg;
+
+    return sc;
+  } catch (const std::exception& e) {
+    error() << "[SiPadMeasConverter] Exception in initialize(): "
+            << e.what() << endmsg;
+    return StatusCode::FAILURE;
+  } catch (...) {
+    error() << "[SiPadMeasConverter] Unknown exception in initialize()."
+            << endmsg;
+    return StatusCode::FAILURE;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// execute()
+// ---------------------------------------------------------------------------
+
+StatusCode SiPadMeasConverter::execute(const EventContext&) const {
+  try {
+    const long long evtNum = m_eventCount.fetch_add(1);
+
+    auto* output = m_outputHandle->createAndPut();
+
+    const auto* hits = m_inputHandle->get();
+    if (!hits || hits->size() == 0) {
+      debug() << "[SiPadMeasConverter] evt=" << evtNum
+              << " no SiPad hits." << endmsg;
+      return StatusCode::SUCCESS;
+    }
+
+    // SiPad is the only detector; surfaces are indexed directly by layer.
+    const auto& allSurfaces       = m_geoSvc->allSurfaces();
+    const std::size_t sipadOffset = 0;
+
+    // Precompute pixel variances
+    // Z=beam: SiPad measures X and Y (transverse to beam)
+    // Pixel sizes map: PixelSizeY→X direction, PixelSizeZ→Y direction
+    // (names kept for backward compatibility with steering files)
+    const double varX = (m_pixelSizeX.value() * m_pixelSizeX.value()) / 12.0;
+    const double varY = (m_pixelSizeY.value() * m_pixelSizeY.value()) / 12.0;
+
+    // Build CovMatrix3f: xx and yy diagonal elements
+    // Upper triangle storage: [xx=0, xy=1, xz=2, yy=3, yz=4, zz=5]
+    edm4hep::CovMatrix3f cov{};
+    cov[0] = static_cast<float>(varX);  // xx
+    cov[3] = static_cast<float>(varY);  // yy
+    // Same covariance for all SiPad hits — computed once outside the loop
+
+    std::size_t nConverted = 0;
+    std::size_t nSkipped   = 0;
+
+    for (std::size_t i = 0; i < hits->size(); ++i) {
+      const auto&    hit = (*hits)[i];
+      const uint64_t cid = hit.getCellID();
+
+      // Decode layer from cellID (no plane field for SiPad)
+      int layer = static_cast<int>(m_decoder->get(cid, "layer"));
+
+      const std::size_t surfIdx = sipadOffset +
+          static_cast<std::size_t>(layer);
+
+      if (surfIdx >= allSurfaces.size()) {
+        warning() << "[SiPadMeasConverter] evt=" << evtNum
+                  << " hit=" << i << " layer=" << layer
+                  << " surfIdx=" << surfIdx << " out of range, skipping."
+                  << endmsg;
+        ++nSkipped;
+        continue;
+      }
+
+      // Get hit time from first contribution
+      float hitTime = 0.0f;
+      if (hit.contributions_size() > 0) {
+        hitTime = static_cast<float>(hit.getContributions(0).getTime());
+      }
+
+      const auto& pos = hit.getPosition();
+
+      // Create TrackerHit3D
+      auto mhit = output->create();
+      mhit.setCellID(cid);
+      mhit.setType(1);      // detector ID: 1 = SiPad
+      mhit.setQuality(layer);  // SiPad layer (used by ACTSProtoTracker for surfaceByAddress)
+      mhit.setTime(hitTime);
+      mhit.setEDep(hit.getEnergy());
+      mhit.setEDepError(0.0f);
+      mhit.setPosition(edm4hep::Vector3d{pos.x, pos.y, pos.z});
+      mhit.setCovMatrix(cov);
+
+      ++nConverted;
+    }
+
+    debug() << "[SiPadMeasConverter] evt=" << evtNum
+            << " input=" << hits->size()
+            << " converted=" << nConverted
+            << " skipped=" << nSkipped << endmsg;
+
+    return StatusCode::SUCCESS;
+  } catch (const std::exception& e) {
+    error() << "[SiPadMeasConverter] Exception in execute(): "
+            << e.what() << endmsg;
+    return StatusCode::FAILURE;
+  } catch (...) {
+    error() << "[SiPadMeasConverter] Unknown exception in execute()."
+            << endmsg;
+    return StatusCode::FAILURE;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// finalize()
+// ---------------------------------------------------------------------------
+
+StatusCode SiPadMeasConverter::finalize() {
+  try {
+    m_inputHandle.reset();
+    m_outputHandle.reset();
+    info() << "[SiPadMeasConverter] Done. Events processed: "
+           << m_eventCount.load() << endmsg;
+    return Gaudi::Algorithm::finalize();
+  } catch (const std::exception& e) {
+    error() << "[SiPadMeasConverter] Exception in finalize(): "
+            << e.what() << endmsg;
+    return StatusCode::FAILURE;
+  } catch (...) {
+    error() << "[SiPadMeasConverter] Unknown exception in finalize()."
+            << endmsg;
+    return StatusCode::FAILURE;
+  }
+}
+
+DECLARE_COMPONENT(SiPadMeasConverter)

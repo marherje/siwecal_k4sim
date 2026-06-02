@@ -1,0 +1,32 @@
+<detector name="SiPad" type="SiPadDetector" vis="EcalVis" id="1"
+          readout="SiPadHits" insideTrackingVolume="false">
+
+  <dimensions x="Ecal_dim_x" y="Ecal_dim_y" z="Ecal_dim_z"/>
+
+  <type_flags type="DetType_TRACKER + DetType_BARREL + DetType_PIXEL"/>
+
+  <envelope vis="EcalVis">
+    <shape type="Box"
+           dx="Ecal_dim_x/2.0 + env_safety"
+           dy="Ecal_dim_y/2.0 + env_safety"
+           dz="Ecal_dim_z/2.0 + env_safety"
+           material="Air"/>
+    <rotation x="0" y="0" z="0"/>
+    <position x="0" y="0" z="Ecal_z_position"/>
+  </envelope>
+
+  <!-- Layers 2-4: W(1.40x) + W(4.20x) + CF + Cu + glue + Si(650um) + glue + Cu + PCB + chip + gap -->
+  <layer repeat="Ecal_NLayers" vis="EcalVis">
+    <slice material="TungstenDens1910" thickness="Ecal_WThickness"   vis="TungstenVis"/>
+    <slice material="CarbonFiber"     thickness="Ecal_CFThickness"        vis="CFVis"/>
+    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis"/>
+    <slice material="Air"             thickness="Ecal_GlueThickness_kap"  vis="AirVis"/>
+    <slice material="Silicon"         thickness="Ecal_WaferThickness650"  vis="SiVis" sensitive="yes"/>
+    <slice material="Air"             thickness="Ecal_GlueThickness_pcb"  vis="AirVis"/>
+    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis"/>
+    <slice material="PCB"             thickness="Ecal_PcbThickness"       vis="PCBVis"/>
+    <slice material="Air"             thickness="Ecal_ChipThickness"      vis="AirVis"/>
+    <slice material="Air"             thickness="Ecal_w_slab_gap650"      vis="AirVis"/>
+  </layer>
+
+</detector>
