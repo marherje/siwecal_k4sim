@@ -22,13 +22,10 @@ private:
   void inspectCollection(const edm4hep::SimCalorimeterHitCollection& hits,
                          const std::string& collName) const;
 
-  Gaudi::Property<std::string> m_targetName{
-      this, "SiTargetCollection", "SiPadHits", "First input SimCalorimeterHit collection"};
   Gaudi::Property<std::string> m_pixelName{
       this, "SiPadCollection", "SiPadHits", "Input SiPad SimCalorimeterHit collection"};
   Gaudi::Property<int> m_maxHitsToPrint{
       this, "MaxHitsToPrint", 20, "Max number of hits per collection for which contributions are printed at DEBUG level"};
 
-  mutable std::unique_ptr<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>> m_targetHandle;
   mutable std::unique_ptr<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>> m_pixelHandle;
 };

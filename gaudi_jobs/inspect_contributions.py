@@ -10,8 +10,7 @@ iosvc.Input = INPUT_FILE
 # No output file: this algorithm is purely diagnostic
 
 inspector = ContributionInspector("ContribInspector")
-inspector.SiTargetCollection = "SiPadHits"
-inspector.SiPadCollection    = "SiPadHits"
+inspector.SiPadCollection = "SiPadHits"
 inspector.MaxHitsToPrint     = 20
 inspector.OutputLevel        = DEBUG  # show per-contribution DEBUG lines
 

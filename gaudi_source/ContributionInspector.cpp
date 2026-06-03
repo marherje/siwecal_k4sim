@@ -9,10 +9,8 @@ StatusCode ContributionInspector::initialize() {
   try {
     StatusCode sc = Gaudi::Algorithm::initialize();
     if (sc.isFailure()) return sc;
-    m_targetHandle = std::make_unique<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>>(
-        m_targetName.value(), Gaudi::DataHandle::Reader, this);
-    m_pixelHandle  = std::make_unique<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>>(
-        m_pixelName.value(),  Gaudi::DataHandle::Reader, this);
+    m_pixelHandle = std::make_unique<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>>(
+        m_pixelName.value(), Gaudi::DataHandle::Reader, this);
     return sc;
   } catch (const std::exception& e) {
     error() << "[ContributionInspector] Exception in initialize(): " << e.what() << endmsg;
@@ -25,8 +23,7 @@ StatusCode ContributionInspector::initialize() {
 
 StatusCode ContributionInspector::execute(const EventContext&) const {
   try {
-    inspectCollection(*m_targetHandle->get(), m_targetName.value());
-    inspectCollection(*m_pixelHandle->get(),  m_pixelName.value());
+    inspectCollection(*m_pixelHandle->get(), m_pixelName.value());
     return StatusCode::SUCCESS;
   } catch (const std::exception& e) {
     error() << "[ContributionInspector] Exception in execute(): " << e.what() << endmsg;
@@ -39,7 +36,6 @@ StatusCode ContributionInspector::execute(const EventContext&) const {
 
 StatusCode ContributionInspector::finalize() {
   try {
-    m_targetHandle.reset();
     m_pixelHandle.reset();
     return Gaudi::Algorithm::finalize();
   } catch (const std::exception& e) {

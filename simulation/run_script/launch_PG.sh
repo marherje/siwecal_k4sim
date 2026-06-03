@@ -19,7 +19,7 @@ do
                     do
                         echo "Running simulation for particle ${particle} with energy ${energy} GeV at position (${pos_x}, ${pos_y}, ${pos_z}) mm"
                         echo "Direction: (${dir_x}, ${dir_y}, ${dir_z})"
-                        ./generic_condor.sh $nevents $particle $energy $pos_x $pos_y $pos_z $dir_x $dir_y $dir_z
+                        ./generic_condor_PG.sh $nevents $particle $energy $pos_x $pos_y $pos_z $dir_x $dir_y $dir_z
                     done
                 done
             done

@@ -28,7 +28,7 @@ ROOT.gROOT.ProcessLine("""
 namespace SNDEve {
     std::vector<float> gX, gY, gZ, gE;
     std::vector<int>   gSrc, gPlane;
-    std::vector<float> gTsX, gTsY, gTsZ, gTsLoc0, gTsTilt;
+    std::vector<float> gTsX, gTsY, gTsZ;
     std::vector<int>   gTsTrackId;
 }
 """)
@@ -206,9 +206,8 @@ def build_hits(eve, hits_file, window_id, config):
             xc = xs[i] * mm2cm
             yc = 0.0 if stereo_deg != 0.0 else ys[i] * mm2cm
             zc = zs[i] * mm2cm
-            # Filter on the raw hit Z so hits from adjacent MTC stations are
-            # rejected before snapping. Using snap_z here caused out-of-station
-            # hits to snap to the nearest boundary layer and pass the range check.
+            # Filter on the raw hit Z before snapping to avoid out-of-range hits
+            # snapping to the nearest boundary layer and passing the range check.
             if not (z_min <= zc <= z_max):
                 continue
             snap_z = nearest_plane(zc, layers_z)
@@ -274,12 +273,7 @@ def extract_z_from_geometry(compact_xml, config):
         r["entry"]["layers_z_cm"] = zs
         if zs:
             # 3 cm margin covers hits anywhere inside the half-layer at the
-            # station edge (~3.7 cm half-spacing). It stays within the station
-            # because the gap between the last sensitive layer of one MTC station
-            # and the first of the next is ~5.4 cm (1 mm gap + 50 mm Fe + 3 mm
-            # inner iron), so 3 cm < 5.4 cm and no cross-station contamination
-            # occurs — provided the filter is applied to the raw hit Z (zc),
-            # not to the snapped Z.
+            # detector edge.
             r["entry"]["z_range"] = {"min": zs[0] - 3.0, "max": zs[-1] + 3.0}
         print(f"[Geometry] {r['entry']['name']}: {len(zs)} layers extracted")
 
@@ -339,29 +333,7 @@ def read_track_points(hits_file, window_id):
     {{
       SNDEve::gZ.clear();
       try {{
-        auto r   = ROOT::RNTupleReader::Open("SiTargetMeas", "{hits_file}");
-        auto vw  = r->GetView<int>("window_id");
-        auto vz  = r->GetView<float>("z");
-        std::set<int> seen;
-        for (auto i : r->GetEntryRange()) {{
-          if ((int)vw(i) != {window_id}) continue;
-          int iz = (int)std::round(vz(i));
-          if (!seen.count(iz)) {{ seen.insert(iz); SNDEve::gZ.push_back(vz(i)); }}
-        }}
-      }} catch (...) {{}}
-      try {{
         auto r   = ROOT::RNTupleReader::Open("SiPadMeas", "{hits_file}");
-        auto vw  = r->GetView<int>("window_id");
-        auto vz  = r->GetView<float>("z");
-        std::set<int> seen;
-        for (auto i : r->GetEntryRange()) {{
-          if ((int)vw(i) != {window_id}) continue;
-          int iz = (int)std::round(vz(i));
-          if (!seen.count(iz)) {{ seen.insert(iz); SNDEve::gZ.push_back(vz(i)); }}
-        }}
-      }} catch (...) {{}}
-      try {{
-        auto r   = ROOT::RNTupleReader::Open("MTCSciFiMeas", "{hits_file}");
         auto vw  = r->GetView<int>("window_id");
         auto vz  = r->GetView<float>("z");
         std::set<int> seen;
@@ -411,13 +383,11 @@ def read_track_points(hits_file, window_id):
 # PER-SURFACE TRACK STATE READER
 # ---------------------------------------------------------------------------
 def read_track_states(hits_file, window_id):
-    """Read ACTSTrackStates RNTuple; returns {track_id: [(x_cm, y_cm, z_cm), ...]}
-    with stereo pairing applied for MTC SciFi U/V planes."""
+    """Read ACTSTrackStates RNTuple; returns {track_id: [(x_cm, y_cm, z_cm), ...]}."""
     ROOT.gROOT.ProcessLine(f"""
     {{
       SNDEve::gTsX.clear(); SNDEve::gTsY.clear();
       SNDEve::gTsZ.clear(); SNDEve::gTsTrackId.clear();
-      SNDEve::gTsLoc0.clear(); SNDEve::gTsTilt.clear();
       try {{
         auto r     = ROOT::RNTupleReader::Open("ACTSTrackStates", "{hits_file}");
         auto vwin  = r->GetView<int>("window_id");
@@ -425,65 +395,27 @@ def read_track_states(hits_file, window_id):
         auto vx    = r->GetView<float>("x");
         auto vy    = r->GetView<float>("y");
         auto vz    = r->GetView<float>("z");
-        auto vloc0 = r->GetView<float>("loc0");
-        auto vtilt = r->GetView<float>("tilt");
         for (auto i : r->GetEntryRange()) {{
           if ((int)vwin(i) != {window_id}) continue;
           SNDEve::gTsTrackId.push_back(vtid(i));
           SNDEve::gTsX.push_back(vx(i));
           SNDEve::gTsY.push_back(vy(i));
           SNDEve::gTsZ.push_back(vz(i));
-          SNDEve::gTsLoc0.push_back(vloc0(i));
-          SNDEve::gTsTilt.push_back(vtilt(i));
         }}
       }} catch (...) {{}}
     }}
     """)
     n     = ROOT.SNDEve.gTsX.size()
     mm2cm = 0.1
-    TAN5  = math.tan(5.0 * math.pi / 180.0)
 
-    # Collect raw state data per track (in state_idx order, already beam-direction)
-    raw = {}
+    by_track = {}
     for i in range(n):
         tid = ROOT.SNDEve.gTsTrackId[i]
-        raw.setdefault(tid, []).append((
-            ROOT.SNDEve.gTsX[i] * mm2cm,     # x [cm] from inverse-rotation formula
-            ROOT.SNDEve.gTsY[i] * mm2cm,     # y [cm] from inverse-rotation formula
-            ROOT.SNDEve.gTsZ[i] * mm2cm,     # beam-Z [cm]
-            float(ROOT.SNDEve.gTsLoc0[i]),   # raw ACTS eBoundLoc0 [mm]
-            float(ROOT.SNDEve.gTsTilt[i]),   # stereo tilt: +sin5° U, -sin5° V, 0 non-stereo
+        by_track.setdefault(tid, []).append((
+            ROOT.SNDEve.gTsX[i] * mm2cm,
+            ROOT.SNDEve.gTsY[i] * mm2cm,
+            ROOT.SNDEve.gTsZ[i] * mm2cm,
         ))
-
-    # Apply stereo pairing: for MTC SciFi U/V pairs in the same layer,
-    # x = (loc0_U + loc0_V)/2,  y = (loc0_V - loc0_U)/(2*tan5°)
-    # This avoids using loc1 (unreliable for 1D strip measurements through iron).
-    by_track = {}
-    for tid, states in raw.items():
-        pts = []
-        i = 0
-        while i < len(states):
-            x, y, z, loc0, tilt = states[i]
-            if abs(tilt) > 0.01:
-                # MTC stereo surface — look for partner in adjacent state
-                if i + 1 < len(states):
-                    _, _, z2, loc02, tilt2 = states[i + 1]
-                    if abs(z - z2) < 0.5 and tilt * tilt2 < 0:  # same layer, opp. tilt
-                        loc0_U = loc0  if tilt  > 0 else loc02   # positive tilt → V plane
-                        loc0_V = loc02 if tilt  > 0 else loc0    # negative tilt → U plane
-                        gx = (loc0_U + loc0_V) / 2.0 * mm2cm
-                        gy = (loc0_V - loc0_U) / (2.0 * TAN5) * mm2cm
-                        gz = (z + z2) / 2.0
-                        pts.append((gx, gy, gz))
-                        i += 2
-                        continue
-                # Unpaired stereo: fall back to inverse-rotation result
-                pts.append((x, y, z))
-            else:
-                # Non-stereo (SiTarget, SiPad): inverse-rotation gives correct x,y
-                pts.append((x, y, z))
-            i += 1
-        by_track[tid] = pts
 
     print(f"[Tracks] ACTSTrackStates window {window_id}: {n} raw state(s), "
           f"{sum(len(v) for v in by_track.values())} display point(s) "

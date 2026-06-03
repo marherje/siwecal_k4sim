@@ -81,9 +81,9 @@ public:
 
 private:
   Gaudi::Property<std::string> m_inputName{
-      this, "InputCollection", "SiTargetHitsMIP", "Input SimCalorimeterHit collection"};
+      this, "InputCollection", "SiPadHitsMIP", "Input SimCalorimeterHit collection"};
   Gaudi::Property<std::string> m_outputName{
-      this, "OutputCollection", "SiTargetDigiHits", "Output SimCalorimeterHit collection"};
+      this, "OutputCollection", "SiPadDigiHits", "Output SimCalorimeterHit collection"};
   Gaudi::Property<double> m_threshold{
       this, "Threshold", 0.5, "Minimum energy to keep a hit"};
   Gaudi::Property<int> m_debugFreq{

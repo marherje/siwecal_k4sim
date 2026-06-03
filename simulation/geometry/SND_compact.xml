@@ -26,13 +26,14 @@
     <constant name="world_y"    value="world_side"/>
     <constant name="world_z"    value="world_side"/>
 
-    <!-- Required by DD4hep tracking region -->
-    <constant name="tracker_region_rmax" value="0*mm"/>
-    <constant name="tracker_region_zmax" value="0*mm"/>
+    <!-- Aluminium box -->
+    <constant name="Ecal_AlThickness" value="2*mm"/> 
+    <constant name="Ecal_Al_frontdistance" value="59.7*mm"/>
+    <constant name="Ecal_Al_reardistance" value="48.4*mm"/>
 
     <!-- ECAL geometry constants (from ECAL_commondefs.xml) -->
     <constant name="env_safety"              value="0.001*mm"/>
-    <constant name="Ecal_NLayers"            value="20"/>
+    <constant name="Ecal_NLayers"            value="15"/>
     <constant name="Ecal_NcellsX"            value="32"/>
     <constant name="Ecal_NcellsY"            value="32"/>
     <constant name="Ecal_CellSizeX"          value="5.5*mm"/>
@@ -40,18 +41,24 @@
     <constant name="Ecal_dim_x"              value="2*Ecal_NcellsX*Ecal_CellSizeX"/>
     <constant name="Ecal_dim_y"              value="2*Ecal_NcellsY*Ecal_CellSizeY"/>
     <constant name="Ecal_z_position"         value="0*mm"/>
-    <constant name="Ecal_WThickness"         value="3.5*mm"/>
     <constant name="Ecal_CFThickness"        value="1.5*mm"/>
     <constant name="Ecal_KaptonThickness"    value="0.1*mm"/>
     <constant name="Ecal_GlueThickness_kap"  value="0.1*mm"/>
     <constant name="Ecal_GlueThickness_pcb"  value="0.1*mm"/>
-    <constant name="Ecal_WaferThickness650"  value="0.65*mm"/>
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
     <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
     <constant name="Ecal_LayerDistance"      value="11.0*mm"/>
+    <constant name="Ecal_dim_z" value="285*mm"/> <!-- 15*15 layers + 26 (rear space) + 30 (upfront space) + 4 (plastic plates) -->
+
+  <!-- Different thicknesses and gap calculations -->
+    <constant name="Ecal_WaferThickness320" value="0.320*mm"/>
+    <constant name="Ecal_WaferThickness500" value="0.500*mm"/>
+    <constant name="Ecal_WaferThickness650" value="0.650*mm"/>
+    <constant name="Ecal_w_slab_gap320"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness320-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
+    <constant name="Ecal_w_slab_gap500"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness500-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
     <constant name="Ecal_w_slab_gap650"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness650-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
-    <constant name="Ecal_LayerThickness"     value="Ecal_WThickness+Ecal_LayerDistance"/>
-    <constant name="Ecal_dim_z"              value="Ecal_NLayers*Ecal_LayerThickness"/>
+
+    <constant name="Ecal_TB_box_z" value="Ecal_dim_z+Ecal_Al_frontdistance+Ecal_Al_reardistance+2*Ecal_AlThickness"/>
 
   </define>
 

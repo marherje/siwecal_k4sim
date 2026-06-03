@@ -1,18 +1,12 @@
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import GeV2MIPConversion, BasicDigitizer
-from Gaudi.Configuration import DEBUG
 import os
 
-infile = os.environ.get("INPUT_FILE", "")
-if not infile:
-    print("Use: INPUT_FILE=<input_file> k4run job3_digitize.py")
-    import sys; sys.exit(1)
-
-outfile = "digitized.edm4hep.root"
+infile = os.environ.get("INPUT_FILE", "timewindows.edm4hep.root")
 
 iosvc = IOSvc()
-iosvc.Input = infile
-iosvc.Output = outfile
+iosvc.Input  = infile
+iosvc.Output = "digitized.edm4hep.root"
 
 mip = GeV2MIPConversion("GeV2MIP_SiPad")
 mip.InputCollection  = "SiPadHitsWindowed"

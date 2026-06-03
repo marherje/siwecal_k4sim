@@ -580,22 +580,21 @@ private:
   // Python-configurable properties — parallel vectors, one entry per detector.
   Gaudi::Property<std::vector<std::string>> m_collections{
       this, "Collections",
-      {"SiTargetHitsWindowed", "SiPadHitsWindowed"},
+      {"SiPadHitsWindowed"},
       "Input SimCalorimeterHit collection names, one per detector"};
   Gaudi::Property<std::vector<std::string>> m_bitFields{
       this, "BitFields",
-      {"system:8,layer:8,slice:4,plane:1,strip:14",
-       "system:8,layer:8,slice:4,x:9,y:9"},
+      {"system:8,layer:8,slice:4,x:9,y:9"},
       "DD4hep BitField encoding string for each collection"};
   Gaudi::Property<std::vector<std::string>> m_sourceIDParams{
       this, "SourceIDParams",
-      {"SiTargetSourceIDs", "SiPadSourceIDs"},
+      {"SiPadSourceIDs"},
       "Frame parameter name carrying source_id vector for each collection"};
   Gaudi::Property<std::vector<int>> m_detectorIDs{
-      this, "DetectorIDs", {0, 1},
+      this, "DetectorIDs", {1},
       "detector_id value (for logging) for each collection"};
   Gaudi::Property<std::vector<std::string>> m_ntupleNames{
-      this, "NTupleNames", {"SiTarget", "SiPad"},
+      this, "NTupleNames", {"SiPad"},
       "RNTuple name inside the output file for each collection"};
   Gaudi::Property<std::string> m_inputFile{
       this, "InputFile", "timewindows.root",
@@ -620,11 +619,11 @@ private:
   // Measurement collections (TrackerHit3D from converters)
   Gaudi::Property<std::vector<std::string>> m_measCollections{
       this, "MeasCollections", {},
-      "TrackerHit3D collection names to export (e.g. SiTargetMeasurements)."};
+      "TrackerHit3D collection names to export (e.g. SiPadMeasurements)."};
 
   Gaudi::Property<std::vector<std::string>> m_measNtupleNames{
       this, "MeasNtupleNames", {},
-      "RNTuple names for each MeasCollection (e.g. SiTargetMeas)."};
+      "RNTuple names for each MeasCollection (e.g. SiPadMeas)."};
 
   Gaudi::Property<std::vector<std::string>> m_measBitFields{
       this, "MeasBitFields", {},
