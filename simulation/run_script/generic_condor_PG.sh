@@ -59,7 +59,7 @@ SIM.skipNEvents    = 0
 
 SIM.compactFile = str(compact_path)
 SIM._compactFile = SIM.compactFile
-SIM.outputFile     = os.path.abspath("${data_path}/output_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root")
+SIM.outputFile     = os.path.abspath("${data_path}/output_PG_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root")
 
 print("COMPACT FILE =", SIM.compactFile)
 print("PARTICLE =", "${particle}")
@@ -74,6 +74,8 @@ SIM.gun.position   = gun_position
 SIM.gun.direction  = gun_direction
 
 SIM.physicsList    = "${physlist}"
+# Do NOT disable userParticleHandler: needed to write CaloHitContributions with timing.
+# tracker_region_zmax/rmax are defined in the compact XML.
 
 
 EOF

@@ -125,8 +125,11 @@ public:
       const auto siPadList = buildList(inPad, pdgsSiPad);
 
       if (siPadList.empty()) {
-        info() << "[EventWindowSplitter] No contributions found; nothing to write." << endmsg;
-        return StatusCode::SUCCESS;
+        error() << "[EventWindowSplitter] No contributions found in '"
+                << m_inputFile.value() << "'. Cannot write time windows."
+                << " Likely cause: simulation output has hits but no CaloHitContributions."
+                << " Ensure the simulation was run WITHOUT SIM.part.userParticleHandler=''." << endmsg;
+        return StatusCode::FAILURE;
       }
 
       // --- 2. Determine global t_start ---

@@ -568,9 +568,11 @@ std::vector<ACTSProtoTracker::SeedCandidate> ACTSProtoTracker::findSeeds(
   // A Point2D from a crossing has a z coordinate (station beam Z).
   // Round z to the nearest stationTolerance to identify unique stations.
 
-  const double compatR  = m_seedCompatRadius.value();
-  const double compatR2 = compatR * compatR;
-  const double maxMult  = m_houghMaxMultiplicity.value();
+  const double compatR         = m_seedCompatRadius.value();
+  const double compatR2        = compatR * compatR;
+  const double maxMult         = m_houghMaxMultiplicity.value();
+  // Layer pitch ~11 mm; use half-pitch so each SiPad layer maps to one station key.
+  const double stationTolerance = 6.0;  // mm
 
   struct PeakWithMult {
     int    ix, iy, votes;

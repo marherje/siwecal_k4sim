@@ -60,6 +60,12 @@
 
     <constant name="Ecal_TB_box_z" value="Ecal_dim_z+Ecal_Al_frontdistance+Ecal_Al_reardistance+2*Ecal_AlThickness"/>
 
+    <!-- Required by DDSim's ParticleHandler for MC-truth links (tracker region cylinder).
+         For a calorimeter-only setup, set to the detector envelope dimensions.
+         The particle handler is also disabled via SIM.part.userParticleHandler='' in the steering. -->
+    <constant name="tracker_region_zmax" value="Ecal_dim_z/2.0"/>
+    <constant name="tracker_region_rmax" value="Ecal_dim_x/2.0"/>
+
   </define>
 
   <limits>

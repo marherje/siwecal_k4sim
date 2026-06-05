@@ -1,7 +1,7 @@
 #!/bin/bash
 # Beam-test simulation for SiWECAL using the Geant4 General Particle Source (GPS).
-# Models a realistic test-beam: elliptical Gaussian transverse profile,
-# Gaussian energy spread, and optional angular divergence.
+# GPS commands live in a Geant4 macro file (.mac) passed via --macroFile.
+# The steering file uses runType="run" so the macro drives the simulation.
 #
 # Usage:
 #   ./generic_condor_beam.sh <nevents> <particle> <energy_GeV>  \
@@ -9,19 +9,6 @@
 #                             <sigma_x_mm> <sigma_y_mm>          \
 #                             <sigma_E_frac>                      \
 #                             [theta_max_deg]
-#
-# Arguments:
-#   nevents       Number of events per job
-#   particle      Particle name (e.g. e-, mu-, pi+, proton)
-#   energy_GeV    Central beam energy [GeV]
-#   pos_x_mm      Beam centre X [mm]
-#   pos_y_mm      Beam centre Y [mm]
-#   sigma_x_mm    Gaussian sigma of the beam in X [mm]  (0 = pencil beam)
-#   sigma_y_mm    Gaussian sigma of the beam in Y [mm]  (0 = pencil beam)
-#   sigma_E_frac  Fractional energy spread, e.g. 0.02 = 2%  (0 = monoenergetic)
-#   theta_max_deg Half-angle of flat angular divergence [deg]  (default: 0)
-#
-# The beam enters along +Z from z = BEAM_Z_MM.
 
 mkdir -p steer data log
 
@@ -33,10 +20,8 @@ pos_y=$5
 sigma_x=$6
 sigma_y=$7
 sigma_E=$8
-theta_max=${9:-0}
 
-# Beam entry z [mm]: matches the reference simulation (10 m upstream of detector)
-BEAM_Z_MM=-10000
+BEAM_Z_MM=-2000
 
 local=$PWD
 geometry_folder="${local}/../geometry"
@@ -48,102 +33,104 @@ physl=("QGSP_BERT")
 
 for physlist in ${physl[@]}; do
 
-    echo "Beam-test run: particle=${particle}  E=${energy} GeV  centre=(${pos_x},${pos_y}) mm  sigma_x=${sigma_x} mm  sigma_y=${sigma_y} mm  sigma_E=${sigma_E}  theta_max=${theta_max} deg"
+    echo "Beam-test: particle=${particle}  E=${energy} GeV  centre=(${pos_x},${pos_y}) mm  sigma_x=${sigma_x} mm  sigma_y=${sigma_y} mm  sigma_E=${sigma_E}  theta_max=${theta_max} deg"
 
     label=${physlist}_SiWECAL_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}
 
+    gpsmac=gps_${label}.mac
     scriptname=runddsim_${label}.py
     condorsh=runddsim_${label}.sh
     condorsub=runddsim_${label}.sub
     condorfile=runddsim_${label}
 
+    sigma_E_GeV=$(python3 -c "print(${energy} * ${sigma_E})")
+
+    # --------------------------------------------------
+    # GEANT4 GPS MACRO FILE
+    # Contains GPS setup + /run/beamOn N.
+    # runType="run" means Geant4 drives the loop from this macro.
+    # --------------------------------------------------
+    {
+    echo "/gps/verbose 1"
+    echo "/gps/particle ${particle}"
+    echo "/gps/direction 0 0 1"
+    echo "/gps/ang/rot1 1 0 0"
+    echo "/gps/ang/rot2 0 1 0"
+
+    # Spatial profile: elliptical Gaussian beam
+    echo "/gps/pos/type Beam"
+    echo "/gps/pos/shape Circle"
+    echo "/gps/pos/centre ${pos_x} ${pos_y} ${BEAM_Z_MM} mm"
+    echo "/gps/pos/sigma_x ${sigma_x} mm"
+    echo "/gps/pos/sigma_y ${sigma_y} mm"
+
+    # Energy distribution
+    if (( $(echo "${sigma_E} > 0" | bc -l) )); then
+        echo "/gps/ene/type Gauss"
+        echo "/gps/ene/mono ${energy} GeV"
+        echo "/gps/ene/sigma ${sigma_E_GeV} GeV"
+    else
+        echo "/gps/ene/type Mono"
+        echo "/gps/ene/mono ${energy} GeV"
+    fi
+
+    echo "/run/beamOn ${nevents}"
+    } > ${steer_path}/${gpsmac}
+
     # --------------------------------------------------
     # STEERING FILE (PYTHON)
+    # runType="run": Geant4 is driven by the macro file.
+    # numberOfEvents is NOT set here; /run/beamOn in the macro controls it.
     # --------------------------------------------------
 cat > ${steer_path}/${scriptname} <<EOF
 import os
 from DDSim.DD4hepSimulation import DD4hepSimulation
-from g4units import mm, GeV, deg
+from g4units import MeV
+
+# Workaround for DD4hep 1.35 + Python 3.13: addParametersToRunHeader returns
+# a dict that cppyy cannot convert to std::map<string,string>.
+try:
+    from DDSim.Helper.Meta import Meta as _M
+    _M.addParametersToRunHeader = lambda self, dds: {}
+except Exception:
+    pass
 
 compact_path = os.path.abspath("${geometry_folder}/SND_compact.xml")
 if not os.path.isfile(compact_path):
     raise RuntimeError("Compact file not found: " + compact_path)
 
 SIM = DD4hepSimulation()
-SIM.runType        = "batch"
-SIM.numberOfEvents = ${nevents}
-SIM.skipNEvents    = 0
-SIM.compactFile    = str(compact_path)
-SIM._compactFile   = SIM.compactFile
-SIM.outputFile     = os.path.abspath(
+
+# runType="run": simulation driven by --macroFile, not ddsim's internal gun loop.
+# numberOfEvents is intentionally absent; /run/beamOn in the macro controls it.
+SIM.runType   = "run"
+SIM.skipNEvents = 0
+SIM.compactFile  = str(compact_path)
+SIM._compactFile = SIM.compactFile
+SIM.outputFile   = os.path.abspath(
     "${data_path}/output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
 )
-
-print("COMPACT FILE  =", SIM.compactFile)
-print("PARTICLE      =", "${particle}")
-print("Energy [GeV]  =", ${energy})
-print("Beam centre   = (${pos_x}, ${pos_y}) mm")
-print("sigma_x [mm]  =", ${sigma_x})
-print("sigma_y [mm]  =", ${sigma_y})
-print("sigma_E [frac]=", ${sigma_E})
-print("theta_max[deg]=", ${theta_max})
-print("Beam z [mm]   =", ${BEAM_Z_MM})
-
-# ── Beam simulation via Geant4 General Particle Source (GPS) ──────────────────
-# GPS gives full control over the spatial, energy, and angular distributions.
-# Disable the simple particle gun so only GPS fires.
-SIM.enableGun = False
-
-_sigma_E_GeV = ${energy} * ${sigma_E}   # energy sigma in absolute GeV
-_theta_max   = float(${theta_max})
-
-_gps_cmds = [
-    "/gps/particle ${particle}",
-
-    # ── Energy distribution ────────────────────────────────────────────────────
-]
-if ${sigma_E} > 0:
-    _gps_cmds += [
-        "/gps/ene/type Gauss",
-        f"/gps/ene/mono ${energy} GeV",
-        f"/gps/ene/sigma {_sigma_E_GeV:.6f} GeV",
-    ]
-else:
-    _gps_cmds += [
-        "/gps/ene/type Mono",
-        f"/gps/ene/mono ${energy} GeV",
-    ]
-
-# ── Spatial distribution: elliptical Gaussian beam profile ────────────────────
-# sigma_x and sigma_y are independent to model an asymmetric beam spot.
-_gps_cmds += [
-    "/gps/pos/type Beam",
-    "/gps/pos/shape Circle",
-    f"/gps/pos/centre ${pos_x} ${pos_y} ${BEAM_Z_MM} mm",
-    f"/gps/pos/sigma_x ${sigma_x} mm",
-    f"/gps/pos/sigma_y ${sigma_y} mm",
-]
-
-# ── Angular distribution: beam along +Z with optional divergence ───────────────
-_gps_cmds += ["/gps/direction 0 0 1"]
-if _theta_max > 0:
-    # Flat (cone) distribution within theta_max around +Z.
-    # For Gaussian divergence replace "beam1d" with "beam2d" and set sigma_r.
-    _gps_cmds += [
-        "/gps/ang/type beam1d",
-        f"/gps/ang/sigma_r {_theta_max} deg",
-    ]
-else:
-    _gps_cmds += ["/gps/ang/type beam1d"]
-
-SIM.action.commandsConfigure = _gps_cmds
-
 SIM.physicsList = "${physlist}"
 
+# Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions
+# with per-step timing. tracker_region_zmax/rmax are defined in the compact XML.
+
+print("COMPACT FILE  =", SIM.compactFile)
+print("OUTPUT FILE   =", SIM.outputFile)
+print("PARTICLE      = ${particle}")
+print("Energy [GeV]  = ${energy}")
+print("Beam centre   = (${pos_x}, ${pos_y}) mm")
+print("sigma_x [mm]  = ${sigma_x}")
+print("sigma_y [mm]  = ${sigma_y}")
+print("sigma_E [frac]= ${sigma_E}")
+print("theta_max[deg]= ${theta_max}")
+print("Beam z [mm]   = ${BEAM_Z_MM}")
 EOF
 
     # --------------------------------------------------
     # CONDOR SHELL SCRIPT
+    # --enableG4GPS: activates G4GeneralParticleSource as the primary generator.
+    # --macroFile:   passes the GPS macro (contains /run/beamOn N).
     # --------------------------------------------------
 cat > ${steer_path}/${condorsh} <<EOF
 #!/bin/bash
@@ -155,7 +142,10 @@ source ${local}/../../init_key4hep.sh
 export LD_LIBRARY_PATH=${local}/../../install/lib64:${local}/../../install/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=${local}/../../install/lib64:${local}/../../install/lib:${local}/../../install/python:\$PYTHONPATH
 
-ddsim --steeringFile ${steer_path}/${scriptname} &> ${log_path}/${label}.log
+ddsim --enableG4GPS \\
+      --macroFile    ${steer_path}/${gpsmac} \\
+      --steeringFile ${steer_path}/${scriptname} \\
+      &> ${log_path}/${label}.log
 
 echo "Job finished"
 EOF

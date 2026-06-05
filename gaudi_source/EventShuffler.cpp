@@ -120,18 +120,23 @@ public:
           info() << "[EventShuffler] source_id=" << sourceID
                  << ": limiting to " << maxEv << " of " << nEvents << " events." << endmsg;
         }
+        size_t totalHits = 0, totalContribs = 0;
         for (size_t ev = 0; ev < maxEv; ++ev) {
           auto frame = podio::Frame(reader.readEntry("events", ev));
 
           const auto& hitsPad =
               frame.get<edm4hep::SimCalorimeterHitCollection>(colsP[i]);
 
+          totalHits += hitsPad.size();
+
           auto accum = [&](const edm4hep::SimCalorimeterHitCollection& hits,
                            std::map<uint64_t, std::vector<ContribData>>& buf) {
             for (const auto& hit : hits) {
-              auto& vec = buf[hit.getCellID()];
               const auto& hp = hit.getPosition();
               for (const auto& contrib : hit.getContributions()) {
+                // Only create the map entry when there is at least one contribution.
+                // (Avoids an empty-vector UB in buildColl if a hit has 0 contributions.)
+                auto& vec = buf[hit.getCellID()];
                 const auto& sp = contrib.getStepPosition();
                 ContribData cd;
                 cd.energy    = contrib.getEnergy();
@@ -148,11 +153,23 @@ public:
                 cd.hitY      = hp.y;
                 cd.hitZ      = hp.z;
                 vec.push_back(cd);
+                ++totalContribs;
               }
             }
           };
 
           accum(hitsPad, m_bufferSiPad);
+        }
+        info() << "[EventShuffler] source_id=" << sourceID
+               << ": processed " << totalHits << " hits, "
+               << totalContribs << " contributions across " << maxEv << " events." << endmsg;
+        if (totalContribs == 0) {
+          warning() << "[EventShuffler] WARNING: source_id=" << sourceID
+                    << " has " << totalHits << " hits but ZERO contributions."
+                    << " Check that the simulation output was produced with"
+                    << " contribution storage enabled (do NOT set"
+                    << " SIM.part.userParticleHandler='' if you need timing)."
+                    << endmsg;
         }
 
         if (nEvents < maxNEvents) {
