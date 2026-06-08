@@ -19,7 +19,7 @@
   <slice material = "Al"          thickness = "Ecal_AlThickness"   vis="AlVis"/>  
   <slice material = "Air"         thickness = "Ecal_Al_frontdistance"   vis="Invisible"/>
   <!-- Layers 2-4: W(1.40x) + W(4.20x) + CF + Cu + glue + Si(650um) + glue + Cu + PCB + chip + gap --> 
-  <layer repeat="1" vis="EcalVis">
+  <layer repeat="2" vis="EcalVis">
   <slice material = "Air"         thickness = "1.40*mm"  vis="AirVis" />
   <slice material = "TungstenDens1910" thickness = "4.20*mm"  vis="TungstenVis" />
   <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis"/>

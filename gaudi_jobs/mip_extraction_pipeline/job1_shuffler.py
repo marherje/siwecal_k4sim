@@ -6,7 +6,7 @@ from Configurables import EventShuffler
 
 shuffler = EventShuffler("EventShuffler")
 shuffler.InputFiles = [
-    "../../simulation/run_script/data/output_mu-_E5.edm4hep.root",
+    "../../simulation/run_script/data/output_beam_mu-_50GeV_xy_1_1_sigx23.5_sigy29.7_sigE0.02.edm4hep.root",
 ]
 shuffler.SourceIDs = [1]
 shuffler.Delays    = [30.0000001]   # ns

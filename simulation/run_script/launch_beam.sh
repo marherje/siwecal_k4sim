@@ -4,7 +4,7 @@
 #
 # Beam parameters (sigma_x, sigma_y) match typical CERN SPS H8 beamline optics.
 
-nevents=10
+nevents=1000
 
 sigma_x=23.5   # mm — horizontal beam sigma
 sigma_y=29.7   # mm — vertical beam sigma
