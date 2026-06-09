@@ -13,7 +13,7 @@ theta_max=0    # deg — no angular divergence
 
 for particle in "mu-"
 do
-    for energy in 50
+    for energy in 5 50
     do
         for pos_x in 1
         do
