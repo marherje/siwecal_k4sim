@@ -11,7 +11,7 @@ sigma_y=29.7   # mm — vertical beam sigma
 sigma_E=0.02   # fractional energy spread (2 %)
 theta_max=0    # deg — no angular divergence
 
-for particle in "mu-"
+for particle in "mu-" "e-"
 do
     for energy in 5 50
     do
