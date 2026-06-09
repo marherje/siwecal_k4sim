@@ -12,8 +12,8 @@ extractor = MIPExtractor("MIPExtractor")
 extractor.InputCollection = "SiPadHitsWindowed"  # raw hits in GeV (before GeV2MIP)
 extractor.BitField        = SIPAD_BITFIELD
 extractor.NLayers         = SIPAD_NLAYERS
-extractor.FitMode         = 3         # 1=Gaussian, 2=Landau, 3=LanGaus (best)
-extractor.MinEntries      = 50        # minimum hits per layer to attempt fit
+extractor.FitMode         = 1         # 1=Gaussian, 2=Landau, 3=LanGaus (best)
+extractor.MinEntries      = 100        # minimum hits per layer to attempt fit
 extractor.OutputRootFile  = "mip_extraction.root"
 extractor.OutputTextFile  = "mip_values.txt"
 extractor.OutputLevel     = INFO

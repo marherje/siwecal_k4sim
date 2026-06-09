@@ -12,11 +12,10 @@ mip = GeV2MIPConversion("GeV2MIP_SiPad")
 mip.InputCollection  = "SiPadHitsWindowed"
 mip.OutputCollection = "SiPadHitsMIP"
 # --- Single MIP value (scalar mode) ---
-mip.MIPValue = 0.0002
+#mip.MIPValue = 0.0002
 # --- Per-layer mode: uncomment and set MIPValues from mip_extraction_pipeline output ---
-# mip.MIPValues = [0.0002, 0.0002, 0.0002, 0.0002, 0.0002,
-#                  0.0002, 0.0002, 0.0002, 0.0002, 0.0002,
-#                  0.0002, 0.0002, 0.0002, 0.0002, 0.0002]
+mip.MIPValues = [0.00020, 0.00020, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015]
+
 # mip.NLayers   = SIPAD_NLAYERS
 # mip.BitField  = SIPAD_BITFIELD
 
