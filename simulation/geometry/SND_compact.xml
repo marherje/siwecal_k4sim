@@ -28,8 +28,10 @@
 
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
-    <constant name="Ecal_Al_frontdistance" value="59.7*mm"/>
-    <constant name="Ecal_Al_reardistance" value="48.4*mm"/>
+    <!-- Front distance is from Al plate to layer "1"-->
+    <constant name="Ecal_Al_frontdistance" value="64.0*mm"/>
+    <!-- Rear distance is from layer "15" to Al plate -->
+    <constant name="Ecal_Al_reardistance" value="26.0*mm"/>
 
     <!-- ECAL geometry constants (from ECAL_commondefs.xml) -->
     <constant name="env_safety"              value="0.001*mm"/>
