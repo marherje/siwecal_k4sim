@@ -13,9 +13,20 @@
     {
       "name": "SiPad planes",
       "color": [0.2, 0.7, 0.2],
-      "transparency": 95,
+      "transparency": 85,
       "voxel": {"x": 17.6, "y": 17.6, "z": 0.0325},
       "geo_extract": {"path_contains": "SiPad", "slice_index": 0}
+    },
+    {
+      "name": "Al boxes",
+      "color": [0.6, 0.6, 0.65],
+      "transparency": 85,
+      "voxel": {"x": 17.6, "y": 17.6, "z": 0.1},
+      "al_planes": {
+        "reference": "SiPad planes",
+        "front_distance_cm": 6.4,
+        "rear_distance_cm": 2.6
+      }
     }
   ]
 }

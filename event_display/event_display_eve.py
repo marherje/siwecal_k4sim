@@ -277,6 +277,23 @@ def extract_z_from_geometry(compact_xml, config):
             r["entry"]["z_range"] = {"min": zs[0] - 3.0, "max": zs[-1] + 3.0}
         print(f"[Geometry] {r['entry']['name']}: {len(zs)} layers extracted")
 
+    # Resolve al_planes entries: compute front/rear Al plate positions from
+    # the first/last z of a reference geometry entry plus the given distances.
+    geo_by_name = {g["name"]: g for g in config.get("geometry", [])}
+    for entry in config.get("geometry", []):
+        al = entry.get("al_planes")
+        if not al:
+            continue
+        ref = geo_by_name.get(al["reference"])
+        if not ref or not ref.get("layers_z_cm"):
+            print(f"[Geometry] Al boxes: reference '{al['reference']}' not found or empty.")
+            continue
+        ref_zs     = ref["layers_z_cm"]
+        front_z    = min(ref_zs) - al["front_distance_cm"]
+        rear_z     = max(ref_zs) + al["rear_distance_cm"]
+        entry["layers_z_cm"] = [round(front_z, 4), round(rear_z, 4)]
+        print(f"[Geometry] Al boxes: front={front_z:.4f} cm, rear={rear_z:.4f} cm")
+
 
 # ---------------------------------------------------------------------------
 # TRACK READER (before TEveManager)
