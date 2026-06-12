@@ -29,7 +29,7 @@
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
     <!-- Front distance is from Al plate to layer "1"-->
-    <constant name="Ecal_Al_frontdistance" value="64.0*mm"/>
+    <constant name="Ecal_Al_frontdistance" value="29.0*mm"/>
     <!-- Rear distance is from layer "15" to Al plate -->
     <constant name="Ecal_Al_reardistance" value="26.0*mm"/>
 
@@ -50,8 +50,7 @@
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
     <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
     <constant name="Ecal_LayerDistance"      value="11.0*mm"/>
-    <constant name="Ecal_dim_z" value="285*mm"/> <!-- 15*15 layers + 26 (rear space) + 30 (upfront space) + 4 (plastic plates) -->
-
+    
   <!-- Different thicknesses and gap calculations -->
     <constant name="Ecal_WaferThickness320" value="0.320*mm"/>
     <constant name="Ecal_WaferThickness500" value="0.500*mm"/>
@@ -60,7 +59,11 @@
     <constant name="Ecal_w_slab_gap500"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness500-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
     <constant name="Ecal_w_slab_gap650"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness650-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
 
-    <constant name="Ecal_TB_box_z" value="Ecal_dim_z+Ecal_Al_frontdistance+Ecal_Al_reardistance+2*Ecal_AlThickness"/>
+    <!-- Detector envelope dimensions and position -->
+    <!-- Remember the box has 17 rails!-->
+    <constant name="Ecal_TB_box_z" value="Ecal_LayerDistance*17+Ecal_Al_frontdistance+Ecal_Al_reardistance+2*Ecal_AlThickness"/>
+    <constant name="Ecal_dim_z" value="Ecal_TB_box_z+0.01*mm"/> <!-- 15*15 layers + 26 (rear space) + 30 (upfront space) + 4 (plastic plates) -->
+
 
     <!-- Required by DDSim's ParticleHandler for MC-truth links (tracker region cylinder).
          For a calorimeter-only setup, set to the detector envelope dimensions.

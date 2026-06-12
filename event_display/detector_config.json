@@ -24,7 +24,7 @@
       "voxel": {"x": 17.6, "y": 17.6, "z": 0.1},
       "al_planes": {
         "reference": "SiPad planes",
-        "front_distance_cm": 6.4,
+        "front_distance_cm": 2.9,
         "rear_distance_cm": 2.6
       }
     }
