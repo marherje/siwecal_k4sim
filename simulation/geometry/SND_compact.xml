@@ -28,8 +28,8 @@
 
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
-    <!-- Front distance is from Al plate to layer "1"-->
-    <constant name="Ecal_Al_frontdistance" value="29.0*mm"/>
+    <!-- Front distance is from Al plate to layer "-1"-->
+    <constant name="Ecal_Al_frontdistance" value="29.5*mm"/>
     <!-- Rear distance is from layer "15" to Al plate -->
     <constant name="Ecal_Al_reardistance" value="26.0*mm"/>
 

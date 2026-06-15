@@ -6,7 +6,7 @@
       "filter": {},
       "color": [1.0, 0.5, 0.0],
       "voxel": {"x": 0.275, "y": 0.275, "z": 0.0325},
-      "geo_extract": {"path_contains": "SiPad", "slice_index": 4}
+      "geo_extract": {"path_contains": "SiPad", "slice_index": 6}
     }
   ],
   "geometry": [
@@ -15,7 +15,7 @@
       "color": [0.2, 0.7, 0.2],
       "transparency": 85,
       "voxel": {"x": 17.6, "y": 17.6, "z": 0.0325},
-      "geo_extract": {"path_contains": "SiPad", "slice_index": 0}
+      "geo_extract": {"path_contains": "SiPad", "slice_index": 5}
     },
     {
       "name": "Al boxes",
