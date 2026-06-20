@@ -79,7 +79,7 @@
 
 <!-- 8 layers with 4.2mm W -->
   <layer repeat="8" vis="EcalVis">
-    <slice material = "Air"         thickness = "1.4"  vis="AirVis" />
+    <slice material = "Air"         thickness = "1.4*mm"  vis="AirVis" />
     <slice material="TungstenDens1910" thickness="4.2*mm"   vis="TungstenVis"/>
     <slice material="CarbonFiber"     thickness="Ecal_CFThickness"        vis="CFVis"/>
     <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis"/>
