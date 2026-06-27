@@ -25,6 +25,8 @@ gaudi_add_module(SND_reco
     gaudi_source/SiPadMeasConverter.cpp
     gaudi_source/MIPExtractor.cpp
     gaudi_source/RealDigitizer.cpp
+    gaudi_source/DetectorFlipper.cpp
+    gaudi_source/ChannelMapper.cpp
   LINK
     Gaudi::GaudiKernel
     k4FWCore::k4FWCore

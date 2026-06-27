@@ -1,0 +1,14 @@
+/gps/verbose 0
+/gps/particle mu-
+/gps/direction 0 0 1
+/gps/ang/rot1 1 0 0
+/gps/ang/rot2 0 1 0
+/gps/pos/type Beam
+/gps/pos/shape Circle
+/gps/pos/centre 1 1 -2000 mm
+/gps/pos/sigma_x 20.5 mm
+/gps/pos/sigma_y 16.5 mm
+/gps/ene/type Gauss
+/gps/ene/mono 100 GeV
+/gps/ene/sigma 2.0 GeV
+/run/beamOn 1000

@@ -21,6 +21,9 @@ import ROOT
 # Keep TColor object references alive (prevents Python GC from destroying them)
 _color_refs = []
 
+_N_PALETTE = 64
+_hit_palette = []
+
 # ---------------------------------------------------------------------------
 # C++ namespace for RNTuple data (avoids PyROOT GC segfault)
 # ---------------------------------------------------------------------------
@@ -70,6 +73,35 @@ def rgb_to_root_color(r, g, b):
     c = ROOT.TColor(idx, r, g, b,"")
     _color_refs.append(c)  # keep reference alive — prevents Python GC destruction
     return idx
+
+
+# ---------------------------------------------------------------------------
+# ENERGY COLOR PALETTE  (blue → green → yellow → red)
+# ---------------------------------------------------------------------------
+def _init_hit_palette():
+    global _hit_palette
+    if _hit_palette:
+        return
+    n = _N_PALETTE
+    for i in range(n):
+        t = i / (n - 1)
+        if t < 0.33:
+            s = t / 0.33
+            r, g, b = 0.0, s, 1.0 - s
+        elif t < 0.66:
+            s = (t - 0.33) / 0.33
+            r, g, b = s, 1.0, 0.0
+        else:
+            s = (t - 0.66) / 0.34
+            r, g, b = 1.0, 1.0 - s, 0.0
+        _hit_palette.append(rgb_to_root_color(r, g, b))
+
+
+def _energy_color(energy, e_max):
+    if e_max <= 0:
+        return _hit_palette[0]
+    t = max(0.0, min(1.0, energy / e_max))
+    return _hit_palette[int(t * (_N_PALETTE - 1))]
 
 
 # ---------------------------------------------------------------------------
@@ -156,9 +188,11 @@ def build_geometry(eve, config):
         transp  = geo.get("transparency", 80)
         v       = geo["voxel"]
         dx, dy, dz = v["x"], v["y"], v["z"]
+        dzs_per_layer = geo.get("layers_dz_cm")  # set when use_geometry_thickness=true
         grp = ROOT.TEveElementList(geo["name"])
         for i, z in enumerate(geo["layers_z_cm"]):
-            gs = make_box(f"{geo['name']}_{i}", dx, dy, dz,
+            dz_i = dzs_per_layer[i] if dzs_per_layer else dz
+            gs = make_box(f"{geo['name']}_{i}", dx, dy, dz_i,
                           0.0, 0.0, z, color, transparency=transp)
             grp.AddElement(gs)
         geo_list.AddElement(grp)
@@ -167,59 +201,70 @@ def build_geometry(eve, config):
 
 
 # ---------------------------------------------------------------------------
-# BUILD HITS from config
+# BUILD HITS from config  (hits coloured by energy gradient)
 # ---------------------------------------------------------------------------
 def build_hits(eve, hits_file, window_id, config):
-    hits_root = ROOT.TEveElementList(f"Hits window {window_id}")
+    _init_hit_palette()
     mm2cm = 0.1
 
+    # First pass: read all detector hits to find the global energy maximum.
+    det_hits = []
+    all_energies = []
     for det in config["detectors"]:
-        det_name   = det["name"]
-        ntuple     = det["ntuple"]
-        filter_d   = det.get("filter", {})
+        layers_z = det.get("layers_z_cm", [])
+        if not layers_z:
+            continue
         v          = det["voxel"]
         dx, dy, dz = v["x"], v["y"], v["z"]
-        layers_z   = det["layers_z_cm"]
         z_min = det.get("z_range", {}).get("min", float("-inf"))
         z_max = det.get("z_range", {}).get("max", float("inf"))
-        if len(layers_z) == 0: continue
         stereo_deg = det.get("stereo_deg", 0.0)
 
         xs, ys, zs, Es, srcs, planes = read_hits(
-            hits_file, ntuple, window_id, filter_dict=filter_d,
+            hits_file, det["ntuple"], window_id,
+            filter_dict=det.get("filter", {}),
             energy_field=det.get("energy_field", "edep"))
 
         if not xs:
-            print(f"[Hits] {det_name}: no hits")
+            print(f"[Hits] {det['name']}: no hits")
             continue
 
-        print(f"[Hits] {det_name}: {len(xs)} hits")
+        print(f"[Hits] {det['name']}: {len(xs)} hits")
+        det_hits.append((det, dx, dy, dz, layers_z, z_min, z_max, stereo_deg,
+                         xs, ys, zs, Es))
+        all_energies.extend(Es)
 
-        # Color all hits of this detector using the color from JSON config
-        r, g, b = det["color"]
-        det_color = rgb_to_root_color(r, g, b)
+    if not all_energies:
+        print("[Hits] No hits found.")
+        return
 
+    e_max = max((e for e in all_energies if e > 0), default=1.0)
+    print(f"[Hits] Energy range: {min(all_energies):.4g} .. {e_max:.4g}  (e_max for palette)")
+
+    # Second pass: draw hits coloured by energy.
+    hits_root = ROOT.TEveElementList(f"Hits window {window_id}")
+    for det, dx, dy, dz, layers_z, z_min, z_max, stereo_deg, xs, ys, zs, Es in det_hits:
+        det_name = det["name"]
         det_list = ROOT.TEveElementList(det_name)
         grp = ROOT.TEveElementList(f"{det_name} hits")
-
+        n_drawn = 0
         for i in range(len(xs)):
             xc = xs[i] * mm2cm
             yc = 0.0 if stereo_deg != 0.0 else ys[i] * mm2cm
             zc = zs[i] * mm2cm
-            # Filter on the raw hit Z before snapping to avoid out-of-range hits
-            # snapping to the nearest boundary layer and passing the range check.
             if not (z_min <= zc <= z_max):
                 continue
             snap_z = nearest_plane(zc, layers_z)
+            col = _energy_color(Es[i], e_max)
             gs = make_box(f"{det_name}_hit_{i}",
                           dx, dy, dz,
                           xc, yc, snap_z,
-                          det_color, transparency=0,
+                          col, transparency=0,
                           stereo_deg=stereo_deg)
             grp.AddElement(gs)
-
+            n_drawn += 1
         det_list.AddElement(grp)
-        print(f"[Hits]   {det_name}: {len(xs)} hits")
+        print(f"[Hits]   {det_name}: {n_drawn} hit boxes drawn")
         hits_root.AddElement(det_list)
 
     eve.GetEventScene().AddElement(hits_root)
@@ -245,12 +290,13 @@ def extract_z_from_geometry(compact_xml, config):
     for entry in config.get("detectors", []) + config.get("geometry", []):
         ge = entry.get("geo_extract")
         if ge:
-            rules[id(entry)] = {
-                "path_contains": ge["path_contains"],
-                "slice_suffix":  f"_slice_{ge['slice_index']}",
-                "entry":         entry,
-                "zs":            [],
-            }
+            rule = {"path_contains": ge["path_contains"], "entry": entry, "zs": [], "dzs": []}
+            if "slice_material" in ge:
+                mats = ge["slice_material"]
+                rule["slice_materials"] = set([mats] if isinstance(mats, str) else mats)
+            else:
+                rule["slice_suffix"] = f"_slice_{ge['slice_index']}"
+            rules[id(entry)] = rule
 
     def walk(node, path=""):
         vol  = node.GetVolume()
@@ -259,23 +305,42 @@ def extract_z_from_geometry(compact_xml, config):
         if "_slice_" in name:
             if mgr.cd(current_path):
                 t = mgr.GetCurrentMatrix().GetTranslation()
+                mat_name = vol.GetMaterial().GetName()
                 for r in rules.values():
-                    if (r["path_contains"] in current_path
-                            and name.endswith(r["slice_suffix"])):
+                    if r["path_contains"] not in current_path:
+                        continue
+                    if "slice_materials" in r:
+                        match = mat_name in r["slice_materials"]
+                    else:
+                        match = name.endswith(r["slice_suffix"])
+                    if match:
                         r["zs"].append(round(t[2], 4))
+                        r["dzs"].append(vol.GetShape().GetDZ())
         for i in range(node.GetNdaughters()):
             walk(node.GetDaughter(i), current_path)
 
     walk(mgr.GetTopNode())
 
     for r in rules.values():
-        zs = sorted(set(r["zs"]))
+        # Deduplicate by z, keeping dz of first occurrence
+        z_to_dz = {}
+        for z, dz_val in zip(r["zs"], r["dzs"]):
+            if z not in z_to_dz:
+                z_to_dz[z] = dz_val
+        zs = sorted(z_to_dz.keys())
         r["entry"]["layers_z_cm"] = zs
+        # Store per-layer geometry thickness when explicitly requested
+        ge = r["entry"].get("geo_extract", {})
+        if ge.get("use_geometry_thickness"):
+            r["entry"]["layers_dz_cm"] = [z_to_dz[z] for z in zs]
         if zs:
             # 3 cm margin covers hits anywhere inside the half-layer at the
             # detector edge.
             r["entry"]["z_range"] = {"min": zs[0] - 3.0, "max": zs[-1] + 3.0}
-        print(f"[Geometry] {r['entry']['name']}: {len(zs)} layers extracted")
+        mode = ("material=" + str(sorted(r["slice_materials"]))
+                if "slice_materials" in r
+                else "slice=" + r["slice_suffix"].split("_slice_")[1])
+        print(f"[Geometry] {r['entry']['name']}: {len(zs)} layers extracted ({mode})")
 
     # Resolve al_planes entries: compute front/rear Al plate positions from
     # the first/last z of a reference geometry entry plus the given distances.

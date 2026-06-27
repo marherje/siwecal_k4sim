@@ -5,9 +5,9 @@ pos_z=-1000
 
 dir_x=0
 
-for particle in "mu-" #"e-" #"kaon-" #"e-" "mu-" "pi-"
+for particle in "mu-" "e-" #"kaon-" #"pi-"
 do
-    for energy in 5 50 #4 6 8 10 20 30 40 50 60 70 80 90 100 125 150 175 200
+    for energy in 5 50 54 #4 6 8 10 20 30 40 60 70 80 90 100 125 150 175 200
     do
         for pos_x in 1 82.5 #0.1 0.5 1.0 2.0 5.0 10.0
         do

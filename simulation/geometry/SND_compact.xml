@@ -29,9 +29,9 @@
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
     <!-- Front distance is from Al plate to layer "-1"-->
-    <constant name="Ecal_Al_frontdistance" value="29.5*mm"/>
+    <constant name="Ecal_Al_C_frontdistance" value="29.5*mm"/>
     <!-- Rear distance is from layer "15" to Al plate -->
-    <constant name="Ecal_Al_reardistance" value="26.0*mm"/>
+    <constant name="Ecal_Al_C_reardistance" value="26.0*mm"/>
 
     <!-- ECAL geometry constants (from ECAL_commondefs.xml) -->
     <constant name="env_safety"              value="0.001*mm"/>
@@ -50,6 +50,7 @@
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
     <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
     <constant name="Ecal_LayerDistance"      value="11.0*mm"/>
+    <constant name="dummyslice"      value="0.0001*mm"/>
     
   <!-- Different thicknesses and gap calculations -->
     <constant name="Ecal_WaferThickness320" value="0.320*mm"/>
@@ -60,10 +61,8 @@
     <constant name="Ecal_w_slab_gap650"      value="Ecal_LayerDistance-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness650-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
 
     <!-- Detector envelope dimensions and position -->
-    <!-- Box has 17 rail slots (15 active + 2 empty). Each layer = slab (LayerDist=11mm) + W absorber (eff. 5.6mm).
-         Layer C carries one empty 11mm slot as its leading Air gap (the second empty slot). -->
-    <constant name="Ecal_layer_region_z" value="Ecal_NLayers*(Ecal_LayerDistance+5.6*mm)+Ecal_LayerDistance"/>
-    <constant name="Ecal_TB_box_z" value="Ecal_layer_region_z+Ecal_Al_frontdistance+Ecal_Al_reardistance+2*Ecal_AlThickness"/>
+    <!-- Box has 17 rail slots (15 active + 2 empty). Each layer counts as one LayerDistance. The rear distance is added after one extra layer used for supporting only W.-->
+    <constant name="Ecal_TB_box_z" value="Ecal_LayerDistance*17+Ecal_Al_C_frontdistance+Ecal_Al_C_reardistance+2*Ecal_AlThickness"/>           
     <constant name="Ecal_dim_z" value="Ecal_TB_box_z+0.1*mm"/>
 
 
@@ -100,7 +99,7 @@
                     grid_size_y="Ecal_CellSizeY"
                     offset_x="-(Ecal_dim_x/2.0)+0.001*mm" 
                     offset_y="-(Ecal_dim_y/2.0)+0.001*mm"/>
-      <id>system:8,layer:8,slice:4,x:9,y:9</id>
+      <id>system:8,layer:8,slice:5,x:9,y:9</id>
     </readout>
 
   </readouts>

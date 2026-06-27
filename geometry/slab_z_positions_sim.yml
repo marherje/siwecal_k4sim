@@ -1,0 +1,51 @@
+# slab_z_positions_sim.yml
+#
+# Physical z position (mm) of each active silicon sensor layer in the
+# siwecal_k4sim DD4hep simulation, extracted from the CalorimeterHit
+# positions in the digitized.edm4hep.root output.
+#
+# These differ from siwecal-tb2026/geometry/slab_z_positions.yml because:
+#  (a) the coordinate system is centred at the global origin, not slab 0,
+#  (b) the sensor centre within each layer sandwich gives a ~5.6 mm intra-
+#      layer offset relative to the absorber front face.
+#
+# Layer spacing:  ~16.6 mm for slabs 0-10,  ~27.6 mm for the gap at slab 11
+# (extra air gap between the 7th 4.2 mm-W layer and the first 5.6 mm-W layer
+# introduced by the Al box geometry in SiPadDetector.xml).
+#
+# w_thickness_mm: W absorber upstream of each slab – same profile as the
+# real detector and as siwecal-tb2026.
+
+slab_z_mm:
+  - -116.35   # slab  0  (2.8 mm W)
+  - -99.75    # slab  1  (4.2 mm W)
+  - -83.15    # slab  2  (4.2 mm W)
+  - -66.55    # slab  3  (4.2 mm W)
+  - -49.95    # slab  4  (4.2 mm W)
+  - -33.35    # slab  5  (4.2 mm W)
+  - -16.75    # slab  6  (4.2 mm W)
+  - -0.15     # slab  7  (4.2 mm W)
+  - 16.45     # slab  8  (5.6 mm W)
+  - 33.05     # slab  9  (5.6 mm W)
+  - 49.65     # slab 10  (5.6 mm W)
+  - 77.25     # slab 11  (5.6 mm W)  ← wider gap (Al box geometry)
+  - 93.85     # slab 12  (5.6 mm W)
+  - 110.45    # slab 13  (5.6 mm W)
+  - 126.98    # slab 14  (5.6 mm W, 0.65 mm Si wafer)
+
+w_thickness_mm:
+  - 2.8     # slab  0
+  - 4.2     # slab  1
+  - 4.2     # slab  2
+  - 4.2     # slab  3
+  - 4.2     # slab  4
+  - 4.2     # slab  5
+  - 4.2     # slab  6
+  - 4.2     # slab  7
+  - 5.6     # slab  8
+  - 5.6     # slab  9
+  - 5.6     # slab 10
+  - 5.6     # slab 11
+  - 5.6     # slab 12
+  - 5.6     # slab 13
+  - 5.6     # slab 14

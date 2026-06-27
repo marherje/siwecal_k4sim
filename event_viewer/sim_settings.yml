@@ -1,0 +1,19 @@
+# sim_settings.yml
+#
+# siwecal_common.paths configuration for the siwecal_k4sim simulation repo.
+#
+# Set via:  export SIWECAL_SETTINGS=/path/to/siwecal_k4sim/event_viewer/sim_settings.yml
+# (event_viewer/launch_sim.sh does this automatically)
+#
+# data_dir:     where the pipeline outputs live (ecal_sim.root, ecal_sim.edm4hep.root)
+# geometry_dir: simulation slab_z_positions.yml (simulation coordinate system)
+# pid_dir:      same directory (k4SiWEcalReco writes next to the ecal tree)
+
+data_dir:
+  - ./gaudi_jobs/1_mu_beam_pipeline
+
+geometry_dir: ./geometry
+
+pid_dir: null
+cache_dir: null
+output_dir: ./analysis/output
