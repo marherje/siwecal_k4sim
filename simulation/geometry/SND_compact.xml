@@ -42,7 +42,6 @@
     <constant name="Ecal_CellSizeY"          value="5.5*mm"/>
     <constant name="Ecal_dim_x"              value="2*Ecal_NcellsX*Ecal_CellSizeX"/>
     <constant name="Ecal_dim_y"              value="2*Ecal_NcellsY*Ecal_CellSizeY"/>
-    <constant name="Ecal_z_position"         value="0*mm"/>
     <constant name="Ecal_CFThickness"        value="1.5*mm"/>
     <constant name="Ecal_KaptonThickness"    value="0.1*mm"/>
     <constant name="Ecal_GlueThickness_kap"  value="0.1*mm"/>
@@ -64,6 +63,7 @@
     <!-- Box has 17 rail slots (15 active + 2 empty). Each layer counts as one LayerDistance. The rear distance is added after one extra layer used for supporting only W.-->
     <constant name="Ecal_TB_box_z" value="Ecal_LayerDistance*17+Ecal_Al_C_frontdistance+Ecal_Al_C_reardistance+2*Ecal_AlThickness"/>           
     <constant name="Ecal_dim_z" value="Ecal_TB_box_z+0.1*mm"/>
+    <constant name="Ecal_z_position"         value="Ecal_dim_z/2.0"/>
 
 
     <!-- Required by DDSim's ParticleHandler for MC-truth links (tracker region cylinder).
