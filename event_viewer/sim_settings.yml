@@ -10,7 +10,7 @@
 # pid_dir:      same directory (k4SiWEcalReco writes next to the ecal tree)
 
 data_dir:
-  - ./gaudi_jobs/1_mu_beam_pipeline
+  - ./gaudi_jobs/1_e54_beam_pipeline
 
 geometry_dir: ./geometry
 
