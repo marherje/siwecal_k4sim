@@ -1,0 +1,28 @@
+# Build artifacts
+build/
+install/
+__pycache__/
+*.pyc
+*.pyo
+
+# ROOT files (large binary data — use EOS or CERNBox instead)
+*.root
+
+# Compiled shared libraries
+*.so
+*.so.*
+*.a
+*.dylib
+
+# Python virtual environments
+.venv*/
+
+# Simulation output data
+simulation/run_script/data/
+simulation/run_script/log/
+simulation/run_script/steer/*.mac
+
+# Editor / OS
+.DS_Store
+*.swp
+*~
