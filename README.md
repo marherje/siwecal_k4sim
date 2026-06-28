@@ -4,7 +4,7 @@ Full key4hep simulation + reconstruction chain for the SiW-ECAL test beam 2026.
 
 **Stack:** DD4hep v01-35 / key4hep 2026-02-01 / Gaudi v40 / ROOT 6.38 / AlmaLinux 9 (lxplus)
 
-**Companion repo:** `../siwecal-tb2026` — k4SiWEcalReco plugin, event_viewer, calibration
+**Companion repo:** `../siwecal-tb2026` — k4SiWEcalReco plugin, calibration
 
 ---
 
@@ -55,9 +55,8 @@ bash build.sh                  # cmake + make install → install/
 bash setup_venv.sh
 ```
 
-This script:
-1. Creates `../siwecal-tb2026/.venv-viewer` with `dash` and `plotly` on top of key4hep Python
-2. Builds `../siwecal-tb2026/k4SiWEcalReco` if not already built
+This script creates `.venv-viewer` (in this repo root) with `dash` and `plotly`
+on top of key4hep Python.
 
 > After this step, `source init_siwecal_soft.sh` is all you need every session.
 
@@ -100,6 +99,8 @@ siwecal_k4sim/
 │   ├── run_pid_sim.sh        ← sim→ecal tree + k4SiWEcalReco in one step
 │   └── tests/
 │
+├── mappings/                 ← pad maps, slab-z positions, W thicknesses
+│
 ├── masking_info/
 │   ├── geometry/             ← FEV10/FEV11 chip-channel→(x,y) pad maps
 │   └── calibration/          ← MIP calibration files (dummy + MuonCalib_it2)
@@ -109,9 +110,10 @@ siwecal_k4sim/
 │   ├── detector_config.json
 │   └── launch.sh
 │
-└── event_viewer/             ← Dash web viewer (uses siwecal-tb2026)
+└── event_viewer/             ← Dash web viewer (self-contained)
     ├── launch_sim.sh
-    └── sim_settings.yml
+    ├── sim_settings.yml
+    └── [Python package — app.py, model/, ui/, viz/, ...]
 ```
 
 ---

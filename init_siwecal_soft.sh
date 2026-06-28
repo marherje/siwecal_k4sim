@@ -27,7 +27,17 @@ export LD_LIBRARY_PATH="${REPO_ROOT}/install/lib64:${REPO_ROOT}/install/lib:${LD
 export PYTHONPATH="${REPO_ROOT}/install/lib64:${REPO_ROOT}/install/lib:${REPO_ROOT}/install/python:${REPO_ROOT}:${PYTHONPATH}"
 
 # ---------------------------------------------------------------------------
-# 3. siwecal-tb2026: k4SiWEcalReco plugin + event_viewer + siwecal_validation
+# 3. Event viewer virtualenv (adds dash/plotly on top of key4hep)
+# ---------------------------------------------------------------------------
+VENV="${REPO_ROOT}/.venv-viewer"
+if [[ -f "${VENV}/bin/activate" ]]; then
+    source "${VENV}/bin/activate"
+else
+    echo "[siwecal] WARNING: event_viewer venv missing — run bash setup_venv.sh first (see README)"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. siwecal-tb2026: k4SiWEcalReco plugin + siwecal_validation
 # ---------------------------------------------------------------------------
 if [[ -n "${TB2026_ROOT}" ]]; then
     export PYTHONPATH="${TB2026_ROOT}:${PYTHONPATH}"
@@ -40,16 +50,8 @@ if [[ -n "${TB2026_ROOT}" ]]; then
     else
         echo "[siwecal] WARNING: k4SiWEcalReco not built — run bash setup_venv.sh first (see README)"
     fi
-
-    # Event viewer virtualenv (adds dash/plotly on top of key4hep)
-    VENV="${TB2026_ROOT}/.venv-viewer"
-    if [[ -f "${VENV}/bin/activate" ]]; then
-        source "${VENV}/bin/activate"
-    else
-        echo "[siwecal] WARNING: event_viewer venv missing — run bash setup_venv.sh first (see README)"
-    fi
 else
-    echo "[siwecal] WARNING: siwecal-tb2026 not found at ${REPO_ROOT}/../siwecal-tb2026"
+    echo "[siwecal] WARNING: siwecal-tb2026 not found at ${REPO_ROOT}/../siwecal-tb2026 (needed for k4SiWEcalReco)"
 fi
 
 # ---------------------------------------------------------------------------
