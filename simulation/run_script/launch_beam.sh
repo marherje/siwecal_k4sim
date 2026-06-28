@@ -6,12 +6,16 @@
 
 nevents=1000
 
-sigma_x_e=13.75   # mm — horizontal beam sigma
-sigma_y_e=8.25  # mm — vertical beam sigma
+sigma_x_e=13.75  # mm — horizontal beam sigma
+sigma_y_e=8.25   # mm — vertical beam sigma
 sigma_E_e=0.02   # fractional energy spread (2 %)
 
-sigma_x_mu=20.5   # mm — horizontal beam sigma
-sigma_y_mu=16.5   # mm — vertical beam sigma
+sigma_x_mu=38.5   # mm — horizontal beam sigma
+sigma_y_mu=46.75  # mm — vertical beam sigma
+sigma_E_mu=0.02   # fractional energy spread (2 %)
+
+sigma_x_mu=24.75  # mm — horizontal beam sigma                                                                 
+sigma_y_mu=13.75  # mm — vertical beam sigma                                                                                     
 sigma_E_mu=0.02   # fractional energy spread (2 %)
 
 theta_max=0    # deg — no angular divergence
