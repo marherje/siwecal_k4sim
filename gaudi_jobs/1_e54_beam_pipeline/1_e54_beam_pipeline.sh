@@ -7,7 +7,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${REPO_ROOT}/gaudi_jobs/1_e54_beam_pipeline"
 
-SIM_FILE="../../simulation/run_script/data/output_beam_e-_54GeV_xy_-45_45_sigx20.5_sigy16.5_sigE0.02.edm4hep.root"
+SIM_FILE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/output_beam_e-_54GeV_xy_-45_45_sigx20.5_sigy16.5_sigE0.02.edm4hep.root"
 
 echo "=== Step 1: digitize + flip + channel mapping ==="
 INPUT_FILE="${SIM_FILE}" k4run job3_digitize.py 2>&1 | grep -v "^TCling::LoadPCM"

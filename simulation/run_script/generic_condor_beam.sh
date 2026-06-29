@@ -10,7 +10,7 @@
 #                             <sigma_E_frac>                      \
 #                             [theta_max_deg]
 
-mkdir -p steer data log
+mkdir -p steer log
 
 nevents=$1
 particle=$2
@@ -25,7 +25,7 @@ BEAM_Z_MM=-2000
 
 local=$PWD
 geometry_folder="${local}/../geometry"
-data_path="${local}/data"
+data_path="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
 steer_path="${local}/steer"
 log_path="${local}/log"
 

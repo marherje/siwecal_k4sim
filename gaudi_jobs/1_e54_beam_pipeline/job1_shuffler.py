@@ -3,7 +3,7 @@ from Configurables import EventShuffler
 
 shuffler = EventShuffler("EventShuffler")
 shuffler.InputFiles = [
-    "../../simulation/run_script/data/output_beam_e-_54GeV_xy_-45_45_sigx20.5_sigy16.5_sigE0.02.edm4hep.root",
+    "/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/output_beam_e-_54GeV_xy_-45_45_sigx20.5_sigy16.5_sigE0.02.edm4hep.root",
 ]
 shuffler.SourceIDs = [1]
 shuffler.Delays    = [30.0000000001]   # ns

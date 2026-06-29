@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Crear directorios si no existen
-mkdir -p steer data log macros
+mkdir -p steer log macros
 
 # inputs
 nevents=$1
@@ -17,7 +17,7 @@ dir_z=$9
 # Paths
 local=$PWD
 geometry_folder="${local}/../geometry"
-data_path="${local}/data"
+data_path="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
 steer_path="${local}/steer"
 log_path="${local}/log"
 
