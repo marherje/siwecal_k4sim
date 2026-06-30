@@ -21,7 +21,7 @@ mip.MIPValues = [0.00020, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 
 dig = BasicDigitizer("BasicDigitizer_SiPad")
 dig.InputCollection  = "SiPadHitsMIP"
 dig.OutputCollection = "SiPadHitsDigi"
-dig.Threshold = 0.5
+dig.Threshold = 0.0
 dig.DebugFrequency = 500
 
 flip = DetectorFlipper("DetectorFlipper_SiPad")

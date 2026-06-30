@@ -26,7 +26,7 @@ mip.MIPValue = 0.0002
 dig = RealDigitizer("RealDigitizer_SiPad")
 dig.InputCollection    = "SiPadHitsMIP"
 dig.OutputCollection   = "SiPadHitsDigi"
-dig.Threshold          = 0.5
+dig.Threshold = 0.0
 dig.DigitizationMode   = "simple"   # "simple" = MIP cut (same as BasicDigitizer)
                                     # "real"   = realistic digitization (placeholder)
 dig.DebugFrequency     = 500
