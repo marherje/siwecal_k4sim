@@ -25,7 +25,7 @@ BEAM_Z_MM=-2000
 
 local=$PWD
 geometry_folder="${local}/../geometry"
-data_path="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
+data_path="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated"
 steer_path="${local}/steer"
 log_path="${local}/log"
 

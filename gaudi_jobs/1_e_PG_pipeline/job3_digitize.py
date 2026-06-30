@@ -25,21 +25,21 @@ flip = DetectorFlipper("DetectorFlipper_SiPad")
 flip.InputCollection  = "SiPadHitsDigi"
 flip.OutputCollection = "SiPadHitsFlipped"
 flip.ZPositions = [
-    -116.35,  # layer  0  (2.8 mm W)
-     -99.75,  # layer  1  (4.2 mm W)
-     -83.15,  # layer  2
-     -66.55,  # layer  3
-     -49.95,  # layer  4
-     -33.35,  # layer  5
-     -16.75,  # layer  6
-      -0.15,  # layer  7
-      16.45,  # layer  8  (5.6 mm W)
-      33.05,  # layer  9
-      49.65,  # layer 10
-      77.25,  # layer 11
-      93.85,  # layer 12
-     110.45,  # layer 13
-     126.98,  # layer 14
+      0.0,   # slab  0  (2.8 mm W)
+    -11.0,   # slab  1  (4.2 mm W)
+    -22.0,   # slab  2
+    -33.0,   # slab  3
+    -44.0,   # slab  4
+    -55.0,   # slab  5
+    -66.0,   # slab  6
+    -77.0,   # slab  7
+    -88.0,   # slab  8
+    -99.0,   # slab  9
+   -110.0,   # slab 10
+   -132.0,   # slab 11
+   -143.0,   # slab 12
+   -154.0,   # slab 13
+   -165.0,   # slab 14
 ]
 flip.BitField = "system:8,layer:8,slice:5,x:9,y:9"
 flip.DebugFrequency = 500

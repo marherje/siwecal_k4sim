@@ -11,15 +11,12 @@ iosvc.Input  = infile
 iosvc.Output = "digitized.edm4hep.root"
 
 mip = GeV2MIPConversion("GeV2MIP_SiPad")
-mip.InputCollection  = "SiPadHitsWindowed"
+mip.InputCollection  = "SiPadHits"
 mip.OutputCollection = "SiPadHitsMIP"
 # --- Single MIP value (scalar mode) ---
 #mip.MIPValue = 0.0002
 # --- Per-layer mode: uncomment and set MIPValues from mip_extraction_pipeline output ---
 mip.MIPValues = [0.00020, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015]
-
-# mip.NLayers   = SIPAD_NLAYERS
-# mip.BitField  = SIPAD_BITFIELD
 
 dig = BasicDigitizer("BasicDigitizer_SiPad")
 dig.InputCollection  = "SiPadHitsMIP"
@@ -27,39 +24,25 @@ dig.OutputCollection = "SiPadHitsDigi"
 dig.Threshold = 0.5
 dig.DebugFrequency = 500
 
-# DetectorFlipper: rewrite the z coordinate of each hit to a canonical
-# per-layer z table.  This is needed for real TB data where the detector is
-# physically flipped with respect to the simulation convention.
-#
-# For SIMULATION the defaults reproduce the DD4hep z values, so the output
-# is physically identical to SiPadHitsDigi (useful to test the algorithm and
-# to produce a single canonical collection for downstream analysis).
-#
-# For real TB data, override ZPositions with the desired z convention, e.g.:
-#   flip.ZPositions = list(reversed([...]))
-#
-# The collection SiPadHitsFlipped is what analysis/sim_to_ecal_tree.py reads.
 flip = DetectorFlipper("DetectorFlipper_SiPad")
 flip.InputCollection  = "SiPadHitsDigi"
 flip.OutputCollection = "SiPadHitsFlipped"
-# Default: simulation z positions (layer 0 at front = most negative z).
-# Override here for real TB (flipped) data.
 flip.ZPositions = [
-    -116.35,  # layer  0  (2.8 mm W)
-     -99.75,  # layer  1  (4.2 mm W)
-     -83.15,  # layer  2
-     -66.55,  # layer  3
-     -49.95,  # layer  4
-     -33.35,  # layer  5
-     -16.75,  # layer  6
-      -0.15,  # layer  7
-      16.45,  # layer  8  (5.6 mm W)
-      33.05,  # layer  9
-      49.65,  # layer 10
-      77.25,  # layer 11
-      93.85,  # layer 12
-     110.45,  # layer 13
-     126.98,  # layer 14
+      0.0,   # slab  0  (2.8 mm W)
+    -11.0,   # slab  1  (4.2 mm W)
+    -22.0,   # slab  2
+    -33.0,   # slab  3
+    -44.0,   # slab  4
+    -55.0,   # slab  5
+    -66.0,   # slab  6
+    -77.0,   # slab  7
+    -88.0,   # slab  8
+    -99.0,   # slab  9
+   -110.0,   # slab 10
+   -132.0,   # slab 11
+   -143.0,   # slab 12
+   -154.0,   # slab 13
+   -165.0,   # slab 14
 ]
 flip.BitField = "system:8,layer:8,slice:5,x:9,y:9"
 flip.DebugFrequency = 500

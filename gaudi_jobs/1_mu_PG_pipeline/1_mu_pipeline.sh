@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+EOS_BASE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
+SIM_FILE="${EOS_BASE}/Generated/output_PG_mu-_xyz_1_1_-1000_dir_0_0_1_E54.edm4hep.root"
+LABEL=$(basename "${SIM_FILE}" .edm4hep.root | sed 's/^output_//')
+PROCESSED="${EOS_BASE}/Processed"
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${REPO_ROOT}/gaudi_jobs/1_mu_PG_pipeline"
 
@@ -26,3 +31,15 @@ bash analysis/run_pid_sim.sh \
     --ecal-tree "${REPO_ROOT}/gaudi_jobs/1_mu_PG_pipeline/ecal_sim.root" \
     --outdir  "${REPO_ROOT}/gaudi_jobs/1_mu_PG_pipeline" \
     --format  both
+
+PIPELINE_DIR="${REPO_ROOT}/gaudi_jobs/1_mu_PG_pipeline"
+echo "=== Copying outputs to Processed ==="
+cp "${PIPELINE_DIR}/digitized.edm4hep.root" "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
+for ext in edm4hep.root valtree.root; do
+    src="${PIPELINE_DIR}/ecal_sim.${ext}"
+    [[ -f "${src}" ]] && cp "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"
+done
+[[ -f "${PIPELINE_DIR}/ShipHits.root" ]] && \
+    cp "${PIPELINE_DIR}/ShipHits.root" "${PROCESSED}/${LABEL}_ShipHits.root"
+echo "=== Done. Outputs in ${PROCESSED}/ ==="
+ls -lh "${PROCESSED}/${LABEL}"* 2>/dev/null || true
