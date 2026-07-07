@@ -43,7 +43,7 @@ if [[ -n "${TB2026_ROOT}" ]]; then
     export PYTHONPATH="${TB2026_ROOT}:${PYTHONPATH}"
 
     # k4SiWEcalReco Gaudi plugin (shower variables: barz, moliere, ...)
-    K4RECO_BUILD="${TB2026_ROOT}/k4SiWEcalReco/build"
+    K4RECO_BUILD="${TB2026_ROOT}/gaudi_source/build"
     if [[ -f "${K4RECO_BUILD}/libk4SiWEcalRecoPlugins.so" ]]; then
         export LD_LIBRARY_PATH="${K4RECO_BUILD}:${LD_LIBRARY_PATH}"
         export PYTHONPATH="${K4RECO_BUILD}/genConfDir:${PYTHONPATH}"

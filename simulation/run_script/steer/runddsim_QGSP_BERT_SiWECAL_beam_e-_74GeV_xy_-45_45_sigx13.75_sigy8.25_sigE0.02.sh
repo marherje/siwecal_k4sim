@@ -8,13 +8,13 @@ source /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/.
 export LD_LIBRARY_PATH=/afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/../../install/lib64:/afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/../../install/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=/afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/../../install/lib64:/afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/../../install/lib:/afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/../../install/python:$PYTHONPATH
 
-LOCAL_OUTPUT="output_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
-REMOTE_OUTPUT="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated/output_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
+LOCAL_OUTPUT="output_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
+REMOTE_OUTPUT="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated/output_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
 
 ddsim --enableG4GPS \
-      --macroFile    /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/steer/gps_QGSP_BERT_SiWECAL_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.mac \
-      --steeringFile /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/steer/runddsim_QGSP_BERT_SiWECAL_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.py \
-      &> /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/log/QGSP_BERT_SiWECAL_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.log
+      --macroFile    /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/steer/gps_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.mac \
+      --steeringFile /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/steer/runddsim_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.py \
+      &> /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/log/QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.log
 DDSIM_RC=$?
 
 if [[ ! -f "${LOCAL_OUTPUT}" ]] || [[ ! -s "${LOCAL_OUTPUT}" ]]; then

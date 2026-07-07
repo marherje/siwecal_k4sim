@@ -107,9 +107,12 @@ SIM.runType   = "run"
 SIM.skipNEvents = 0
 SIM.compactFile  = str(compact_path)
 SIM._compactFile = SIM.compactFile
-SIM.outputFile   = os.path.abspath(
-    "${data_path}/output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
-)
+# Write to the job's local scratch dir first, then stage out to EOS via xrdcp
+# in the condor shell script below. Writing directly to a /eos-mounted path
+# from a batch worker (eosxd FUSE) can report success while the file never
+# lands in the EOS namespace if the write-back cache isn't flushed before the
+# job slot is torn down. See runddsim shell script for the verified stage-out.
+SIM.outputFile   = "output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
 SIM.physicsList = "${physlist}"
 
 # Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions
@@ -137,7 +140,7 @@ EOF
 cat > ${steer_path}/${condorsh} <<EOF
 #!/bin/bash
 # Note: no set -e — ddsim with runType="run"+GPS crashes during Geant4 cleanup
-# even when all events are written. We validate the output file instead.
+# even when all events are written. We validate the local output file instead.
 
 echo "Starting beam-test job on \$(hostname)"
 
@@ -145,7 +148,8 @@ source ${local}/../../init_key4hep.sh
 export LD_LIBRARY_PATH=${local}/../../install/lib64:${local}/../../install/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=${local}/../../install/lib64:${local}/../../install/lib:${local}/../../install/python:\$PYTHONPATH
 
-EXPECTED_OUTPUT="${expected_output}"
+LOCAL_OUTPUT="output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
+REMOTE_OUTPUT="${expected_output}"
 
 ddsim --enableG4GPS \\
       --macroFile    ${steer_path}/${gpsmac} \\
@@ -153,16 +157,35 @@ ddsim --enableG4GPS \\
       &> ${log_path}/${label}.log
 DDSIM_RC=\$?
 
-if [[ \${DDSIM_RC} -ne 0 ]]; then
-    if [[ -f "\${EXPECTED_OUTPUT}" ]] && [[ -s "\${EXPECTED_OUTPUT}" ]]; then
-        echo "WARNING: ddsim exit code \${DDSIM_RC} — Geant4 cleanup crash after all events written. Output OK."
-    else
-        echo "ERROR: ddsim failed (exit \${DDSIM_RC}) and output file missing or empty."
-        exit 1
-    fi
+if [[ ! -f "\${LOCAL_OUTPUT}" ]] || [[ ! -s "\${LOCAL_OUTPUT}" ]]; then
+    echo "ERROR: ddsim (exit \${DDSIM_RC}) produced no usable local output file."
+    exit 1
 fi
 
-echo "Job finished. Output: \${EXPECTED_OUTPUT}"
+if [[ \${DDSIM_RC} -ne 0 ]]; then
+    echo "WARNING: ddsim exit code \${DDSIM_RC} — Geant4 cleanup crash after all events written. Local output OK, staging out."
+fi
+
+# Stage out via xrdcp (synchronous xrootd transfer through the redirector),
+# NOT a plain cp through the worker's /eos FUSE mount: eosxd write-back
+# caching on ephemeral batch slots can report a successful local write that
+# never actually reaches the EOS namespace before the job slot is torn down.
+LOCAL_SIZE=\$(stat -c%s "\${LOCAL_OUTPUT}")
+
+xrdcp --force "\${LOCAL_OUTPUT}" "root://eosexperiment.cern.ch/\${REMOTE_OUTPUT}"
+XRDCP_RC=\$?
+if [[ \${XRDCP_RC} -ne 0 ]]; then
+    echo "ERROR: xrdcp stage-out to EOS failed (exit \${XRDCP_RC})."
+    exit 1
+fi
+
+REMOTE_SIZE=\$(xrdfs eosexperiment.cern.ch stat "\${REMOTE_OUTPUT}" 2>/dev/null | awk '/Size:/{print \$2}')
+if [[ -z "\${REMOTE_SIZE}" ]] || [[ "\${REMOTE_SIZE}" != "\${LOCAL_SIZE}" ]]; then
+    echo "ERROR: stage-out verification failed (local=\${LOCAL_SIZE} bytes, remote='\${REMOTE_SIZE}')."
+    exit 1
+fi
+
+echo "Job finished. Output: \${REMOTE_OUTPUT} (verified \${REMOTE_SIZE} bytes on EOS)"
 EOF
 
     chmod +x ${steer_path}/${condorsh}

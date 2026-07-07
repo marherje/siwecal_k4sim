@@ -22,9 +22,12 @@ SIM.runType   = "run"
 SIM.skipNEvents = 0
 SIM.compactFile  = str(compact_path)
 SIM._compactFile = SIM.compactFile
-SIM.outputFile   = os.path.abspath(
-    "/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated/output_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
-)
+# Write to the job's local scratch dir first, then stage out to EOS via xrdcp
+# in the condor shell script below. Writing directly to a /eos-mounted path
+# from a batch worker (eosxd FUSE) can report success while the file never
+# lands in the EOS namespace if the write-back cache isn't flushed before the
+# job slot is torn down. See runddsim shell script for the verified stage-out.
+SIM.outputFile   = "output_beam_e-_54GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.edm4hep.root"
 SIM.physicsList = "QGSP_BERT"
 
 # Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions

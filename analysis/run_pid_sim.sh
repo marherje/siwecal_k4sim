@@ -11,11 +11,11 @@
 # Prerequisites
 # -------------
 #   a) key4hep environment sourced  (source init_key4hep.sh)
-#   b) k4SiWEcalReco built in siwecal-tb2026:
+#   b) k4SiWEcalReco built in siwecal-tb2026 (now under gaudi_source/):
 #        cd ../siwecal-tb2026
 #        source setup.sh
-#        cmake -S k4SiWEcalReco -B k4SiWEcalReco/build && \
-#          cmake --build k4SiWEcalReco/build -j$(nproc)
+#        cmake -S gaudi_source -B gaudi_source/build && \
+#          cmake --build gaudi_source/build -j$(nproc)
 #
 # Usage
 # -----
@@ -77,11 +77,11 @@ done
 # --------------------------------------------------------------------------- #
 # Verify k4SiWEcalReco build
 # --------------------------------------------------------------------------- #
-K4RECO_BUILD="${TB2026_ROOT}/k4SiWEcalReco/build"
+K4RECO_BUILD="${TB2026_ROOT}/gaudi_source/build"
 if [[ ! -f "${K4RECO_BUILD}/libk4SiWEcalRecoPlugins.so" ]]; then
     echo "ERROR: k4SiWEcalReco not built. Run from ${TB2026_ROOT}:"
-    echo "  cmake -S k4SiWEcalReco -B k4SiWEcalReco/build && \\"
-    echo "    cmake --build k4SiWEcalReco/build -j\$(nproc)"
+    echo "  cmake -S gaudi_source -B gaudi_source/build && \\"
+    echo "    cmake --build gaudi_source/build -j\$(nproc)"
     exit 1
 fi
 
@@ -110,7 +110,7 @@ fi
 # --------------------------------------------------------------------------- #
 echo ""
 echo "=== Step 2/2: k4SiWEcalReco (shower variables + event selection) ==="
-python3 "${TB2026_ROOT}/k4SiWEcalReco/run_pid_batch.py" \
+python3 "${TB2026_ROOT}/gaudi_jobs/run_pid_batch.py" \
     --file   "${ECAL_TREE}" \
     --outdir "${OUT_DIR}" \
     --format "${FORMAT}" \
