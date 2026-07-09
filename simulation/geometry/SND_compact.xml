@@ -48,7 +48,7 @@
     <constant name="Ecal_GlueThickness_pcb"  value="0.1*mm"/>
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
     <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
-    <constant name="Ecal_LayerDistance"      value="11.0*mm"/>
+    <constant name="Ecal_LayerDistance"      value="15.0*mm"/>
     <constant name="dummyslice"      value="0.0001*mm"/>
     <!-- W+post-W-air budget already included as slices in SiPadDetector.xml:
          4.2mm W + 1.4mm air = 5.6mm (slabs 1-8); 5.6mm W + dummyslice ≈ 5.6mm (slabs 9-14).
@@ -61,9 +61,6 @@
     <constant name="Ecal_WaferThickness650" value="0.650*mm"/>
     <constant name="Ecal_w_slab_gap320"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness320-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
     <constant name="Ecal_w_slab_gap500"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness500-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
-    <!-- Si650(0.65mm) + W(5.6mm) + fixed(4.8mm) = 11.05mm > 11mm: no positive gap fits.
-         Slab 14 (the only Si650 layer) is the last active slab; DetectorFlipper overrides
-         its Z to -165mm, so the 0.05mm excess is irrelevant for analysis. -->
     <constant name="Ecal_w_slab_gap650"      value="dummyslice"/>
 
     <!-- Detector envelope dimensions and position -->
