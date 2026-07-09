@@ -38,8 +38,8 @@
     <constant name="Ecal_NLayers"            value="15"/>
     <constant name="Ecal_NcellsX"            value="32"/>
     <constant name="Ecal_NcellsY"            value="32"/>
-    <constant name="Ecal_CellSizeX"          value="5.5*mm"/>
-    <constant name="Ecal_CellSizeY"          value="5.5*mm"/>
+    <constant name="Ecal_CellSizeX"          value="5.625*mm"/>
+    <constant name="Ecal_CellSizeY"          value="5.625*mm"/>
     <constant name="Ecal_dim_x"              value="Ecal_NcellsX*Ecal_CellSizeX"/>
     <constant name="Ecal_dim_y"              value="Ecal_NcellsY*Ecal_CellSizeY"/>
     <constant name="Ecal_CFThickness"        value="1.5*mm"/>
@@ -104,8 +104,8 @@
       <segmentation type="CartesianGridXY"
                     grid_size_x="Ecal_CellSizeX"
                     grid_size_y="Ecal_CellSizeY"
-                    offset_x="-(Ecal_dim_x/2.0)+0.001*mm" 
-                    offset_y="-(Ecal_dim_y/2.0)+0.001*mm"/>
+                    offset_x="-(Ecal_dim_x-Ecal_CellSizeX)/2.0" 
+                    offset_y="-(Ecal_dim_y-Ecal_CellSizeY)/2.0"/>
       <id>system:8,layer:8,slice:5,x:9,y:9</id>
     </readout>
 
