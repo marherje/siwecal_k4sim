@@ -76,7 +76,6 @@
   <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" />
   <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis"/>
   <slice material = "TungstenDens1910" thickness = "5.6*mm"  vis="TungstenVis" />
-  <slice material = "Air" thickness = "dummyslice"  vis="AirVis" />
   </layer>
 
   <layer repeat="1" vis="EcalVis">
@@ -104,7 +103,6 @@
   <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" />
   <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis"/>
   <slice material = "TungstenDens1910" thickness = "5.6*mm"  vis="TungstenVis" />
-  <slice material = "Air" thickness = "dummyslice"  vis="AirVis" />
   </layer>
 
   <layer repeat="1" vis="EcalVis">

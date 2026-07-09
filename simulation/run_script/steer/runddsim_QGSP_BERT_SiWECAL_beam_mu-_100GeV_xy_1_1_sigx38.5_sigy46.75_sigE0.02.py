@@ -27,7 +27,7 @@ SIM._compactFile = SIM.compactFile
 # from a batch worker (eosxd FUSE) can report success while the file never
 # lands in the EOS namespace if the write-back cache isn't flushed before the
 # job slot is torn down. See runddsim shell script for the verified stage-out.
-SIM.outputFile   = "output_beam_mu-_100GeV_xy_1_1_sigx24.75_sigy13.75_sigE0.02.edm4hep.root"
+SIM.outputFile   = "output_beam_mu-_100GeV_xy_1_1_sigx38.5_sigy46.75_sigE0.02.edm4hep.root"
 SIM.physicsList = "QGSP_BERT"
 
 # Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions
@@ -38,8 +38,8 @@ print("OUTPUT FILE   =", SIM.outputFile)
 print("PARTICLE      = mu-")
 print("Energy [GeV]  = 100")
 print("Beam centre   = (1, 1) mm")
-print("sigma_x [mm]  = 24.75")
-print("sigma_y [mm]  = 13.75")
+print("sigma_x [mm]  = 38.5")
+print("sigma_y [mm]  = 46.75")
 print("sigma_E [frac]= 0.02")
 print("theta_max[deg]= ")
 print("Beam z [mm]   = -2000")
