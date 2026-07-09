@@ -1,8 +1,0 @@
-executable              = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/steer/runddsim_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.sh
-log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/log/runddsim_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.log
-output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/log/outfile_runddsim_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.txt
-error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/log/errors_runddsim_QGSP_BERT_SiWECAL_beam_e-_74GeV_xy_-45_45_sigx13.75_sigy8.25_sigE0.02.txt
-should_transfer_files   = Yes
-when_to_transfer_output = ON_EXIT
-+JobFlavour             = "tomorrow"
-queue 1
