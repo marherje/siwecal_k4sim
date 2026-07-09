@@ -49,7 +49,6 @@
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
     <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
     <constant name="Ecal_LayerDistance"      value="15.0*mm"/>
-    <constant name="dummyslice"      value="0.0001*mm"/>
     <!-- W+post-W-air budget already included as slices in SiPadDetector.xml:
          4.2mm W + 1.4mm air = 5.6mm (slabs 1-8); 5.6mm W + dummyslice ≈ 5.6mm (slabs 9-14).
          Subtracting this from Ecal_LayerDistance restores the correct 11mm slab period. -->
@@ -61,7 +60,7 @@
     <constant name="Ecal_WaferThickness650" value="0.650*mm"/>
     <constant name="Ecal_w_slab_gap320"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness320-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
     <constant name="Ecal_w_slab_gap500"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness500-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
-    <constant name="Ecal_w_slab_gap650"      value="dummyslice"/>
+    <constant name="Ecal_w_slab_gap650"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness650-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
 
     <!-- Detector envelope dimensions and position -->
     <!-- Box has 17 rail slots (15 active + 2 empty). Each layer counts as one LayerDistance. The rear distance is added after one extra layer used for supporting only W.-->
