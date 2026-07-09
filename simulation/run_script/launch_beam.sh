@@ -14,9 +14,9 @@ sigma_x_mu=38.5   # mm — horizontal beam sigma
 sigma_y_mu=46.75  # mm — vertical beam sigma
 sigma_E_mu=0.02   # fractional energy spread (2 %)
 
-sigma_x_mu=24.75  # mm — horizontal beam sigma                                                                 
-sigma_y_mu=13.75  # mm — vertical beam sigma                                                                                     
-sigma_E_mu=0.02   # fractional energy spread (2 %)
+sigma_x_pi=24.75  # mm — horizontal beam sigma                                                                 
+sigma_y_pi=13.75  # mm — vertical beam sigma                                                                                     
+sigma_E_pi=0.02   # fractional energy spread (2 %)
 
 theta_max=0    # deg — no angular divergence
 
@@ -24,7 +24,7 @@ theta_max=0    # deg — no angular divergence
 
 for particle in "e-"
 do
-    for energy in 54
+    for energy in 52 74
     do
         for pos_x in -45
         do
