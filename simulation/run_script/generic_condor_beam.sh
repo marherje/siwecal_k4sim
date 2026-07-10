@@ -200,6 +200,10 @@ output                  = ${log_path}/outfile_${condorfile}.txt
 error                   = ${log_path}/errors_${condorfile}.txt
 should_transfer_files   = Yes
 when_to_transfer_output = ON_EXIT
+# The big .edm4hep.root is staged out to EOS by xrdcp inside the job; do NOT
+# let Condor ALSO transfer it back into the AFS steer/ dir (that duplicate is
+# what filled the AFS home volume). Empty = transfer no output files back.
+transfer_output_files   = ""
 +JobFlavour             = "tomorrow"
 queue 1
 EOF

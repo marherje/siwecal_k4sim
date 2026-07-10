@@ -59,7 +59,12 @@ SIM.skipNEvents    = 0
 
 SIM.compactFile = str(compact_path)
 SIM._compactFile = SIM.compactFile
-SIM.outputFile     = os.path.abspath("${data_path}/output_PG_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root")
+# Write to the job's local scratch dir first, then stage out to EOS via xrdcp
+# in the condor shell script below. Writing directly to a /eos-mounted path
+# from a batch worker (eosxd FUSE) can report success while the file never
+# lands in the EOS namespace if the write-back cache isn't flushed before the
+# job slot is torn down -- same reasoning (and fix) as generic_condor_beam.sh.
+SIM.outputFile     = "output_PG_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root"
 
 print("COMPACT FILE =", SIM.compactFile)
 print("PARTICLE =", "${particle}")
@@ -83,6 +88,8 @@ EOF
     # --------------------------------------------------
     # SCRIPT condor
     # --------------------------------------------------
+expected_output="${data_path}/output_PG_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root"
+
 cat > ${steer_path}/${condorsh} <<EOF
 #!/bin/bash
 set -e
@@ -93,9 +100,29 @@ source ${local}/../../init_key4hep.sh
 export LD_LIBRARY_PATH=${local}/../../install/lib64:${local}/../../install/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=${local}/../../install/lib64:${local}/../../install/lib:${local}/../../install/python:\$PYTHONPATH
 
+LOCAL_OUTPUT="output_PG_${particle}_xyz_${pos_x}_${pos_y}_${pos_z}_dir_${dir_x}_${dir_y}_${dir_z}_E${energy}.edm4hep.root"
+REMOTE_OUTPUT="${expected_output}"
+
 ddsim --steeringFile ${steer_path}/${scriptname} &> ${log_path}/${label}.log
 
-echo "Job finished"
+if [[ ! -s "\${LOCAL_OUTPUT}" ]]; then
+    echo "ERROR: ddsim produced no usable local output file."
+    exit 1
+fi
+
+# Stage out via xrdcp (synchronous xrootd transfer), NOT a plain cp through the
+# worker's /eos FUSE mount -- eosxd write-back caching on ephemeral batch slots
+# can report a successful write that never reaches the EOS namespace. Verify the
+# remote size matches before declaring success.
+LOCAL_SIZE=\$(stat -c%s "\${LOCAL_OUTPUT}")
+xrdcp --force "\${LOCAL_OUTPUT}" "root://eosexperiment.cern.ch/\${REMOTE_OUTPUT}"
+REMOTE_SIZE=\$(xrdfs eosexperiment.cern.ch stat "\${REMOTE_OUTPUT}" 2>/dev/null | awk '/Size:/{print \$2}')
+if [[ -z "\${REMOTE_SIZE}" ]] || [[ "\${REMOTE_SIZE}" != "\${LOCAL_SIZE}" ]]; then
+    echo "ERROR: stage-out verification failed (local=\${LOCAL_SIZE} bytes, remote='\${REMOTE_SIZE}')."
+    exit 1
+fi
+
+echo "Job finished. Output: \${REMOTE_OUTPUT} (verified \${REMOTE_SIZE} bytes on EOS)"
 EOF
 
     chmod +x ${steer_path}/${condorsh}
@@ -110,6 +137,9 @@ output                  = ${log_path}/outfile_${condorfile}.txt
 error                   = ${log_path}/errors_${condorfile}.txt
 should_transfer_files   = Yes
 when_to_transfer_output = ON_EXIT
+# The .edm4hep.root is staged out to EOS by xrdcp inside the job; don't let
+# Condor also copy it back into the AFS steer/ dir.
+transfer_output_files   = ""
 +JobFlavour             = "tomorrow"
 queue 1
 EOF
