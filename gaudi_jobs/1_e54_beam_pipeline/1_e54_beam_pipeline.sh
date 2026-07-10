@@ -27,12 +27,12 @@ bash analysis/run_pid_sim.sh \
     --outdir    "${REPO_ROOT}/gaudi_jobs/1_e54_beam_pipeline" \
     --format    both 2>&1 | grep -v "^TCling::LoadPCM"
 
-echo "=== Copying outputs to Processed ==="
-cp "${REPO_ROOT}/gaudi_jobs/1_e54_beam_pipeline/digitized.edm4hep.root" \
+echo "=== Moving outputs to Processed (EOS only) ==="
+mv "${REPO_ROOT}/gaudi_jobs/1_e54_beam_pipeline/digitized.edm4hep.root" \
    "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
-for ext in edm4hep.root valtree.root; do
+for ext in root edm4hep.root valtree.root; do
     src="${REPO_ROOT}/gaudi_jobs/1_e54_beam_pipeline/ecal_sim.${ext}"
-    [[ -f "${src}" ]] && cp "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"
+    [[ -f "${src}" ]] && mv "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"
 done
 
 echo "=== Done. Outputs in ${PROCESSED}/ ==="

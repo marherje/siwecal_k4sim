@@ -33,13 +33,13 @@ bash analysis/run_pid_sim.sh \
     --format  both
 
 PIPELINE_DIR="${REPO_ROOT}/gaudi_jobs/1_e_PG_pipeline"
-echo "=== Copying outputs to Processed ==="
-cp "${PIPELINE_DIR}/digitized.edm4hep.root" "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
-for ext in edm4hep.root valtree.root; do
+echo "=== Moving outputs to Processed (EOS only) ==="
+mv "${PIPELINE_DIR}/digitized.edm4hep.root" "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
+for ext in root edm4hep.root valtree.root; do
     src="${PIPELINE_DIR}/ecal_sim.${ext}"
-    [[ -f "${src}" ]] && cp "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"
+    [[ -f "${src}" ]] && mv "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"
 done
 [[ -f "${PIPELINE_DIR}/ShipHits.root" ]] && \
-    cp "${PIPELINE_DIR}/ShipHits.root" "${PROCESSED}/${LABEL}_ShipHits.root"
+    mv "${PIPELINE_DIR}/ShipHits.root" "${PROCESSED}/${LABEL}_ShipHits.root"
 echo "=== Done. Outputs in ${PROCESSED}/ ==="
 ls -lh "${PROCESSED}/${LABEL}"* 2>/dev/null || true

@@ -25,9 +25,9 @@ echo "=== Step 5: RNTuple conversion ==="
 k4run job5_rntuple.py
 
 PIPELINE_DIR="${REPO_ROOT}/gaudi_jobs/1_mu_PG_digi_pipeline"
-echo "=== Copying outputs to Processed ==="
-cp "${PIPELINE_DIR}/digitized.edm4hep.root" "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
+echo "=== Moving outputs to Processed (EOS only) ==="
+mv "${PIPELINE_DIR}/digitized.edm4hep.root" "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
 [[ -f "${PIPELINE_DIR}/ShipHits.root" ]] && \
-    cp "${PIPELINE_DIR}/ShipHits.root" "${PROCESSED}/${LABEL}_ShipHits.root"
+    mv "${PIPELINE_DIR}/ShipHits.root" "${PROCESSED}/${LABEL}_ShipHits.root"
 echo "=== Done. Outputs in ${PROCESSED}/ ==="
 ls -lh "${PROCESSED}/${LABEL}"* 2>/dev/null || true
