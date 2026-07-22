@@ -1,0 +1,8 @@
+executable              = /home/llr/ilc/shi/code/siwecal_k4sim/simulation/run_script/steer/runddsim_QGSP_BERT_SND_gamma_10GeV_xyz_1_1_-1000_dir_0_0_1.sh
+log                     = /home/llr/ilc/shi/code/siwecal_k4sim/simulation/run_script/log/runddsim_QGSP_BERT_SND_gamma_10GeV_xyz_1_1_-1000_dir_0_0_1.log
+output                  = /home/llr/ilc/shi/code/siwecal_k4sim/simulation/run_script/log/outfile_runddsim_QGSP_BERT_SND_gamma_10GeV_xyz_1_1_-1000_dir_0_0_1.txt
+error                   = /home/llr/ilc/shi/code/siwecal_k4sim/simulation/run_script/log/errors_runddsim_QGSP_BERT_SND_gamma_10GeV_xyz_1_1_-1000_dir_0_0_1.txt
+should_transfer_files   = Yes
+when_to_transfer_output = ON_EXIT
++JobFlavour             = "tomorrow"
+queue 1

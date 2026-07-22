@@ -1,0 +1,298 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Linux - 5.14.0-687.24.1.el9_8.x86_64 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is GNU, found in:
+        /grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/3.31.9/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635"
+      binary: "/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635'
+        
+        Run Build Command(s): /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/bin/cmake -E env VERBOSE=1 /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/gmake/4.4.1-4wkzy5/bin/gmake -f Makefile cmTC_0c226/fast
+        /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/gmake/4.4.1-4wkzy5/bin/gmake  -f CMakeFiles/cmTC_0c226.dir/build.make CMakeFiles/cmTC_0c226.dir/build
+        gmake[1]: Entering directory '/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635'
+        Building CXX object CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o
+        /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++   -v -o CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -c /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp
+        Reading specs from /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/specs
+        COLLECT_GCC=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++
+        Target: x86_64-pc-linux-gnu
+        Configured with: /tmp/root/spack-stage/spack-stage-gcc-14.2.0-yuyjovbj674fjegq6wc77cad7e3em7cz/spack-src/configure --prefix=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov --with-pkgversion='Spack GCC' --with-bugurl=https://github.com/spack/spack/issues --disable-multilib --enable-languages=c,c++,fortran --disable-nls --disable-canonical-system-headers --with-system-zlib --with-zstd-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/include --with-zstd-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib --enable-bootstrap --with-mpfr-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/include --with-mpfr-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib --with-gmp-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/include --with-gmp-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib --with-mpc-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/include --with-mpc-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib --without-isl --with-stage1-ldflags='-Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl,-rpath,/usr/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl,-rpath,/usr/lib64' --with-boot-ldflags='-Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl,-rpath,/usr/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl,-rpath,/usr/lib64 -static-libstdc++ -static-libgcc' --with-build-config=spack
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.2.0 (Spack GCC) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/'
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/cc1plus -quiet -v -D_GNU_SOURCE /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_0c226.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -o /tmp/cc0kmDTF.s
+        GNU C++17 (Spack GCC) version 14.2.0 (x86_64-pc-linux-gnu)
+        	compiled by GNU C version 14.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version none
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../x86_64-pc-linux-gnu/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3
+         /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c
+         .
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/x86_64-pc-linux-gnu
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/backward
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include
+         /usr/local/include
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed
+         /usr/include
+        End of search list.
+        Compiler executable checksum: 977b54070944ff66393c22789a043924
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/'
+         as -v --64 -o CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc0kmDTF.s
+        GNU assembler version 2.35.2 (x86_64-redhat-linux) using BFD version version 2.35.2-72.el9
+        COMPILER_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/
+        LIBRARY_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_0c226
+        /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c226.dir/link.txt --verbose=1
+        Reading specs from /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/specs
+        COLLECT_GCC=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++
+        COLLECT_LTO_WRAPPER=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper
+        Target: x86_64-pc-linux-gnu
+        Configured with: /tmp/root/spack-stage/spack-stage-gcc-14.2.0-yuyjovbj674fjegq6wc77cad7e3em7cz/spack-src/configure --prefix=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov --with-pkgversion='Spack GCC' --with-bugurl=https://github.com/spack/spack/issues --disable-multilib --enable-languages=c,c++,fortran --disable-nls --disable-canonical-system-headers --with-system-zlib --with-zstd-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/include --with-zstd-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib --enable-bootstrap --with-mpfr-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/include --with-mpfr-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib --with-gmp-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/include --with-gmp-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib --with-mpc-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/include --with-mpc-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib --without-isl --with-stage1-ldflags='-Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl,-rpath,/usr/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl,-rpath,/usr/lib64' --with-boot-ldflags='-Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl,-rpath,/usr/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl,-rpath,/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl,-rpath,/usr/lib64 -static-libstdc++ -static-libgcc' --with-build-config=spack
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.2.0 (Spack GCC) 
+        COMPILER_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/
+        LIBRARY_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c226' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c226.'
+         /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/collect2 -plugin /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/liblto_plugin.so -plugin-opt=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccfjLXBp.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_0c226 /lib/../lib64/crt1.o /lib/../lib64/crti.o /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../.. -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -v CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o /lib/../lib64/crtn.o
+        collect2 version 14.2.0
+        /usr/bin/ld -plugin /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/liblto_plugin.so -plugin-opt=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccfjLXBp.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_0c226 /lib/../lib64/crt1.o /lib/../lib64/crti.o /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../.. -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -v CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o /lib/../lib64/crtn.o
+        GNU ld version 2.35.2-72.el9
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c226' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c226.'
+        /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++  -v -Wl,-v CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_0c226
+        gmake[1]: Leaving directory '/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:182 (message)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include]
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim]
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet]
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest]
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3]
+          add: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c]
+          add: [.]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/x86_64-pc-linux-gnu]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/backward]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include]
+          add: [/usr/local/include]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include]
+          add: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include]
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim]
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet]
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest]
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3]
+        collapse include dir [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c] ==> [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c]
+        skipping relative include dir [.]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/x86_64-pc-linux-gnu] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0/x86_64-pc-linux-gnu]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/backward] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0/backward]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include]
+        collapse include dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include;/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim;/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet;/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest;/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3;/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0/x86_64-pc-linux-gnu;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include/c++/14.2.0/backward;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include;/usr/local/include;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: '/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635']
+        ignore line: []
+        ignore line: [Run Build Command(s): /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/bin/cmake -E env VERBOSE=1 /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/gmake/4.4.1-4wkzy5/bin/gmake -f Makefile cmTC_0c226/fast]
+        ignore line: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/gmake/4.4.1-4wkzy5/bin/gmake  -f CMakeFiles/cmTC_0c226.dir/build.make CMakeFiles/cmTC_0c226.dir/build]
+        ignore line: [gmake[1]: Entering directory '/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/CMakeScratch/TryCompile-cNi635']
+        ignore line: [Building CXX object CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++   -v -o CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -c /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Reading specs from /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/specs]
+        ignore line: [COLLECT_GCC=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: /tmp/root/spack-stage/spack-stage-gcc-14.2.0-yuyjovbj674fjegq6wc77cad7e3em7cz/spack-src/configure --prefix=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov --with-pkgversion='Spack GCC' --with-bugurl=https://github.com/spack/spack/issues --disable-multilib --enable-languages=c c++ fortran --disable-nls --disable-canonical-system-headers --with-system-zlib --with-zstd-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/include --with-zstd-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib --enable-bootstrap --with-mpfr-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/include --with-mpfr-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib --with-gmp-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/include --with-gmp-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib --with-mpc-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/include --with-mpc-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib --without-isl --with-stage1-ldflags='-Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl -rpath /usr/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl -rpath /usr/lib64' --with-boot-ldflags='-Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl -rpath /usr/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl -rpath /usr/lib64 -static-libstdc++ -static-libgcc' --with-build-config=spack]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.2.0 (Spack GCC) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/']
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/cc1plus -quiet -v -D_GNU_SOURCE /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_0c226.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -o /tmp/cc0kmDTF.s]
+        ignore line: [GNU C++17 (Spack GCC) version 14.2.0 (x86_64-pc-linux-gnu)]
+        ignore line: [	compiled by GNU C version 14.2.0  GMP version 6.3.0  MPFR version 4.2.1  MPC version 1.3.1  isl version none]
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/vdt/0.4.6-anefar/include]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/physsim/0.5-phv4lo/include/physsim]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaldet/1.14.1-lskksd/include/kaldet]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/kaltest/2.5.2-gul7v5/include/kaltest]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/eigen/3.4.1-waefhw/include/eigen3]
+        ignore line: [ /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/lcio/2.23.1-4fc34c]
+        ignore line: [ .]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/x86_64-pc-linux-gnu]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../include/c++/14.2.0/backward]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/include]
+        ignore line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/include-fixed]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [Compiler executable checksum: 977b54070944ff66393c22789a043924]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/']
+        ignore line: [ as -v --64 -o CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc0kmDTF.s]
+        ignore line: [GNU assembler version 2.35.2 (x86_64-redhat-linux) using BFD version version 2.35.2-72.el9]
+        ignore line: [COMPILER_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.']
+        ignore line: [Linking CXX executable cmTC_0c226]
+        ignore line: [/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c226.dir/link.txt --verbose=1]
+        ignore line: [Reading specs from /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/specs]
+        ignore line: [COLLECT_GCC=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/bin/g++]
+        ignore line: [COLLECT_LTO_WRAPPER=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: /tmp/root/spack-stage/spack-stage-gcc-14.2.0-yuyjovbj674fjegq6wc77cad7e3em7cz/spack-src/configure --prefix=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov --with-pkgversion='Spack GCC' --with-bugurl=https://github.com/spack/spack/issues --disable-multilib --enable-languages=c c++ fortran --disable-nls --disable-canonical-system-headers --with-system-zlib --with-zstd-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/include --with-zstd-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib --enable-bootstrap --with-mpfr-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/include --with-mpfr-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib --with-gmp-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/include --with-gmp-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib --with-mpc-include=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/include --with-mpc-lib=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib --without-isl --with-stage1-ldflags='-Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl -rpath /usr/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl -rpath /usr/lib64' --with-boot-ldflags='-Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc-runtime/11.4.1-iirbq6/lib -Wl -rpath /usr/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gmp/6.3.0-muwmro/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpc/1.3.1-vlnywl/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/mpfr/4.2.1-hhq42j/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zlib-ng/2.2.1-zuvv5w/lib -Wl -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/zstd/1.5.6-psqlx2/lib -Wl -rpath /usr/lib64 -static-libstdc++ -static-libgcc' --with-build-config=spack]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.2.0 (Spack GCC) ]
+        ignore line: [COMPILER_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c226' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c226.']
+        link line: [ /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/collect2 -plugin /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/liblto_plugin.so -plugin-opt=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccfjLXBp.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_0c226 /lib/../lib64/crt1.o /lib/../lib64/crti.o /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../.. -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -v CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o /lib/../lib64/crtn.o]
+          arg [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccfjLXBp.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_0c226] ==> ignore
+          arg [/lib/../lib64/crt1.o] ==> obj [/lib/../lib64/crt1.o]
+          arg [/lib/../lib64/crti.o] ==> obj [/lib/../lib64/crti.o]
+          arg [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o] ==> obj [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o]
+          arg [-L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0] ==> dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0]
+          arg [-L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64] ==> dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64]
+          arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+          arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+          arg [-L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../..] ==> dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../..]
+          arg [-rpath] ==> ignore
+          arg [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64] ==> ignore
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lm] ==> lib [m]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o] ==> obj [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o]
+          arg [/lib/../lib64/crtn.o] ==> obj [/lib/../lib64/crtn.o]
+        ignore line: [collect2 version 14.2.0]
+        ignore line: [/usr/bin/ld -plugin /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/liblto_plugin.so -plugin-opt=/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/libexec/gcc/x86_64-pc-linux-gnu/14.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccfjLXBp.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_0c226 /lib/../lib64/crt1.o /lib/../lib64/crti.o /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../.. -rpath /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64 -v CMakeFiles/cmTC_0c226.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o /lib/../lib64/crtn.o]
+        linker tool for 'CXX': /usr/bin/ld
+        collapse obj [/lib/../lib64/crt1.o] ==> [/lib64/crt1.o]
+        collapse obj [/lib/../lib64/crti.o] ==> [/lib64/crti.o]
+        collapse obj [/lib/../lib64/crtn.o] ==> [/lib64/crtn.o]
+        collapse library dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0]
+        collapse library dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../../../lib64] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64]
+        collapse library dir [/lib/../lib64] ==> [/lib64]
+        collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+        collapse library dir [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/../../..] ==> [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib]
+        implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+        implicit objs: [/lib64/crt1.o;/lib64/crti.o;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtbegin.o;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0/crtend.o;/lib64/crtn.o]
+        implicit dirs: [/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib/gcc/x86_64-pc-linux-gnu/14.2.0;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib64;/lib64;/usr/lib64;/cvmfs/sw.hsf.org/contrib/x86_64-almalinux9-gcc11.4.1-opt/gcc/14.2.0-yuyjov/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "/cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/cmake/3.31.9-oz7y6u/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Running the CXX compiler's linker: "/usr/bin/ld" "-v"
+      GNU ld version 2.35.2-72.el9
+...

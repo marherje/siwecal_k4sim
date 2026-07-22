@@ -47,3 +47,9 @@ python event_display_eve.py --hits ../gaudi_jobs/2_mu_pipeline/ShipHits.root --w
 # where window is the "event"
 
 ```
+
+## Digitizer examples
+
+`RealDigitizer` supports a contribution-level cell-shaping mode. See
+`gaudi_jobs/time_digi_example/` for the standalone shaping plot example and
+digitizer usage example.

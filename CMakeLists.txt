@@ -45,6 +45,7 @@ gaudi_add_module(SND_reco
 )
 target_include_directories(SND_reco PRIVATE
     /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/acts/44.3.0-37xe73/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 install(TARGETS SiPadDetector_plugin LIBRARY DESTINATION lib)
