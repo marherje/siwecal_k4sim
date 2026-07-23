@@ -186,15 +186,27 @@ def build_geometry(eve, config):
         r, g, b = geo["color"]
         color   = rgb_to_root_color(r, g, b)
         transp  = geo.get("transparency", 80)
-        v       = geo["voxel"]
-        dx, dy, dz = v["x"], v["y"], v["z"]
-        dzs_per_layer = geo.get("layers_dz_cm")  # set when use_geometry_thickness=true
         grp = ROOT.TEveElementList(geo["name"])
-        for i, z in enumerate(geo["layers_z_cm"]):
-            dz_i = dzs_per_layer[i] if dzs_per_layer else dz
-            gs = make_box(f"{geo['name']}_{i}", dx, dy, dz_i,
-                          0.0, 0.0, z, color, transparency=transp)
-            grp.AddElement(gs)
+
+        # boxes_cm is set by extract_z_from_geometry for entries with
+        # use_geometry_placement: one box per placed volume, with its own
+        # transverse position and half-sizes. This is what makes the segmented
+        # silicon visible — four wafers per layer with the guard-ring cross
+        # between them, instead of one continuous plane.
+        boxes = geo.get("boxes_cm")
+        if boxes:
+            for i, (x, y, z, dx, dy, dz) in enumerate(boxes):
+                grp.AddElement(make_box(f"{geo['name']}_{i}", dx, dy, dz,
+                                        x, y, z, color, transparency=transp))
+        else:
+            v = geo["voxel"]
+            dx, dy, dz = v["x"], v["y"], v["z"]
+            dzs_per_layer = geo.get("layers_dz_cm")  # set when use_geometry_thickness=true
+            for i, z in enumerate(geo["layers_z_cm"]):
+                dz_i = dzs_per_layer[i] if dzs_per_layer else dz
+                gs = make_box(f"{geo['name']}_{i}", dx, dy, dz_i,
+                              0.0, 0.0, z, color, transparency=transp)
+                grp.AddElement(gs)
         geo_list.AddElement(grp)
     eve.GetGlobalScene().AddElement(geo_list)
     print(f"[Geometry] Built {len(config.get('geometry', []))} detector groups.")
@@ -281,16 +293,24 @@ def extract_z_from_geometry(compact_xml, config):
     because TEveGeoShape positions via RefMainTrans, independent of gGeoManager.
     Translation values from GetCurrentMatrix() are in cm (ROOT TGeo convention).
     """
-    ROOT.gSystem.Load("libDDCore")
+    # Both of these are no-ops the second time round *only if* they are guarded.
+    # Re-loading libDDCore after the dd4hep python module has already pulled it
+    # in segfaults, and dd4hep::Detector is a process-wide singleton whose state
+    # a second fromXML() corrupts. Neither matters when this script runs on its
+    # own; both do when it is driven from a test that also touches dd4hep.
+    if "libDDCore" not in ROOT.gSystem.GetLibraries():
+        ROOT.gSystem.Load("libDDCore")
     desc = ROOT.dd4hep.Detector.getInstance()
-    desc.fromXML(compact_xml)
+    if desc.state() != ROOT.dd4hep.Detector.READY:
+        desc.fromXML(compact_xml)
     mgr = ROOT.gGeoManager
 
     rules = {}
     for entry in config.get("detectors", []) + config.get("geometry", []):
         ge = entry.get("geo_extract")
         if ge:
-            rule = {"path_contains": ge["path_contains"], "entry": entry, "zs": [], "dzs": []}
+            rule = {"path_contains": ge["path_contains"], "entry": entry,
+                    "zs": [], "dzs": [], "places": []}
             if "slice_material" in ge:
                 mats = ge["slice_material"]
                 rule["slice_materials"] = set([mats] if isinstance(mats, str) else mats)
@@ -298,26 +318,46 @@ def extract_z_from_geometry(compact_xml, config):
                 rule["slice_suffix"] = f"_slice_{ge['slice_index']}"
             rules[id(entry)] = rule
 
-    def walk(node, path=""):
+    def walk(node, path="", taken=frozenset()):
+        """Record matching volumes, outermost one wins.
+
+        ``taken`` carries the rules already satisfied by an ancestor. A silicon
+        sensor is a dead rim volume holding a sensitive pad array, both made of
+        silicon, so a material rule matches twice along the same path; drawing
+        both would put a second, slightly smaller box inside every sensor. The
+        outer one is the physical sensor, which is what should be drawn.
+        """
         vol  = node.GetVolume()
         name = vol.GetName()
         current_path = path + "/" + node.GetName()
+        matched_here = set()
         if "_slice_" in name:
             if mgr.cd(current_path):
                 t = mgr.GetCurrentMatrix().GetTranslation()
                 mat_name = vol.GetMaterial().GetName()
-                for r in rules.values():
-                    if r["path_contains"] not in current_path:
+                for key, r in rules.items():
+                    if key in taken or r["path_contains"] not in current_path:
                         continue
                     if "slice_materials" in r:
                         match = mat_name in r["slice_materials"]
                     else:
                         match = name.endswith(r["slice_suffix"])
                     if match:
+                        matched_here.add(key)
+                        shape = vol.GetShape()
                         r["zs"].append(round(t[2], 4))
-                        r["dzs"].append(vol.GetShape().GetDZ())
+                        r["dzs"].append(shape.GetDZ())
+                        # Full placement, for use_geometry_placement entries. A
+                        # sensitive slice is now an array of wafers, so x/y are
+                        # no longer always 0 and the half-sizes are the wafer's,
+                        # not the plane's.
+                        r["places"].append((round(t[0], 4), round(t[1], 4),
+                                            round(t[2], 4),
+                                            shape.GetDX(), shape.GetDY(),
+                                            shape.GetDZ()))
+        below = taken | matched_here
         for i in range(node.GetNdaughters()):
-            walk(node.GetDaughter(i), current_path)
+            walk(node.GetDaughter(i), current_path, below)
 
     walk(mgr.GetTopNode())
 
@@ -333,6 +373,13 @@ def extract_z_from_geometry(compact_xml, config):
         ge = r["entry"].get("geo_extract", {})
         if ge.get("use_geometry_thickness"):
             r["entry"]["layers_dz_cm"] = [z_to_dz[z] for z in zs]
+        # Draw the volumes where they actually are (one box per wafer) rather
+        # than one full-plane box per layer.
+        if ge.get("use_geometry_placement"):
+            boxes = sorted(set(r["places"]))
+            r["entry"]["boxes_cm"] = boxes
+            print(f"[Geometry] {r['entry']['name']}: {len(boxes)} placed volume(s) "
+                  f"({len(boxes) // len(zs) if zs else 0} per layer)")
         if zs:
             # 3 cm margin covers hits anywhere inside the half-layer at the
             # detector edge.

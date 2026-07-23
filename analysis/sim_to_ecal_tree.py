@@ -69,6 +69,12 @@ _X0_W_MM = 3.5  # radiation length of tungsten [mm]
 _LAYER_X0 = [sum(_W_THICKNESS_MM[:l + 1]) / _X0_W_MM
              for l in range(len(_W_THICKNESS_MM))]
 
+# Sampling weight of layer l = thickness of ITS OWN absorber / X0_W (0.8, 1.2 or 1.6).
+# Not to be confused with _LAYER_X0 above, which is cumulative: this one is the
+# per-layer weight used to correct for the non-uniform sampling fraction, and it
+# matches event_viewer/_metrics.py:hit_weights().
+_LAYER_W_X0 = [w / _X0_W_MM for w in _W_THICKNESS_MM]
+
 
 def _decode_layer_sim(cellid: int) -> int:
     """Extract layer from simulation-format CellID (layer:8 field)."""
@@ -176,6 +182,7 @@ def convert(
     b_hit_y        = np.zeros(MAX_HITS, dtype=np.float32)
     b_hit_z        = np.zeros(MAX_HITS, dtype=np.float32)
     b_hit_X0       = np.zeros(MAX_HITS, dtype=np.float32)
+    b_hit_w_energy = np.zeros(MAX_HITS, dtype=np.float32)
 
     tree.Branch("hit_slab",     b_hit_slab,     "hit_slab[nhit_chan]/I")
     tree.Branch("hit_chip",     b_hit_chip,     "hit_chip[nhit_chan]/I")
@@ -189,6 +196,7 @@ def convert(
     tree.Branch("hit_y",        b_hit_y,        "hit_y[nhit_chan]/F")
     tree.Branch("hit_z",        b_hit_z,        "hit_z[nhit_chan]/F")
     tree.Branch("hit_X0",       b_hit_X0,       "hit_X0[nhit_chan]/F")
+    tree.Branch("hit_w_energy", b_hit_w_energy, "hit_w_energy[nhit_chan]/F")
 
     # ---------------------------------------------------------------------- #
     # Fill loop
@@ -265,6 +273,10 @@ def convert(
             b_hit_y[i]        = float(pos.y)
             b_hit_z[i]        = float(pos.z)
             b_hit_X0[i]       = float(_LAYER_X0[slab]) if slab < len(_LAYER_X0) else 0.0
+            # Tungsten-weighted energy: E * W[slab] / X0, i.e. the hit corrected
+            # for the absorber depth of its own layer.
+            b_hit_w_energy[i] = (float(energy) * _LAYER_W_X0[slab]
+                                 if slab < len(_LAYER_W_X0) else 0.0)
 
             slabs_seen.add(slab)
             chips_seen.add(chip)

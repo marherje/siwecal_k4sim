@@ -282,7 +282,7 @@ private:
       this, "InputCollection", "SiPadHitsWindowed",
       "Input SimCalorimeterHit collection (raw, in GeV)"};
   Gaudi::Property<std::string> m_bitField{
-      this, "BitField", "system:8,layer:8,slice:4,x:9,y:9",
+      this, "BitField", "system:8,layer:8,slice:5,x:9,y:9",
       "DD4hep BitField encoding string for CellID decoding"};
   Gaudi::Property<int> m_nLayers{
       this, "NLayers", 15,

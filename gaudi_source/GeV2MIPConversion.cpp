@@ -160,7 +160,7 @@ private:
       this, "NLayers", 0,
       "Expected number of detector layers for validation (0 = skip check)"};
   Gaudi::Property<std::string> m_bitField{
-      this, "BitField", "system:8,layer:8,slice:4,x:9,y:9",
+      this, "BitField", "system:8,layer:8,slice:5,x:9,y:9",
       "DD4hep BitField encoding string used to decode the 'layer' field from CellID"};
   Gaudi::Property<int> m_debugFreq{
       this, "DebugFrequency", 500, "Print per-hit debug info every N events"};

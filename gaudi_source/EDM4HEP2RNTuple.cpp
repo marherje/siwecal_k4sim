@@ -584,7 +584,7 @@ private:
       "Input SimCalorimeterHit collection names, one per detector"};
   Gaudi::Property<std::vector<std::string>> m_bitFields{
       this, "BitFields",
-      {"system:8,layer:8,slice:4,x:9,y:9"},
+      {"system:8,layer:8,slice:5,x:9,y:9"},
       "DD4hep BitField encoding string for each collection"};
   Gaudi::Property<std::vector<std::string>> m_sourceIDParams{
       this, "SourceIDParams",

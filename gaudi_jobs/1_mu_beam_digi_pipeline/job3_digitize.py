@@ -2,7 +2,7 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import GeV2MIPConversion, RealDigitizer
 import os
 
-SIPAD_BITFIELD = "system:8,layer:8,slice:4,x:9,y:9"
+SIPAD_BITFIELD = "system:8,layer:8,slice:5,x:9,y:9"
 SIPAD_NLAYERS  = 15
 
 infile = os.environ.get("INPUT_FILE", "timewindows.edm4hep.root")

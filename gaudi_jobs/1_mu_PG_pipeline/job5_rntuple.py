@@ -1,7 +1,7 @@
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EDM4HEP2RNTuple
 
-SIPAD_BITFIELD = "system:8,layer:8,slice:4,x:9,y:9"
+SIPAD_BITFIELD = "system:8,layer:8,slice:5,x:9,y:9"
 
 iosvc = IOSvc()
 iosvc.Input = ["tracks.edm4hep.root"]

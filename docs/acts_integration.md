@@ -84,7 +84,7 @@ The three converters write `edm4hep::TrackerHit3D` collections that `ACTSProtoTr
 Converts `SiTargetHitsWindowed` (EDM4HEP `SimTrackerHit`) → `TrackerHit3D`. `type=0` (SiTarget), `quality=plane` (0=StripX, 1=StripY). Strip coordinate is the global x or y (depending on plane) stored in `position`.
 
 ### SiPadMeasConverter (`gaudi_source/SiPadMeasConverter.cpp`)
-Converts `SiPadHitsWindowed` (`SimCalorimeterHit`) → `TrackerHit3D`. `type=1`, `quality=layer` (0…19) — used by `ACTSProtoTracker` for `surfaceByAddress(1, -1, layer, -1)`. 2D pad coordinate is `(position.x, position.y)`; per-coord variance = pitch²/12 with `PixelSizeX = PixelSizeY = 5.5 mm` by default.
+Converts `SiPadHitsWindowed` (`SimCalorimeterHit`) → `TrackerHit3D`. `type=1`, `quality=layer` (0…19) — used by `ACTSProtoTracker` for `surfaceByAddress(1, -1, layer, -1)`. 2D pad coordinate is `(position.x, position.y)`; per-coord variance = pitch²/12 with `PixelSizeX = PixelSizeY = 5.53 mm` by default (the pixel pitch `Ecal_CellSizeX`: a 5.52 mm pad plus the 0.01 mm inter-pad margin).
 
 ### MTCSciFiMeasConverter (`gaudi_source/MTCSciFiMeasConverter.cpp`)
 Converts `MTCSciFiHitsWindowed` (plane 0 = U, plane 1 = V) → 1D `TrackerHit3D` on MTC SciFi surfaces. Scintillator hits (plane 2) are skipped. Strip coordinate (`cos α · pos.x − sin α · pos.y` on a U plane, mirrored for V) is stored in `position.x` [mm]; variance = pitch²/12. `type=2`, `quality=plane`.
@@ -262,7 +262,7 @@ Per-detector consequences:
 | **SiPad** | 20 | **0** | **20** | **20** | **0** |
 | MTC | 90 | 32 | 26 | 30 | 30 |
 
-`nMeas` total: 72 → 86. Sum of CKF chi²: 66.3 → 144.9. The rise is dominated by the +14 SiPad inliers: with `PixelSize = 5.5 mm` the per-coord measurement σ is only 5.5/√12 ≈ 1.6 mm, and where the truth track crosses a pad boundary the pad-center residual reaches ~5 mm (≈ 3σ). chi²/n is **not** strictly worse — the two runs cover different measurement sets so the totals are not directly comparable.
+`nMeas` total: 72 → 86. Sum of CKF chi²: 66.3 → 144.9. The rise is dominated by the +14 SiPad inliers: with `PixelSize = 5.53 mm` the per-coord measurement σ is only 5.53/√12 ≈ 1.6 mm, and where the truth track crosses a pad boundary the pad-center residual reaches ~5 mm (≈ 3σ). chi²/n is **not** strictly worse — the two runs cover different measurement sets so the totals are not directly comparable.
 
 **Fix applied**
 - `gaudi_source/SiPadMeasConverter.cpp:199` — write the SiPad layer index into `TrackerHit3D::quality` (was hard-coded to `-1`).

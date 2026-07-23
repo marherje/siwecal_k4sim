@@ -1,16 +1,33 @@
-Instrucciones para claude:
+I want to modify the SiW-ECAL geometry to model realistic silicon tiles separated by dead regions.
 
-Ediciones:
-1. Borra los outputs actuales en /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/.
-2. Crea dos carpetas en /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/ , /Generated/ y /Processed/
-3. Redirige los outputs de las simulaciones a /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated
-4. Cambia todos los pipelines para que los outputs tengan nombres bien correlacionados a su origen (similares a los nombres de los archivos simulados)
-5. Redirige todos los outputs de los pipelines a /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Processed
+Current implementation:
+- The detector uses CartesianGridXY segmentation.
+- Cell size is 5.625 × 5.625 mm².
+- The sensitive surface is continuous (no dead area between cells).
 
-Comprobacciones:
-1. Lanza las simulaciones con launch_beam.sh
-2. Cancela los jobs con condor_rm marquezh
-3. Corre los jobs manualmente "ddsim _____", puedes ir a cada archivo steer/runddsim_..._..sh para encontrar dentro el comando ddsim correspondiente.
-4. Comprueba que el output esta en la carpeta correspondiente (Generated).
-5. Corre las dos pipelines correspondientes.
-6. Comprueba que los outputs estan en a carpeta en la que debe estar (Processed)
+Target implementation:
+- Replace the current CartesianGridXY segmentation with TiledLayerGridXY.
+- The active silicon cell size must become 5.5 × 5.5 mm².
+- There must be a 1.0 mm inactive gap between neighbouring cells in both X and Y directions.
+
+This means that:
+- The active silicon area is 5.5 mm × 5.5 mm.
+- Adjacent cells are separated by a physical dead region of 1.0 mm.
+- Particles crossing the gap should not produce hits.
+
+Please do not implement this by only changing the segmentation parameters. The geometry itself must contain the dead regions. The segmentation should simply reflect the geometry.
+
+Tasks:
+1. Replace the current CartesianGridXY readout with TiledLayerGridXY.
+2. Modify the detector geometry so that each sensitive silicon tile has dimensions 5.5 × 5.5 mm².
+3. Introduce a 1.0 mm physical gap (air or non-sensitive material) between neighbouring tiles.
+4. Ensure the cell IDs remain consistent and uniquely identify every sensitive tile.
+5. Update all XML parameters and C++ geometry construction as required.
+6. Verify that there are no overlaps or gaps other than the intended dead regions.
+7. Keep all other detector dimensions and materials unchanged.
+
+After implementing the changes, explain:
+- Which XML parameters were modified.
+- Which C++ files were changed.
+- How the dead regions are created.
+- Why TiledLayerGridXY is now the appropriate segmentation.

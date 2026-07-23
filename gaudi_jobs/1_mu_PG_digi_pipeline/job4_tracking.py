@@ -2,8 +2,8 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import ACTSGeoSvc, SiPadMeasConverter, ACTSProtoTracker
 from Gaudi.Configuration import DEBUG, INFO
 
-SIPAD_BITFIELD  = "system:8,layer:8,slice:4,x:9,y:9"
-SIPAD_CELL_SIZE = 5.5  # mm
+SIPAD_BITFIELD  = "system:8,layer:8,slice:5,x:9,y:9"
+SIPAD_CELL_SIZE = 5.53  # mm, pixel pitch (Ecal_CellSizeX)
 
 iosvc = IOSvc()
 iosvc.Input          = "timewindows.edm4hep.root"

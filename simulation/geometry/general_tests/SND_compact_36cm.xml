@@ -1,0 +1,263 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+  <info name="SND_sim_poc" title="SND simulation proof-of-concept" author="J.P. Marquez"
+        url="" status="development" version="1.0">
+    <comment> key4hep 2026-02-01 compatible </comment>
+  </info>
+
+
+  <!-- 36x36 cm layer: 2x2 ASUs tiled at Ecal_ASUPitch, giving 4x4
+       wafers and 64x64 pads. Everything except Ecal_NASUsX/Y and the
+       readout block is identical to ../SND_compact.xml. See README.md in
+       this folder for how to regenerate and exercise it. -->
+
+  <includes>
+    <gdmlFile ref="../elements.xml"/>
+    <gdmlFile ref="../materials.xml"/>
+  </includes>
+
+  <define>
+    <!-- Detector type flag constants from DD4hep DetType.h -->
+    <!-- These are needed by ACTS convertDD4hepDetector to classify subdetectors -->
+    <!-- <constant name="DetType_TRACKER"  value="0x1"/> -->
+    <!-- <constant name="DetType_BARREL"   value="0x10"/> -->
+    <!-- <constant name="DetType_STRIP"    value="0x80"/> -->
+    <!-- <constant name="DetType_PIXEL"    value="0x100"/> -->
+
+    <!-- World -->
+    <constant name="world_side" value="20*m"/>
+    <constant name="world_x"    value="world_side"/>
+    <constant name="world_y"    value="world_side"/>
+    <constant name="world_z"    value="world_side"/>
+
+    <!-- Aluminium box -->
+    <constant name="Ecal_AlThickness" value="2*mm"/> 
+    <!-- Front distance is from Al plate to layer "-1"-->
+    <constant name="Ecal_Al_C_frontdistance" value="29.5*mm"/>
+    <!-- Rear distance is from layer "15" to Al plate -->
+    <constant name="Ecal_Al_C_reardistance" value="26.0*mm"/>
+
+    <!-- ECAL geometry constants (from ECAL_commondefs.xml) -->
+    <constant name="env_safety"              value="0.001*mm"/>
+    <constant name="Ecal_NLayers"            value="15"/>
+    <!-- Wafer structure of one ASU: 2x2 silicon sensors, each carrying 16x16
+         pads. Three length scales, all measured on the real sensor:
+
+           * the active diode        Ecal_PadSizeX    = 5.52 mm
+           * the inter-pad margin    Ecal_PadMarginX  = 0.01 mm
+           * the pixel pitch         Ecal_CellSizeX   = 5.53 mm  (sum of the two)
+
+         so 16 pixels span Ecal_WaferActiveX = 88.48 mm. The sensor itself is
+         larger: it carries an inactive margin Ecal_WaferMarginX = 0.61 mm all
+         round (there is no guard ring beyond it), giving a physical sensor of
+         Ecal_WaferSizeX = 88.48 + 2*0.61 = 89.70 mm.
+
+         The 0.01 mm inter-pad margin is silicon that belongs to no diode. It is
+         0.36% of the area and far below any Geant4 step length, so it is not
+         modelled as a volume: the pad array is one sensitive block and the
+         segmentation tiles it at the 5.53 mm pitch. The 0.61 mm sensor margin
+         *is* modelled, as a non-sensitive silicon frame around the block (see
+         the plugin), because it is the only dead region left in a layer. -->
+    <constant name="Ecal_PadSizeX"           value="5.52*mm"/>
+    <constant name="Ecal_PadSizeY"           value="5.52*mm"/>
+    <constant name="Ecal_PadMarginX"         value="0.01*mm"/>
+    <constant name="Ecal_PadMarginY"         value="0.01*mm"/>
+    <!-- Pixel pitch: what the readout segmentation tiles the sensor with. -->
+    <constant name="Ecal_CellSizeX"          value="Ecal_PadSizeX+Ecal_PadMarginX"/>
+    <constant name="Ecal_CellSizeY"          value="Ecal_PadSizeY+Ecal_PadMarginY"/>
+    <constant name="Ecal_NPadsPerWaferX"     value="16"/>
+    <constant name="Ecal_NPadsPerWaferY"     value="16"/>
+    <constant name="Ecal_WaferMarginX"       value="0.61*mm"/>
+    <constant name="Ecal_WaferMarginY"       value="0.61*mm"/>
+    <!-- Sensitive pad array, and the physical sensor that holds it. -->
+    <constant name="Ecal_WaferActiveX"       value="Ecal_NPadsPerWaferX*Ecal_CellSizeX"/>
+    <constant name="Ecal_WaferActiveY"       value="Ecal_NPadsPerWaferY*Ecal_CellSizeY"/>
+    <constant name="Ecal_WaferSizeX"         value="Ecal_WaferActiveX+2*Ecal_WaferMarginX"/>
+    <constant name="Ecal_WaferSizeY"         value="Ecal_WaferActiveY+2*Ecal_WaferMarginY"/>
+    <constant name="Ecal_NWafersX"           value="2"/>
+    <constant name="Ecal_NWafersY"           value="2"/>
+    <!-- Extra clearance left between two neighbouring sensors, on top of their
+         own margins. The sensors are butted, so this is zero and the dead cross
+         between two of them is exactly 2*Ecal_WaferMarginX = 1.22 mm. The wafer
+         array then spans 2*89.70 = 179.4 mm, leaving 0.3 mm of border inside the
+         180 mm ASU. Raise it if the real modules are mounted with a gap. -->
+    <constant name="Ecal_WaferGapX"          value="0*mm"/>
+    <constant name="Ecal_WaferGapY"          value="0*mm"/>
+    <!-- Number of ASUs tiled per layer. 1x1 = the 18x18 cm test-beam setup;
+         2x2 gives a 36x36 cm layer, 3x3 a 54x54 cm one. Changing these two
+         constants is all the geometry needs, but the readout block below has one
+         entry per wafer and must be regenerated to match:
+             python simulation/geometry/make_readout.py <NASUsX> <NASUsY>       -->
+    <constant name="Ecal_NASUsX"             value="2"/>
+    <constant name="Ecal_NASUsY"             value="2"/>
+    <!-- One ASU is 180 mm while its wafers span 179.4 mm, leaving 0.3 mm of
+         inactive border per side. Butting ASUs at this pitch therefore creates a
+         2*(0.3+0.61) = 1.82 mm dead region between sensors of adjacent ASUs,
+         slightly wider than the 1.22 mm cross inside an ASU. Raise the pitch if
+         the real modules are mounted with extra clearance. -->
+    <constant name="Ecal_ASUPitchX"          value="180*mm"/>
+    <constant name="Ecal_ASUPitchY"          value="180*mm"/>
+    <constant name="Ecal_NcellsX"            value="Ecal_NASUsX*Ecal_NWafersX*Ecal_NPadsPerWaferX"/>
+    <constant name="Ecal_NcellsY"            value="Ecal_NASUsY*Ecal_NWafersY*Ecal_NPadsPerWaferY"/>
+    <constant name="Ecal_dim_x"              value="Ecal_NASUsX*Ecal_ASUPitchX"/>
+    <constant name="Ecal_dim_y"              value="Ecal_NASUsY*Ecal_ASUPitchY"/>
+    <!-- Segmentation offset of the first wafer column/row. The grid is local to
+         the sensitive pad array of a wafer (5.53 mm pitch, 16 pads, so the
+         offset is measured from Ecal_WaferActiveX and NOT from the physical
+         sensor size); the readout block shifts this offset by a whole pad array
+         per column/row so that the x/y indices come out as the GLOBAL pad
+         indices across the layer (0..31 for one ASU, 0..63 for 2x2, ...). -->
+    <constant name="Ecal_SegOffsetX0" value="-(Ecal_WaferActiveX-Ecal_CellSizeX)/2.0"/>
+    <constant name="Ecal_SegOffsetY0" value="-(Ecal_WaferActiveY-Ecal_CellSizeY)/2.0"/>
+
+    <constant name="Ecal_CFThickness"        value="1.5*mm"/>
+    <constant name="Ecal_KaptonThickness"    value="0.1*mm"/>
+    <constant name="Ecal_GlueThickness_kap"  value="0.1*mm"/>
+    <constant name="Ecal_GlueThickness_pcb"  value="0.1*mm"/>
+    <constant name="Ecal_PcbThickness"       value="1.7*mm"/>
+    <constant name="Ecal_ChipThickness"      value="1.2*mm"/>
+    <constant name="Ecal_LayerDistance"      value="15.0*mm"/>
+    <!-- W+post-W-air budget already included as slices in SiPadDetector.xml:
+         4.2mm W + 1.4mm air = 5.6mm (slabs 1-8); 5.6mm W + dummyslice ≈ 5.6mm (slabs 9-14).
+         Subtracting this from Ecal_LayerDistance restores the correct 11mm slab period. -->
+    <constant name="Ecal_W_air_budget"      value="5.6*mm"/>
+
+  <!-- Different thicknesses and gap calculations -->
+    <constant name="Ecal_WaferThickness320" value="0.320*mm"/>
+    <constant name="Ecal_WaferThickness500" value="0.500*mm"/>
+    <constant name="Ecal_WaferThickness650" value="0.650*mm"/>
+    <constant name="Ecal_w_slab_gap320"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness320-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
+    <constant name="Ecal_w_slab_gap500"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness500-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
+    <constant name="Ecal_w_slab_gap650"      value="Ecal_LayerDistance-Ecal_W_air_budget-Ecal_CFThickness-Ecal_KaptonThickness-Ecal_GlueThickness_kap-Ecal_WaferThickness650-Ecal_GlueThickness_pcb-Ecal_KaptonThickness-Ecal_PcbThickness-Ecal_ChipThickness"/>
+
+    <!-- Detector envelope dimensions and position -->
+    <!-- Box has 17 rail slots (15 active + 2 empty). Each layer counts as one LayerDistance. The rear distance is added after one extra layer used for supporting only W.-->
+    <constant name="Ecal_TB_box_z" value="Ecal_LayerDistance*17+Ecal_Al_C_frontdistance+Ecal_Al_C_reardistance+2*Ecal_AlThickness"/>           
+    <constant name="Ecal_dim_z" value="Ecal_TB_box_z+0.1*mm"/>
+    <constant name="Ecal_z_position"         value="Ecal_dim_z/2.0"/>
+
+
+    <!-- Required by DDSim's ParticleHandler for MC-truth links (tracker region cylinder).
+         For a calorimeter-only setup, set to the detector envelope dimensions.
+         The particle handler is also disabled via SIM.part.userParticleHandler='' in the steering. -->
+    <constant name="tracker_region_zmax" value="Ecal_dim_z/2.0"/>
+    <constant name="tracker_region_rmax" value="Ecal_dim_x/2.0"/>
+
+  </define>
+
+  <limits>
+    <limitset name="cal_limits">
+      <limit name="step_length_max" particles="*" value="3.0" unit="mm"/>
+    </limitset>
+  </limits>
+
+  <display>
+    <vis name="Invisible"    alpha="0.0" r="0"   g="0"    b="0"    showDaughters="false" visible="false"/>
+    <vis name="EcalVis"      alpha="0.1" r="0.7" g="0.7"  b="0.0"  showDaughters="true"  visible="false"/>
+    <vis name="TungstenVis"  alpha="0.5" r="0.5" g="0.35" b="0.55" showDaughters="true"  visible="true"/>
+    <vis name="AirVis"       alpha="0.01" r="1.0" g="1.0"  b="1.0"  showDaughters="true"  visible="false"/>
+    <vis name="SiVis"        alpha="0.5" r="0.9" g="0.9"  b="0.9"  showDaughters="true"  visible="true"/>
+    <vis name="AlVis"        alpha="0.1" r="0.7" g="0.7"  b="0.7"  showDaughters="true"  visible="true"/>
+    <vis name="PCBVis"       alpha="0.1" r="0.0" g="0.8"  b="0.0"  showDaughters="true"  visible="true"/>
+    <vis name="CFVis"        alpha="0.1" r="0.0" g="0.0"  b="0.0"  showDaughters="true"  visible="false"/>
+    <vis name="CuVis"        alpha="0.1" r="1.0" g="0.5"  b="0.0"  showDaughters="true"  visible="false"/>
+  </display>
+
+  <readouts>
+    <!-- 2x2 ASUs = 4x4 wafers = 64x64 pads. Generated by make_readout.py, do not edit by hand. -->
+    <readout name="SiPadHits">
+      <segmentation type="MultiSegmentation" key="wafer">
+        <segmentation name="wafer0" type="TiledLayerGridXY" key_value="0"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0"
+                      offset_y="Ecal_SegOffsetY0"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer1" type="TiledLayerGridXY" key_value="1"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-1*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer2" type="TiledLayerGridXY" key_value="2"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-2*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer3" type="TiledLayerGridXY" key_value="3"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-3*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer4" type="TiledLayerGridXY" key_value="4"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0"
+                      offset_y="Ecal_SegOffsetY0-1*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer5" type="TiledLayerGridXY" key_value="5"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-1*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-1*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer6" type="TiledLayerGridXY" key_value="6"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-2*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-1*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer7" type="TiledLayerGridXY" key_value="7"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-3*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-1*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer8" type="TiledLayerGridXY" key_value="8"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0"
+                      offset_y="Ecal_SegOffsetY0-2*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer9" type="TiledLayerGridXY" key_value="9"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-1*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-2*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer10" type="TiledLayerGridXY" key_value="10"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-2*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-2*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer11" type="TiledLayerGridXY" key_value="11"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-3*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-2*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer12" type="TiledLayerGridXY" key_value="12"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0"
+                      offset_y="Ecal_SegOffsetY0-3*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer13" type="TiledLayerGridXY" key_value="13"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-1*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-3*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer14" type="TiledLayerGridXY" key_value="14"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-2*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-3*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+        <segmentation name="wafer15" type="TiledLayerGridXY" key_value="15"
+                      grid_size_x="Ecal_CellSizeX" grid_size_y="Ecal_CellSizeY"
+                      offset_x="Ecal_SegOffsetX0-3*Ecal_NPadsPerWaferX*Ecal_CellSizeX"
+                      offset_y="Ecal_SegOffsetY0-3*Ecal_NPadsPerWaferY*Ecal_CellSizeY"
+                      identifier_x="x" identifier_y="y" identifier_layer="layer"/>
+      </segmentation>
+      <id>system:8,layer:8,slice:5,x:9,y:9,wafer:4</id>
+    </readout>
+
+  </readouts>
+
+  <detectors>
+    <include ref="../SiPadDetector.xml"/>
+  </detectors>
+
+
+</lccdd>

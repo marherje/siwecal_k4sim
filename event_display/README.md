@@ -67,3 +67,16 @@ Close the TEve window to exit.
   detector reference frame.
 - **`voxel`** — half-sizes of the box drawn per hit, in cm.
 - **`color`** — RGB triplet `[r, g, b]` in the range `[0, 1]`.
+- **`geo_extract`** — fills the entry's layer positions from the DD4hep compact
+  file instead of hardcoding them. `path_contains` selects the subdetector and
+  `slice_material` (or `slice_index`) the slices to pick up. Two flags refine
+  what is drawn:
+  - `use_geometry_thickness` — take each layer's `dz` from the geometry rather
+    than from `voxel.z`.
+  - `use_geometry_placement` — draw one box per *placed volume*, at its own
+    `(x, y, z)` and with its own half-sizes, ignoring `voxel` entirely. This is
+    what the silicon uses: a sensitive slice is an array of 89.7 mm silicon
+    sensors, each an inactive 0.61 mm rim around 16x16 pads of 5.53 mm pitch, so
+    a single full-plane box per layer would hide the dead regions. When a rule
+    matches twice along the same path -- the sensor and the pad array inside it
+    are both silicon -- only the outermost volume is drawn, i.e. the sensor.

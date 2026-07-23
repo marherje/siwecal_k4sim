@@ -142,7 +142,7 @@ def test_hit_slab_range(tree):
 
 
 def test_hit_position_x_range(tree):
-    """Transverse X must be within ±176 mm (32 cells × 5.5 mm / 2)."""
+    """Transverse X must be within ±90 mm (the 180 mm ASU, half either side)."""
     for entry in tree:
         xs = [entry.hit_x[i] for i in range(entry.nhit_chan)]
         assert all(-200 <= x <= 200 for x in xs), \

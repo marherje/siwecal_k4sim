@@ -3,6 +3,24 @@
 
   <dimensions x="Ecal_dim_x" y="Ecal_dim_y" z="Ecal_dim_z"/>
 
+  <!-- Wafer layout of every sensitive slice: a wafers_x * wafers_y array of
+       silicon sensors of wafer_size_x * wafer_size_y. Each sensor is silicon
+       throughout, but only the central part is a diode: margin_x / margin_y is
+       the inactive rim, so the sensitive area is wafer_size - 2*margin. The
+       sensitive part carries the 'wafer' physVolID.
+
+       Everything else is dead: the rim, the optional extra clearance gap_x /
+       gap_y between two sensors, and the outer border of the plane, which is
+       filled with the non-sensitive 'gap_material'. Particles crossing any of
+       them produce no hit. -->
+  <tiling asus_x="Ecal_NASUsX"            asus_y="Ecal_NASUsY"
+          asu_pitch_x="Ecal_ASUPitchX"    asu_pitch_y="Ecal_ASUPitchY"
+          wafers_x="Ecal_NWafersX"        wafers_y="Ecal_NWafersY"
+          wafer_size_x="Ecal_WaferSizeX"  wafer_size_y="Ecal_WaferSizeY"
+          margin_x="Ecal_WaferMarginX"    margin_y="Ecal_WaferMarginY"
+          gap_x="Ecal_WaferGapX"          gap_y="Ecal_WaferGapY"
+          gap_material="Air"/>
+
   <envelope vis="EcalVis">
     <shape type="Box"
            dx="Ecal_dim_x/2.0 + env_safety"

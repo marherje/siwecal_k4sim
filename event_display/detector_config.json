@@ -5,32 +5,32 @@
       "ntuple": "SiPadMeas",
       "filter": {},
       "color": [1.0, 0.5, 0.0],
-      "voxel": {"x": 0.275, "y": 0.275, "z": 0.0325},
+      "voxel": {"x": 0.276, "y": 0.276, "z": 0.0325},
       "geo_extract": {"path_contains": "SiPad", "slice_material": ["Si", "Silicon"]}
     }
   ],
   "geometry": [
     {
-      "name": "SiPad planes",
+      "name": "Si wafers",
       "color": [0.2, 0.7, 0.2],
       "transparency": 85,
-      "voxel": {"x": 17.6, "y": 17.6, "z": 0.0325},
-      "geo_extract": {"path_contains": "SiPad", "slice_material": ["Si", "Silicon"]}
+      "voxel": {"x": 4.485, "y": 4.485, "z": 0.025},
+      "geo_extract": {"path_contains": "SiPad", "slice_material": ["Si", "Silicon"], "use_geometry_placement": true}
     },
     {
       "name": "W absorbers",
       "color": [0.5, 0.35, 0.55],
       "transparency": 65,
-      "voxel": {"x": 17.6, "y": 17.6, "z": 0.28},
-      "geo_extract": {"path_contains": "SiPad", "slice_material": "TungstenDens1910", "use_geometry_thickness": true}
+      "voxel": {"x": 9.0, "y": 9.0, "z": 0.28},
+      "geo_extract": {"path_contains": "SiPad", "slice_material": "TungstenDens1910", "use_geometry_placement": true}
     },
     {
       "name": "Al boxes",
       "color": [0.6, 0.6, 0.65],
       "transparency": 85,
-      "voxel": {"x": 17.6, "y": 17.6, "z": 0.1},
+      "voxel": {"x": 9.0, "y": 9.0, "z": 0.1},
       "al_planes": {
-        "reference": "SiPad planes",
+        "reference": "Si wafers",
         "front_distance_cm": 2.9,
         "rear_distance_cm": 2.6
       }

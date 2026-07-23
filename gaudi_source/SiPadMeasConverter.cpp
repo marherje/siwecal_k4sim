@@ -52,15 +52,15 @@ private:
       "Output TrackerHit3DCollection name"};
 
   Gaudi::Property<std::string> m_bitField{
-      this, "BitField", "system:8,layer:8,slice:4,x:9,y:9",
+      this, "BitField", "system:8,layer:8,slice:5,x:9,y:9",
       "DD4hep BitField string for SiPad cellID decoding"};
 
   Gaudi::Property<double> m_pixelSizeX{
-      this, "PixelSizeX", 5.5,
-      "Pixel size in X direction [mm] — used to compute measurement variance"};
+      this, "PixelSizeX", 5.53,
+      "Pixel pitch in X [mm], Ecal_CellSizeX — sets the measurement variance"};
   Gaudi::Property<double> m_pixelSizeY{
-      this, "PixelSizeY", 5.5,
-      "Pixel size in Y direction [mm] — used to compute measurement variance"};
+      this, "PixelSizeY", 5.53,
+      "Pixel pitch in Y [mm], Ecal_CellSizeY — sets the measurement variance"};
 
   // ---- DataHandles ----
   mutable std::unique_ptr<
