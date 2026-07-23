@@ -21,6 +21,10 @@ __pycache__/
 simulation/run_script/data/
 simulation/run_script/log/
 simulation/run_script/steer/*.mac
+simulation/run_script/steer
+
+# Tests
+simulation/geometry/general_tests
 
 # Editor / OS
 .DS_Store
