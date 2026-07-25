@@ -17,8 +17,12 @@ TB2026_ROOT="$( cd "${REPO_ROOT}/../siwecal-tb2026" 2>/dev/null && pwd )" || TB2
 
 # ---------------------------------------------------------------------------
 # 1. key4hep stack (Gaudi, k4FWCore, DD4hep, ROOT, numpy, uproot, ...)
+#    Release pinned in .key4hep-release (shared with build.sh and matching the
+#    siwecal-tb2026 checkout, whose plugin is loaded in section 4); override
+#    per-shell with KEY4HEP_RELEASE.
 # ---------------------------------------------------------------------------
-source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-02-01
+KEY4HEP_RELEASE="${KEY4HEP_RELEASE:-$(cat "${REPO_ROOT}/.key4hep-release" 2>/dev/null || echo 2026-04-08)}"
+source /cvmfs/sw.hsf.org/key4hep/setup.sh -r "${KEY4HEP_RELEASE}"
 
 # ---------------------------------------------------------------------------
 # 2. Local build: SND_reco Gaudi algorithms + DD4hep detector plugin

@@ -45,9 +45,14 @@ gaudi_add_module(SND_reco
     INSTALL_RPATH_USE_LINK_PATH TRUE
     BUILD_RPATH_USE_ORIGIN      TRUE
 )
-target_include_directories(SND_reco PRIVATE
-    /cvmfs/sw.hsf.org/key4hep/releases/2026-02-01/x86_64-almalinux9-gcc14.2.0-opt/acts/44.3.0-37xe73/include
-)
+# ACTS headers. Derived from the Acts::Core target that find_package(Acts) sets
+# up, not hardcoded to one key4hep release's install path -- the release (and so
+# the hashed acts/<version>-<hash>/include directory) is pinned in
+# .key4hep-release and changes between stacks.
+get_target_property(_acts_include_dirs Acts::Core INTERFACE_INCLUDE_DIRECTORIES)
+if(_acts_include_dirs)
+    target_include_directories(SND_reco PRIVATE ${_acts_include_dirs})
+endif()
 
 install(TARGETS SiPadDetector_plugin LIBRARY DESTINATION lib)
 install(TARGETS SND_reco LIBRARY DESTINATION lib)

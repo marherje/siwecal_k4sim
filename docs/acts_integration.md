@@ -4,7 +4,7 @@
 
 ACTS (A Common Tracking Software) is integrated via `ACTSGeoSvc` (a Gaudi Service) and `ACTSProtoTracker` (a Gaudi Algorithm), both compiled into `libSND_reco.so`.
 
-ACTS version: 44.3.0 (from key4hep 2026-02-01 CVMFS stack).
+ACTS version: 44.3.0 (from key4hep 2026-04-08 CVMFS stack).
 
 ---
 

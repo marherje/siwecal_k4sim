@@ -1,5 +1,7 @@
-# 1. Source key4hep
-source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-02-01
+# 1. Source key4hep (release pinned in .key4hep-release; override with KEY4HEP_RELEASE)
+_K4_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
+KEY4HEP_RELEASE="${KEY4HEP_RELEASE:-$(cat "${_K4_ROOT}/.key4hep-release" 2>/dev/null || echo 2026-04-08)}"
+source /cvmfs/sw.hsf.org/key4hep/setup.sh -r "${KEY4HEP_RELEASE}"
 
 # 2. Build plugin
 mkdir -p build && cd build

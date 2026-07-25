@@ -26,7 +26,7 @@ The new grid is read from the compact file, never hardcoded, so re-running this
 after a geometry change is all it takes.
 
 Usage:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-02-01
+    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
     export LD_LIBRARY_PATH=$PWD/install/lib64:$PWD/install/lib:$LD_LIBRARY_PATH
     python mappings/regenerate_pad_maps.py            # rewrite in place
     python mappings/regenerate_pad_maps.py --dry-run  # just report the shift

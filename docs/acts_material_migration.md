@@ -133,7 +133,7 @@ Acts::MaterialSlab makeSlab(const std::string& dd4hepMaterialName,
 ```
 
 (Confirm the unit convention of `dd4hep::Material::radLength()` against the
-2026-02-01 release — the conversion may already return cm; the rule is "never
+2026-04-08 release — the conversion may already return cm; the rule is "never
 trust units, verify by printing one slab's X₀ in mm and comparing to PDG").
 
 ### Step 2 — attach material per surface
@@ -391,7 +391,7 @@ construction becomes a single function call.
    - pull the relevant code into our tree as `gaudi_source/SNDDD4hepConverter.cpp`
      (~500 LoC, MPL-2 licensed), or
    - upstream a request to expose this from the Acts core release in
-     `2026-02-01`+.
+     `2026-04-08`+.
 
 ### Verification (Path A)
 
@@ -440,7 +440,7 @@ work.
 ## Open questions
 
 - **DD4hep `Material` API units.** ✅ Confirmed: `radLength()` and `intLength()`
-  return cm in the 2026-02-01 stack. The `* 10.0` factor in `makeSlab` is correct.
+  return cm in the 2026-04-08 stack. The `* 10.0` factor in `makeSlab` is correct.
 - **MTC iron between U/V planes.** ✅ Confirmed: no iron between U and V.
   `MTCDetector.xml` layer order: Iron(50mm) → Iron(3mm) → Si-U → Air(1mm) → Si-V → Iron(3mm) → Scint.
   Iron(53mm total) attaches to U plane only; V plane gets scintillator only.

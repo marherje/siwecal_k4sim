@@ -12,7 +12,7 @@ ChannelMapper runs after DetectorFlipper in job3_digitize.py.  It:
      to the ecal TTree.
 
 Run with:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-02-01
+    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
     source init_siwecal_soft.sh
     cd /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim
     python -m pytest analysis/tests/test_channel_mapper.py -v
@@ -29,9 +29,9 @@ import numpy as np
 REPO_ROOT      = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DIGI_FILE      = os.path.join(REPO_ROOT, "gaudi_jobs", "1_mu_beam_pipeline", "digitized.edm4hep.root")
 ECAL_TREE      = os.path.join(REPO_ROOT, "gaudi_jobs", "1_mu_beam_pipeline", "ecal_sim.root")
-PAD_MAP_FEV10  = os.path.join(REPO_ROOT, "masking_info", "geometry",
+PAD_MAP_FEV10  = os.path.join(REPO_ROOT, "mappings",
                                "fev10_rotate_chip_channel_x_y_mapping.txt")
-PAD_MAP_FEV11  = os.path.join(REPO_ROOT, "masking_info", "geometry",
+PAD_MAP_FEV11  = os.path.join(REPO_ROOT, "mappings",
                                "fev11_cob_good_rotate_chip_channel_x_y_mapping.txt")
 PAD_MAP        = PAD_MAP_FEV10  # default alias for tests that only need one map
 SLAB12_OVERRIDE = 12            # slab that uses FEV11 board (per job3_digitize.py)

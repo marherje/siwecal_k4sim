@@ -21,7 +21,7 @@ The units are the usual trap: DD4hep works in cm, the pad map and the viewer in
 mm. Everything is compared in mm.
 
 Run with:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-02-01
+    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
     export LD_LIBRARY_PATH=$PWD/install/lib64:$PWD/install/lib:$LD_LIBRARY_PATH
     python -m pytest analysis/tests/test_viewer_wafer_display.py -v
 """

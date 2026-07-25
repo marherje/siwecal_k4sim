@@ -2,7 +2,7 @@
 
 Full key4hep simulation + reconstruction chain for the SiW-ECAL test beam 2026.
 
-**Stack:** DD4hep v01-35 / key4hep 2026-02-01 / Gaudi v40 / ROOT 6.38 / AlmaLinux 9 (lxplus)
+**Stack:** DD4hep v01-35 / key4hep 2026-04-08 / Gaudi v40 / ROOT 6.38 / AlmaLinux 9 (lxplus)
 
 **Companion repo:** `../siwecal-tb2026` — k4SiWEcalReco plugin, calibration
 
@@ -203,6 +203,64 @@ bash launch_beam.sh        # mu- and e- at 54 GeV, centre (−45,+45) mm, σ=(20
 Monitor jobs: `condor_q $USER`
 
 Output files land in `simulation/run_script/data/`.
+
+### PID campaign 2026 (e⁻/μ⁻/π⁻, 74 & 99 GeV, chunked)
+
+50 000 events per (particle, energy) at beam centre **(1.139, 1.164) mm**, split
+into 25 condor jobs of 2 000 events each (a single 50k electron job would be
+~26 h). Every chunk job runs **ddsim → digitisation → ecal-tree conversion** on
+the worker's scratch and stages out only:
+
+```
+Generated/chunks/output_<point>_cNNN.edm4hep.root   raw sim (kept for reprocessing)
+Processed/chunks/<point>_cNNN_ecal.root             ecal TTree (run = E*1000 + chunk)
+```
+
+```bash
+cd simulation/run_script
+bash launch_beam_pid2026.sh                                   # all 150 jobs
+DRY_RUN=1 bash launch_beam_pid2026.sh                         # steer files only
+PARTICLES="pi-" ENERGIES="99" CHUNKS="3 17" bash launch_beam_pid2026.sh  # resubmit
+```
+
+Beam optics per species: e⁻ σ=(13.75, 8.25), μ⁻ σ=(38.5, 46.75),
+π⁻ σ=(24.75, 13.75) mm; σ_E = 2 % for all. Each chunk gets its own RNG seed
+(`species offset + E*1000 + chunk`), so the 25 chunks are statistically independent.
+
+Once the chunks are on EOS, nine pipelines turn them into physics samples —
+one per particle for 74 GeV, 99 GeV and the merged 74+99 GeV sample:
+
+```bash
+bash gaudi_jobs/2_e74_pid_pipeline/2_e74_pid_pipeline.sh
+bash gaudi_jobs/2_mu99_pid_pipeline/2_mu99_pid_pipeline.sh
+bash gaudi_jobs/2_pimerged_pid_pipeline/2_pimerged_pid_pipeline.sh
+# ... {e,mu,pi} x {74,99,merged}; add --allow-partial to run with missing chunks
+```
+
+They all delegate to `gaudi_jobs/pid2026_common/pipeline_common.sh`, which
+hadds the chunk trees (for `merged`: the chunks of *both* energies — merging
+happens at the ecal-tree level, no reprocessing), runs k4SiWEcalReco and writes
+`Processed/<label>_ecal.{root,edm4hep.root,valtree.root}`. Work goes through
+`/tmp/$USER/siwecal_pid2026`, never AFS — the merged trees are ~1 GB.
+
+#### Chunk housekeeping in Processed/
+
+`Processed/chunks/` is a staging area, not a deliverable: once a particle's
+three samples are in `Processed/`, its chunk trees are dead weight. The drivers
+handle that — no pipeline deletes chunks on its own, because the 74 GeV chunks
+are consumed twice (by the 74 GeV pipeline *and* by the merged one):
+
+```bash
+bash gaudi_jobs/pid2026_common/run_particle.sh --particle e-   # 74, 99, merged, then clean
+bash gaudi_jobs/pid2026_common/run_all.sh                      # all three particles
+bash gaudi_jobs/pid2026_common/run_all.sh --keep-chunks        # process, keep chunks
+```
+
+`run_particle.sh` removes that particle's chunk trees from `Processed/chunks/`
+only after verifying all three final samples exist and are non-empty; if any
+pipeline fails the chunks stay for the retry. The raw simulation chunks in
+`Generated/chunks/` are **never** deleted — they are the reprocessable source,
+worth ~26 h of CPU per point.
 
 ---
 
