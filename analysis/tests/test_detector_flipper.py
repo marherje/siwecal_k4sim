@@ -9,7 +9,7 @@ Verifies that after running job3_digitize.py (which includes DetectorFlipper):
   - The flipping logic works correctly when a reversed ZPositions table is given
 
 Run with:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+    source init_key4hep.sh   # release pinned in .key4hep-release
     source install_env.sh   (or: export LD_LIBRARY_PATH=install/lib64:...)
     cd /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim
     python -m pytest analysis/tests/test_detector_flipper.py -v

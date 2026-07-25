@@ -114,7 +114,7 @@ def convert(
         sys.exit(
             "ERROR: podio Python bindings not found.\n"
             "Source the key4hep environment first:\n"
-            "  source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08\n"
+            "  source init_key4hep.sh   (release pinned in .key4hep-release)\n"
         )
     try:
         import ROOT

@@ -5,6 +5,18 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Tool caches. Note that listing a pattern here does NOT untrack files already
+# committed: the 39 .pyc under __pycache__/ matched the rules above for a long
+# time and stayed in the repo regardless, until they were removed from the index.
+# Check with: git ls-files -i -c --exclude-standard
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.coverage
+htmlcov/
+
 # ROOT files (large binary data — use EOS or CERNBox instead)
 *.root
 

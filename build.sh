@@ -1,7 +1,9 @@
-# 1. Source key4hep (release pinned in .key4hep-release; override with KEY4HEP_RELEASE)
+# 1. Source key4hep (release pinned in .key4hep-release; override with KEY4HEP_RELEASE).
+#    Delegated to init_key4hep.sh so the pin is resolved in exactly one place;
+#    "|| exit 1" because a sourced file can only 'return', which would otherwise
+#    let the build carry on against whatever stack happens to be loaded.
 _K4_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
-KEY4HEP_RELEASE="${KEY4HEP_RELEASE:-$(cat "${_K4_ROOT}/.key4hep-release" 2>/dev/null || echo 2026-04-08)}"
-source /cvmfs/sw.hsf.org/key4hep/setup.sh -r "${KEY4HEP_RELEASE}"
+source "${_K4_ROOT}/init_key4hep.sh" || exit 1
 
 # 2. Build plugin
 mkdir -p build && cd build

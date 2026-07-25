@@ -30,7 +30,7 @@ rim lose hits. Without that control you cannot tell a correct dead region from a
 readout that silently drops hits at every pad boundary.
 
 Usage:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+    source init_key4hep.sh   # release pinned in .key4hep-release
     export LD_LIBRARY_PATH=$PWD/install/lib64:$PWD/install/lib:$LD_LIBRARY_PATH
     python simulation/geometry/dead_zone_test.py                  # default scan
     python simulation/geometry/dead_zone_test.py --x 0 --y -58.8  # single point

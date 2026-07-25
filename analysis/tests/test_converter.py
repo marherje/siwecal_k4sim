@@ -2,7 +2,7 @@
 Tests for analysis/sim_to_ecal_tree.py.
 
 Run with:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+    source init_key4hep.sh   # release pinned in .key4hep-release
     cd /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim
     python -m pytest analysis/tests/test_converter.py -v
 

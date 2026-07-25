@@ -2,7 +2,7 @@
 
 Full key4hep simulation + reconstruction chain for the SiW-ECAL test beam 2026.
 
-**Stack:** DD4hep v01-35 / key4hep 2026-04-08 / Gaudi v40 / ROOT 6.38 / AlmaLinux 9 (lxplus)
+**Stack:** DD4hep v01-35 / key4hep (release pinned in `.key4hep-release`) / Gaudi v40 / ROOT 6.38 / AlmaLinux 9 (lxplus)
 
 **Companion repo:** `../siwecal-tb2026` — k4SiWEcalReco plugin, calibration
 

@@ -12,7 +12,7 @@ ChannelMapper runs after DetectorFlipper in job3_digitize.py.  It:
      to the ecal TTree.
 
 Run with:
-    source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+    source init_key4hep.sh   # release pinned in .key4hep-release
     source init_siwecal_soft.sh
     cd /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim
     python -m pytest analysis/tests/test_channel_mapper.py -v
