@@ -42,3 +42,10 @@ simulation/geometry/general_tests
 .DS_Store
 *.swp
 *~
+
+# Calibration payloads that no code in this repo reads. Only the MIP tables under
+# masking_info/calibration/MuonCalib_gaudi/mips/ feed the masking (ChannelMapper);
+# pedestals, LG->HG anchors and the .diagnostics.root fit outputs are tens of MB
+# each and live outside the repo, in ../siwecal_calib_archive.
+masking_info/calibration/**/pedestals/
+masking_info/calibration/**/anchor/

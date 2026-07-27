@@ -40,8 +40,16 @@ cmap.PadMapFile          = os.path.join(
     REPO_ROOT, "mappings/fev10_rotate_chip_channel_x_y_mapping.txt")
 cmap.PadMapFileSlab12    = os.path.join(
     REPO_ROOT, "mappings/fev11_cob_good_rotate_chip_channel_x_y_mapping.txt")
-cmap.MIPCalibFile        = os.path.join(
-    REPO_ROOT, "masking_info/calibration/dummy_mip_map_15_highgain.txt")
+# Masking comes from the muon calibration tree: mips/<threshold>/MIP_*_<gain>.txt.
+# th230 masks ~3.5% of the channels (four dead chips in slab 0, one each in slabs
+# 6 and 13, the rest scattered).  Switch CalibThreshold to th210/th220 for another
+# trigger threshold, or set cmap.MIPCalibFile to bypass the tree with an explicit
+# file (e.g. masking_info/calibration/dummy_mip_map_15_highgain.txt, which masks
+# nothing).
+cmap.CalibDir            = os.path.join(
+    REPO_ROOT, "masking_info/calibration/MuonCalib_gaudi")
+cmap.CalibThreshold      = "th230"
+cmap.CalibGain           = "highgain"
 cmap.MaxMIPValue         = 100.0
 cmap.PositionTolerance   = 4.0
 cmap.BitFieldIn          = "system:8,layer:8,slice:5,x:9,y:9"

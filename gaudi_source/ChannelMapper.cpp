@@ -37,11 +37,27 @@
  * (first non-comment line is a text header, silently skipped; 1024 data rows,
  * 16 chips × 64 channels; x/y in mm)
  *
- * MIP calibration format  (dummy_mip_map_15_highgain.txt or real files)
+ * MIP calibration format  (MIP_pedestalsubmode1_TB2026CERN_run_*_highgain.txt)
  * -----------------------------------------------------------------------
  *   # comment
  *   layer  chip  channel  mpv  empv  widthmpv  chi2ndf  nentries
  *   0  0  0  20.0  0.0  2.0  1.0  1000
+ *
+ * Choosing the calibration
+ * ------------------------
+ * The muon calibrations live in a fixed tree,
+ *
+ *     masking_info/calibration/MuonCalib_gaudi/mips/<threshold>/MIP_*_<gain>.txt
+ *
+ * with one subdirectory per trigger threshold (th210, th220, th230).  Rather
+ * than spelling out the file name in every job -- the run number embedded in it
+ * changes from one threshold to the next -- set CalibDir / CalibThreshold /
+ * CalibGain and the file is resolved from the tree.  The default is th230,
+ * highgain, which masks ~3.5% of the channels.
+ *
+ * MIPCalibFile short-circuits all of that: set it and the explicit path is used
+ * as-is.  That is the way to point at a calibration outside the tree (a dummy
+ * map, a private production) without inventing a directory layout for it.
  *
  * Properties
  * ----------
@@ -50,7 +66,10 @@
  *   OutputMaskedFlags    Masking flag collection name   (default: SiPadHitsMasked)
  *   PadMapFile           Path to default FEV10 pad map
  *   PadMapFileSlab12     Path to FEV11 pad map for slab 12 (empty = use default)
- *   MIPCalibFile         Path to merged MIP calibration file
+ *   CalibDir             Root of the muon calibration tree
+ *   CalibThreshold       Threshold subdirectory: th210 / th220 / th230 (default: th230)
+ *   CalibGain            highgain or lowgain (default: highgain)
+ *   MIPCalibFile         Explicit MIP file; overrides CalibDir/Threshold/Gain
  *   MaxMIPValue          Channels with mpv > this are masked (default: 100.0)
  *   PositionTolerance    Max (x,y) distance [mm] to accept a pad match (default: 4.0)
  *   BitFieldIn           Input CellID encoding string
@@ -68,6 +87,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <set>
@@ -123,9 +143,11 @@ struct ChannelMapper final
     }
 
     // --- load MIP calibration ---
-    if (!loadMIPCalib(m_mipCalibFile.value())) return StatusCode::FAILURE;
+    const std::string calibFile = resolveMIPCalib();
+    if (calibFile.empty()) return StatusCode::FAILURE;
+    if (!loadMIPCalib(calibFile)) return StatusCode::FAILURE;
     info() << "[ChannelMapper] MIP calibration: " << m_masked.size()
-           << " masked (slab,chip,chan) triples from " << m_mipCalibFile.value() << endmsg;
+           << " masked (slab,chip,chan) triples from " << calibFile << endmsg;
 
     return StatusCode::SUCCESS;
   }
@@ -237,6 +259,49 @@ private:
     return true;
   }
 
+  /// Pick the MIP file for the configured threshold/gain, or honour an explicit
+  /// MIPCalibFile.  Returns "" (and reports) if the choice is not unambiguous;
+  /// silently taking the first match would make the masking depend on directory
+  /// order, which is exactly the kind of thing nobody notices for months.
+  std::string resolveMIPCalib() const {
+    namespace fs = std::filesystem;
+
+    if (!m_mipCalibFile.value().empty()) return m_mipCalibFile.value();
+
+    const fs::path dir = fs::path(m_calibDir.value()) / "mips" / m_calibThreshold.value();
+    std::error_code ec;
+    if (!fs::is_directory(dir, ec)) {
+      error() << "[ChannelMapper] No calibration directory " << dir.string()
+              << " -- check CalibDir and CalibThreshold (th210/th220/th230), or set "
+                 "MIPCalibFile explicitly." << endmsg;
+      return {};
+    }
+
+    const std::string tail = "_" + m_calibGain.value() + ".txt";
+    std::vector<std::string> matches;
+    for (const auto& entry : fs::directory_iterator(dir)) {
+      const std::string name = entry.path().filename().string();
+      if (name.rfind("MIP", 0) != 0) continue;
+      if (name.size() < tail.size() ||
+          name.compare(name.size() - tail.size(), tail.size(), tail) != 0) continue;
+      matches.push_back(entry.path().string());
+    }
+    std::sort(matches.begin(), matches.end());
+
+    if (matches.empty()) {
+      error() << "[ChannelMapper] No MIP*" << tail << " file in " << dir.string()
+              << " -- check CalibGain (highgain/lowgain)." << endmsg;
+      return {};
+    }
+    if (matches.size() > 1) {
+      error() << "[ChannelMapper] " << matches.size() << " MIP*" << tail << " files in "
+              << dir.string() << "; set MIPCalibFile to pick one:" << endmsg;
+      for (const auto& m : matches) error() << "    " << m << endmsg;
+      return {};
+    }
+    return matches.front();
+  }
+
   bool loadMIPCalib(const std::string& path) const {
     std::ifstream fin(path);
     if (!fin) {
@@ -271,15 +336,24 @@ private:
   // ----------------------------------------------------------------- //
   Gaudi::Property<std::string> m_padMapFile{
       this, "PadMapFile",
-      "masking_info/geometry/fev10_rotate_chip_channel_x_y_mapping.txt",
+      "mappings/fev10_rotate_chip_channel_x_y_mapping.txt",
       "Path to FEV10 pad map (chip/channel → x,y) for the default slab"};
   Gaudi::Property<std::string> m_padMapFileSlab12{
       this, "PadMapFileSlab12", "",
       "Path to FEV11 pad map for slab 12 override (empty = use default map)"};
+  Gaudi::Property<std::string> m_calibDir{
+      this, "CalibDir", "masking_info/calibration/MuonCalib_gaudi",
+      "Root of the muon calibration tree (expects mips/<threshold>/ inside)"};
+  Gaudi::Property<std::string> m_calibThreshold{
+      this, "CalibThreshold", "th230",
+      "Trigger threshold subdirectory of the calibration tree: th210, th220 or th230"};
+  Gaudi::Property<std::string> m_calibGain{
+      this, "CalibGain", "highgain",
+      "Gain branch of the calibration: highgain or lowgain"};
   Gaudi::Property<std::string> m_mipCalibFile{
-      this, "MIPCalibFile",
-      "masking_info/calibration/dummy_mip_map_15_highgain.txt",
-      "Path to merged MIP calibration file (layer chip channel mpv ...)"};
+      this, "MIPCalibFile", "",
+      "Explicit MIP calibration file (layer chip channel mpv ...); "
+      "empty = resolve from CalibDir/CalibThreshold/CalibGain"};
   Gaudi::Property<double> m_maxMIP{
       this, "MaxMIPValue", 100.0,
       "Channels with mpv > MaxMIPValue are masked (typical: 100 MIP)"};

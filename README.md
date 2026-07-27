@@ -102,8 +102,11 @@ siwecal_k4sim/
 ├── mappings/                 ← pad maps, slab-z positions, W thicknesses
 │
 ├── masking_info/
-│   ├── geometry/             ← FEV10/FEV11 chip-channel→(x,y) pad maps
-│   └── calibration/          ← MIP calibration files (dummy + MuonCalib_it2)
+│   └── calibration/          ← MuonCalib_gaudi/mips/th{210,220,230}/ — the MIP
+│                               tables ChannelMapper masks on. dummy_mip_map_*
+│                               masks nothing, for A/B checks. Pedestals, LG→HG
+│                               anchors and .diagnostics.root are not tracked:
+│                               nothing here reads them, see ../siwecal_calib_archive
 │
 ├── event_display/            ← 3D TEve display (ROOT-based, works offline)
 │   ├── event_display_eve.py
