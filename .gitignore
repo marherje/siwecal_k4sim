@@ -43,9 +43,10 @@ simulation/geometry/general_tests
 *.swp
 *~
 
-# Calibration payloads that no code in this repo reads. Only the MIP tables under
-# masking_info/calibration/MuonCalib_gaudi/mips/ feed the masking (ChannelMapper);
-# pedestals, LG->HG anchors and the .diagnostics.root fit outputs are tens of MB
-# each and live outside the repo, in ../siwecal_calib_archive.
+# Calibration payloads that no code in this repo reads. The MIP tables under
+# masking_info/calibration/MuonCalib_gaudi/mips/ ARE tracked -- the masking has to
+# work from this repo alone, without assuming siwecal-tb2026 sits next to it.
+# Pedestals and LG->HG anchors are a different matter: tens of MB that nothing
+# here opens, produced and versioned in siwecal-tb2026, so they stay out.
 masking_info/calibration/**/pedestals/
 masking_info/calibration/**/anchor/

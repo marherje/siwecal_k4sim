@@ -59,6 +59,11 @@
  * as-is.  That is the way to point at a calibration outside the tree (a dummy
  * map, a private production) without inventing a directory layout for it.
  *
+ * If the calibration cannot be loaded -- directory absent, no match, unreadable
+ * file -- the algorithm logs an ERROR and carries on with an empty mask instead
+ * of aborting the job.  The remapping still happens and hits are still flagged
+ * when they land outside the pad map; what is lost is the dead-channel list.
+ *
  * Properties
  * ----------
  *   InputCollection      SimCalorimeterHit collection to read (default: SiPadHitsFlipped)
@@ -143,11 +148,23 @@ struct ChannelMapper final
     }
 
     // --- load MIP calibration ---
+    // A missing or unusable calibration does not stop the job: the CellID
+    // remapping is the reason this algorithm exists and it does not need the
+    // calibration at all.  Masking is then reduced to the geometric criterion
+    // (hits with no pad within PositionTolerance), and the log says so loudly --
+    // the failure mode to avoid is a run that silently keeps every dead channel
+    // and only shows up as an occupancy excess weeks later.
     const std::string calibFile = resolveMIPCalib();
-    if (calibFile.empty()) return StatusCode::FAILURE;
-    if (!loadMIPCalib(calibFile)) return StatusCode::FAILURE;
-    info() << "[ChannelMapper] MIP calibration: " << m_masked.size()
-           << " masked (slab,chip,chan) triples from " << calibFile << endmsg;
+    const bool haveCalib = !calibFile.empty() && loadMIPCalib(calibFile);
+    if (haveCalib) {
+      info() << "[ChannelMapper] MIP calibration: " << m_masked.size()
+             << " masked (slab,chip,chan) triples from " << calibFile << endmsg;
+    } else {
+      m_masked.clear();  // a partial read must not leave half a mask behind
+      error() << "[ChannelMapper] NO MIP MASKING APPLIED -- calibration could not "
+                 "be loaded (see the message above).  Hits keep their dead channels; "
+                 "only unmapped positions are flagged." << endmsg;
+    }
 
     return StatusCode::SUCCESS;
   }

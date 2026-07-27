@@ -104,9 +104,11 @@ siwecal_k4sim/
 ├── masking_info/
 │   └── calibration/          ← MuonCalib_gaudi/mips/th{210,220,230}/ — the MIP
 │                               tables ChannelMapper masks on. dummy_mip_map_*
-│                               masks nothing, for A/B checks. Pedestals, LG→HG
-│                               anchors and .diagnostics.root are not tracked:
-│                               nothing here reads them, see ../siwecal_calib_archive
+│                               masks nothing, for A/B checks. The MIP tables are
+│                               kept here on purpose: the masking must work with
+│                               this repo alone. Pedestals and LG→HG anchors are
+│                               produced and versioned in siwecal-tb2026; nothing
+│                               here reads them, so they are not duplicated
 │
 ├── event_display/            ← 3D TEve display (ROOT-based, works offline)
 │   ├── event_display_eve.py
