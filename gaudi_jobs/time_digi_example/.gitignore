@@ -1,3 +1,8 @@
 build/
 build_example/
+build_key4hep/
+build_local/
 figures/
+__pycache__/
+*.pyc
+*.root

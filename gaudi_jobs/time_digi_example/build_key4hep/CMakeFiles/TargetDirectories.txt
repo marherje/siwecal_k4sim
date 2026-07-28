@@ -1,5 +1,0 @@
-/home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/plot_sipad_shaping.dir
-/home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/doublehit.dir
-/home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/compare_sipad_digitized.dir
-/home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/edit_cache.dir
-/home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_key4hep/CMakeFiles/rebuild_cache.dir

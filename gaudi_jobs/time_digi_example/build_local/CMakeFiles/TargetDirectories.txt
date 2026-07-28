@@ -1,4 +1,0 @@
-/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_local/CMakeFiles/plot_sipad_shaping.dir
-/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_local/CMakeFiles/doublehit.dir
-/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_local/CMakeFiles/edit_cache.dir
-/grid_mnt/vol_home/llr/ilc/shi/code/siwecal_k4sim/gaudi_jobs/time_digi_example/build_local/CMakeFiles/rebuild_cache.dir
