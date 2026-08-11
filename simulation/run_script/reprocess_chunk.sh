@@ -1,6 +1,6 @@
 #!/bin/bash
-# Re-run only the post-Geant4 part of a chunk (digitisation + ecal-tree
-# conversion) from a raw sim chunk that is already on EOS.
+# Re-run only the post-Geant4 part of a chunk (digitisation + ACTS tracking +
+# ecal-tree conversion) from a raw sim chunk that is already on EOS.
 #
 # Why this exists: the chunk jobs stage the raw sim to EOS *before* the
 # memory-hungry conversion step, so a job that dies on the cgroup memory limit
@@ -45,6 +45,7 @@ export PYTHONPATH=${repo_root}/install/lib64:${repo_root}/install/lib:${repo_roo
 
 LOCAL_SIM="${base}.edm4hep.root"
 LOCAL_TREE="${label}_ecal.root"
+LOCAL_TRACK="${label}_tracks.edm4hep.root"
 
 xrdcp --force "root://eosexperiment.cern.ch/${sim_dir}/${base}.edm4hep.root" "\${LOCAL_SIM}"
 if [[ ! -s "\${LOCAL_SIM}" ]]; then
@@ -57,6 +58,17 @@ INPUT_FILE="\${PWD}/\${LOCAL_SIM}" k4run ${repo_root}/gaudi_jobs/pid2026_common/
 if [[ ! -s digitized.edm4hep.root ]]; then
     echo "ERROR: digitisation produced no output."
     exit 2
+fi
+
+# Tracks on SiPadHitsDigi, BEFORE the flip: DetectorFlipper rewrites the hit z
+# into the test-beam frame, which no longer matches the ACTS surfaces.
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
+      OUTPUT_FILE="\${LOCAL_TRACK}" SEED_MOMENTUM=${BEAM_ENERGY} \\
+      k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
+      &>> ${log_path}/reproc_${label}.log
+if [[ ! -s "\${LOCAL_TRACK}" ]]; then
+    echo "ERROR: tracking produced no output."
+    exit 5
 fi
 
 # The run number encodes energy and chunk: E*1000 + chunk (see
@@ -79,7 +91,15 @@ if [[ "\${REMOTE_TREE_SIZE}" != "\${LOCAL_TREE_SIZE}" ]]; then
     exit 4
 fi
 
-echo "Done. tree=${tree_dir}/${label}_ecal.root (\${REMOTE_TREE_SIZE} bytes)"
+LOCAL_TRACK_SIZE=\$(stat -c%s "\${LOCAL_TRACK}")
+xrdcp --force "\${LOCAL_TRACK}" "root://eosexperiment.cern.ch/${tree_dir}/${label}_tracks.edm4hep.root"
+REMOTE_TRACK_SIZE=\$(xrdfs eosexperiment.cern.ch stat "${tree_dir}/${label}_tracks.edm4hep.root" 2>/dev/null | awk '/Size:/{print \$2}')
+if [[ "\${REMOTE_TRACK_SIZE}" != "\${LOCAL_TRACK_SIZE}" ]]; then
+    echo "ERROR: track stage-out verification failed (local=\${LOCAL_TRACK_SIZE}, remote='\${REMOTE_TRACK_SIZE}')."
+    exit 4
+fi
+
+echo "Done. tree=${tree_dir}/${label}_ecal.root (\${REMOTE_TREE_SIZE} bytes)  tracks=${tree_dir}/${label}_tracks.edm4hep.root (\${REMOTE_TRACK_SIZE} bytes)"
 EOF
 
     chmod +x ${steer_path}/${condorsh}
@@ -113,6 +133,8 @@ set_run_number() {
     energy=$(sed -E 's/.*_([0-9]+)GeV_.*/\1/' <<< "${label}")
     chunk=$(sed -E 's/.*_c([0-9]+)$/\1/' <<< "${label}")
     RUN_NUMBER=$(( energy * 1000 + 10#${chunk} ))
+    # Also the seed momentum for the tracking step.
+    BEAM_ENERGY=${energy}
 }
 
 if [[ "${1:-}" == "--missing" ]]; then

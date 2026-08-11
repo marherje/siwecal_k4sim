@@ -19,7 +19,7 @@ echo "=== Step 3: digitize + flip + channel mapping ==="
 INPUT_FILE=timewindows.edm4hep.root k4run job3_digitize.py
 
 echo "=== Step 4: tracking ==="
-k4run job4_tracking.py
+k4run ../pid2026_common/job4_tracking.py
 
 echo "=== Step 5: RNTuple conversion ==="
 k4run job5_rntuple.py
