@@ -1,7 +1,10 @@
 #include "ACTSGeoSvc.h"
 #include "DD4hep/Detector.h"
+#include "DD4hep/DetElement.h"
+#include "DD4hep/Volumes.h"
 #include "TGeoManager.h"
 #include "TGeoMatrix.h"
+#include "TGeoNode.h"
 #include "TGeoBBox.h"
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Definitions/Units.hpp"
@@ -28,6 +31,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <map>
 #include <string>
 
 // ---------------------------------------------------------------------------
@@ -104,7 +108,7 @@ StatusCode ACTSGeoSvc::initialize() {
          << m_compactFile.value() << endmsg;
 
   // Struct holding extracted plane info.
-  // TGeo positions are in cm; we convert to mm (* 10) immediately.
+  // TGeo/DD4hep positions are in cm; we convert to mm (* 10) immediately.
   struct PlaneInfo {
     double z;           // global Z center [mm]  // beam axis is now Z
     double halfX;       // half-size in X [mm]   // transverse
@@ -114,117 +118,117 @@ StatusCode ACTSGeoSvc::initialize() {
     int    detID;       // 1=SiPad
     int    station;     // -1 (SiPad has no stations)
     int    layerInDet;  // layer index within detector
+    Acts::MaterialSlab material;  // full layer stack, combined
   };
 
-  // Walk TGeo tree and collect sensitive volumes for the requested detector.
-  auto extractPlanes = [&](const std::string& detName)
-      -> std::vector<PlaneInfo> {
-    std::vector<PlaneInfo> planes;
-    TGeoManager* mgr = gGeoManager;
-    if (!mgr) return planes;
-
-    std::function<void(TGeoNode*, const std::string&)> walk =
-        [&](TGeoNode* node, const std::string& path) {
-      TGeoVolume* vol = node->GetVolume();
-      if (!vol) return;
-
-      const std::string nodeName = node->GetName();
-      const std::string volName  = vol->GetName();
-      const std::string curPath  = path + "/" + nodeName;
-
-      bool inDetector  = (curPath.find(detName) != std::string::npos);
-      bool isSensitive = false;
-      if (detName == "SiPad") {
-        isSensitive = (volName.find("SiPad_layer_") != std::string::npos) &&
-                (volName.find("_slice_4") != std::string::npos);
-      }
-
-            bool isSliceContainer = (volName.find("_col") == std::string::npos);
-      if (inDetector && isSensitive && isSliceContainer) {
-        if (mgr->cd(curPath.c_str())) {
-          TGeoMatrix* mat  = mgr->GetCurrentMatrix();
-          const double* tr = mat->GetTranslation();
-          TGeoBBox* box    = dynamic_cast<TGeoBBox*>(vol->GetShape());
-          if (box) {
-            PlaneInfo pi;
-            pi.z         = tr[2]        * 10.0;
-            pi.halfX     = box->GetDX() * 10.0;
-            pi.halfY     = box->GetDY() * 10.0;
-            pi.thickness = box->GetDZ() * 10.0;
-            pi.plane      = -1;
-            pi.detID      = -1;
-            pi.station    = -1;
-            pi.layerInDet = -1;
-
-            // Helper: parse integer after tag, stopping at next '_'
-            auto parseIntAfter = [&](const std::string& s,
-                                     const std::string& tag) -> int {
-              auto pos = s.find(tag);
-              if (pos == std::string::npos) return -1;
-              pos += tag.size();
-              auto end = s.find('_', pos);
-              return std::stoi(s.substr(pos, end == std::string::npos
-                                              ? std::string::npos
-                                              : end - pos));
-            };
-
-            if (detName == "SiPad") {
-              pi.detID      = 1;
-              pi.station    = -1;
-              pi.layerInDet = parseIntAfter(volName, "SiPad_layer_");
-              pi.plane      = -1;
-            }
-
-            planes.push_back(pi);
-          }
-        }
-      }
-
-      for (int i = 0; i < node->GetNdaughters(); ++i)
-        walk(node->GetDaughter(i), curPath);
-    };
-
-    walk(mgr->GetTopNode(), "");
-
-    std::sort(planes.begin(), planes.end(),
-              [](const PlaneInfo& a, const PlaneInfo& b) {
-                return a.z < b.z;
-              });
-    return planes;
+  // A volume "is the sensitive slice" when it or any descendant carries the
+  // sensitive-detector flag: with the tiled segmentation the flag sits on the
+  // <slice>_wafer_pads volume (detector_plugin/SiPadDetector.cpp, buildWafers),
+  // not on the slice container, which is plain gap material.
+  std::function<bool(TGeoVolume*)> subtreeIsSensitive =
+      [&](TGeoVolume* v) -> bool {
+    if (!v) return false;
+    if (dd4hep::Volume(v).isSensitive()) return true;
+    for (int i = 0; i < v->GetNdaughters(); ++i)
+      if (subtreeIsSensitive(v->GetNode(i)->GetVolume())) return true;
+    return false;
+  };
+  std::function<TGeoVolume*(TGeoVolume*)> firstSensitiveVolume =
+      [&](TGeoVolume* v) -> TGeoVolume* {
+    if (!v) return nullptr;
+    if (dd4hep::Volume(v).isSensitive()) return v;
+    for (int i = 0; i < v->GetNdaughters(); ++i)
+      if (TGeoVolume* s = firstSensitiveVolume(v->GetNode(i)->GetVolume()))
+        return s;
+    return nullptr;
   };
 
-  const std::vector<std::string> detNames = {"SiPad"};
+  // Walk the DD4hep DetElement tree instead of matching TGeo volume names:
+  // the SiPadDetector plugin registers one DetElement per layer (id = layer
+  // number) and one child per slice (id = slice number), so the sensitive
+  // slice of each layer is found by asking DD4hep for sensitivity — robust
+  // against slice reordering in the XML, which silently broke the previous
+  // "_slice_4" name match when the segmentation changed.
+  const std::string detName = "SiPad";
+  dd4hep::DetElement sdet = desc.detector(detName);
+  if (!sdet.isValid()) {
+    error() << "[ACTSGeoSvc] Detector '" << detName
+            << "' not found in the compact geometry." << endmsg;
+    return StatusCode::FAILURE;
+  }
 
-  // Collect ALL planes from ALL detectors into a single flat list.
-  // This avoids CuboidVolumeBuilder multi-volume offset bugs.
   std::vector<PlaneInfo> allPlanes;
   double globalHalfX = 0.0;
   double globalHalfY = 0.0;
 
-  for (const std::string& detName : detNames) {
-    auto planes = extractPlanes(detName);
+  // children() is keyed by name; re-key by DetElement id (= layer number).
+  std::map<int, dd4hep::DetElement> layersById;
+  for (const auto& [name, layerDe] : sdet.children())
+    layersById[layerDe.id()] = layerDe;
 
-    if (planes.empty()) {
-      error() << "[ACTSGeoSvc] No sensitive planes found for detector: "
-              << detName << endmsg;
+  for (const auto& [layerId, layerDe] : layersById) {
+    std::map<int, dd4hep::DetElement> slicesById;
+    for (const auto& [name, sliceDe] : layerDe.children())
+      slicesById[sliceDe.id()] = sliceDe;
+
+    int nSensitive = 0;
+    PlaneInfo pi{};
+    std::vector<Acts::MaterialSlab> slabs;
+
+    for (const auto& [sliceId, sliceDe] : slicesById) {
+      TGeoVolume* vol = sliceDe.volume().ptr();
+      TGeoBBox*   box = vol ? dynamic_cast<TGeoBBox*>(vol->GetShape()) : nullptr;
+      if (!box) continue;
+      const double thickMm = 2.0 * box->GetDZ() * 10.0;
+
+      const bool sensitive = subtreeIsSensitive(vol);
+      if (sensitive) {
+        ++nSensitive;
+        const TGeoHMatrix& w = sliceDe.nominal().worldTransformation();
+        pi.z          = w.GetTranslation()[2] * 10.0;
+        pi.halfX      = box->GetDX() * 10.0;
+        pi.halfY      = box->GetDY() * 10.0;
+        pi.thickness  = box->GetDZ() * 10.0;
+        pi.plane      = -1;
+        pi.detID      = 1;
+        pi.station    = -1;
+        pi.layerInDet = layerId;
+      }
+
+      // Material budget of the layer: every non-air slice contributes. For a
+      // tiled sensitive slice the container is gap material (air), so take
+      // the material of the sensitive volume itself (the silicon wafer).
+      std::string matName = dd4hep::Volume(vol).material().name();
+      if (sensitive) {
+        if (TGeoVolume* sv = firstSensitiveVolume(vol))
+          matName = dd4hep::Volume(sv).material().name();
+      }
+      if (matName != "Air" && matName != "Vacuum")
+        slabs.push_back(makeSlab(matName, thickMm));
+    }
+
+    if (nSensitive != 1) {
+      error() << "[ACTSGeoSvc] Layer " << layerId << " of " << detName
+              << " has " << nSensitive << " sensitive slices (expected 1) — "
+              << "geometry and ACTS surface model out of sync." << endmsg;
       return StatusCode::FAILURE;
     }
-    info() << "[ACTSGeoSvc] Detector " << detName
-           << ": found " << planes.size() << " sensitive planes." << endmsg;
 
-    for (const auto& pi : planes) {
-      info() << "[ACTSGeoSvc]   plane z=" << pi.z
-             << " halfX=" << pi.halfX << " halfY=" << pi.halfY
-             << " thickness=" << pi.thickness
-             << " detID=" << pi.detID
-             << " station=" << pi.station
-             << " layer=" << pi.layerInDet
-             << " plane=" << pi.plane << endmsg;
-      // Track largest detector half-sizes for volume bounds
-      globalHalfX = std::max(globalHalfX, pi.halfX);
-      globalHalfY = std::max(globalHalfY, pi.halfY);
-      allPlanes.push_back(pi);
-    }
+    // Fold the slice stack into one homogeneous slab attached to the surface.
+    for (const auto& s : slabs)
+      pi.material = (pi.material.thickness() > 0.0)
+                        ? Acts::MaterialSlab::combineLayers(pi.material, s)
+                        : s;
+
+    globalHalfX = std::max(globalHalfX, pi.halfX);
+    globalHalfY = std::max(globalHalfY, pi.halfY);
+    allPlanes.push_back(pi);
+  }
+
+  if (allPlanes.empty()) {
+    error() << "[ACTSGeoSvc] No sensitive planes found for detector: "
+            << detName << endmsg;
+    return StatusCode::FAILURE;
   }
 
   // Sort all planes by Z
@@ -232,6 +236,18 @@ StatusCode ACTSGeoSvc::initialize() {
             [](const PlaneInfo& a, const PlaneInfo& b) {
               return a.z < b.z;
             });
+
+  info() << "[ACTSGeoSvc] Detector " << detName << ": found "
+         << allPlanes.size() << " sensitive planes." << endmsg;
+  for (const auto& pi : allPlanes) {
+    info() << "[ACTSGeoSvc]   layer=" << pi.layerInDet
+           << " z=" << pi.z
+           << " halfX=" << pi.halfX << " halfY=" << pi.halfY
+           << " thickness=" << pi.thickness
+           << " | material t=" << pi.material.thickness()
+           << " mm X0=" << pi.material.material().X0()
+           << " mm t/X0=" << pi.material.thicknessInX0() << endmsg;
+  }
 
   // =========================================================================
   // Build TrackingGeometry using PlaneLayer directly.
@@ -288,27 +304,20 @@ StatusCode ACTSGeoSvc::initialize() {
         nullptr,
         Acts::active);
 
-    // Attach surface material: TungstenDens1910(3.5mm) + Silicon(0.65mm); skip thin Cu/CF
-    {
-        auto surfMat = std::make_shared<Acts::HomogeneousSurfaceMaterial>(
-            Acts::MaterialSlab::combineLayers(
-                makeSlab("TungstenDens1910", 3.5),
-                makeSlab("Silicon", 0.65)));
-        detElem->surface().assignSurfaceMaterial(surfMat);
+    // Attach surface material: the layer's full slice stack (W absorber, Si,
+    // PCB, Cu, CF...) combined into one homogeneous slab, accumulated from
+    // the geometry itself — thicknesses and materials track the XML.
+    if (pi.material.thickness() > 0.0) {
+      auto surfMat = std::make_shared<Acts::HomogeneousSurfaceMaterial>(
+          pi.material);
+      detElem->surface().assignSurfaceMaterial(surfMat);
+    } else {
+      warning() << "[ACTSGeoSvc] Layer " << pi.layerInDet
+                << " has no material budget — surface left material-free."
+                << endmsg;
     }
 
     allLayers.push_back(layer);
-  }
-
-  // Material sanity dump — eyeball one surface: Si X0~93.7mm, Fe X0~17.6mm, W X0~3.5mm
-  for (const auto& de : m_detectorElements) {
-    const auto* mat = de->surface().surfaceMaterial();
-    if (!mat) continue;
-    auto slab = mat->materialSlab(Acts::Vector2{0, 0});
-    info() << "[ACTSGeoSvc] MatDump: X0=" << slab.material().X0()
-           << " mm  L0=" << slab.material().L0()
-           << " mm  t=" << slab.thickness() << " mm" << endmsg;
-    break;
   }
 
   // ---- Step 3: Create navigation layers at boundaries --------------------

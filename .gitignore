@@ -50,3 +50,6 @@ simulation/geometry/general_tests
 # here opens, produced and versioned in siwecal-tb2026, so they stay out.
 masking_info/calibration/**/pedestals/
 masking_info/calibration/**/anchor/
+
+# Working notes for the tracking rework — never commit
+instructions_opus.md
