@@ -17,7 +17,8 @@ Three components, all in `gaudi_source/`:
 | Component | Kind | Role |
 |---|---|---|
 | `ACTSGeoSvc` | Gaudi service | Builds the `Acts::TrackingGeometry`: one plane surface per ECAL layer, with that layer's material |
-| `SiPadMeasConverter` | Gaudi algorithm | Pad hits → `edm4hep::TrackerHit3D` measurements bound to those surfaces |
+| `ShowerTagger` | Gaudi algorithm | Identifies EM cascades and flags their hits so they never become measurements; writes the showers |
+| `SiPadMeasConverter` | Gaudi algorithm | Pad hits → `edm4hep::TrackerHit3D` measurements bound to those surfaces, minus the flagged ones |
 | `ACTSProtoTracker` | Gaudi algorithm | Hough seeding → CKF → KalmanFitter refit → `edm4hep::TrackCollection` |
 
 Configured by the single shared job `gaudi_jobs/pid2026_common/job4_tracking.py`.
@@ -163,6 +164,68 @@ carries DD4hep `(x, y, z_beam)`.
 
 ---
 
+## ShowerTagger — why an EM event yields no track
+
+**File:** `gaudi_source/ShowerTagger.cpp`
+
+A track through an electromagnetic cascade is not a physical object. Once a
+particle showers, the pads it lights are secondaries spraying transversely, not
+samples of a trajectory; a line fitted through them is a well-formed track with
+a small chi2 and no meaning. The physical answer for an EM event is "this is a
+shower, with this energy and barycentre".
+
+In a SiW-ECAL that is not an edge case. Every layer is 1.2-2.0 X0, so a
+high-energy electron is already showering in layer 0 or 1 and there is simply no
+incoming segment to fit. Filtering shower hits *inside* the tracker is too late
+and too weak — density cuts trim the core but the remaining fringe still
+supports several plausible "tracks". The hits have to be kept out of the sampling
+altogether.
+
+**Onset.** Hits are counted per layer. A MIP lights one or two pads; a shower
+lights tens. The onset is the first run of `ShowerMinConsecutive` (2) consecutive
+layers with at least `ShowerNHitsThreshold` (4) hits — consecutive in layer
+*number*, so a gap breaks the run, and two layers so a single delta-ray spike
+does not trigger it.
+
+**Veto.** Hits from the onset onwards are flagged. If fewer than
+`MinTrackLayers` (4) layers precede the onset, every hit is flagged: one to three
+points cannot define a trajectory, and passing them on is exactly how a shower
+event acquires a "track".
+
+| Particle | Outcome |
+|---|---|
+| Muon | No onset; the fifteen-layer track is untouched |
+| Electron | Onset at layer 0-1 → one shower, **zero tracks** |
+| Radiative muon | Late onset → incoming track kept *and* a shower |
+| Pion punching through then showering | Same: incoming track plus shower — what PID wants |
+
+**Outputs.** `OutputFlags` is a `podio::UserDataCollection<int32_t>`, one entry
+per input hit, 0 = track-like and 1 = shower — the same idiom as
+`ChannelMapper`'s `OutputMaskedFlags`. It reaches ACTS through
+`SiPadMeasConverter.InputFlags`; because the flags are positional, the converter
+fails loudly on a length mismatch rather than vetoing the wrong hits.
+
+`OutputShowers` is an `edm4hep::ClusterCollection`: `type = 1`, `energy` = total
+in the input's units (MIPs after digitisation), `position` = energy-weighted
+barycentre, and `shapeParameters` = [start layer, layer of maximum, layers
+spanned, transverse RMS in mm, number of hits]. Hit relations are not filled:
+`Cluster::addToHits` wants `CalorimeterHit` and the input here is
+`SimCalorimeterHit`.
+
+`Enabled = False` turns tagging off entirely (all flags zero, no showers), which
+is the way to reproduce the old behaviour for a comparison.
+
+Measured on a 300-event e- 74 GeV slice: 299 showers, **0 tracks**, median 4990
+MIP with the onset at layer 1 and the maximum at layer 6. On 1000 mu- events:
+49 showers (radiative muons), 987 tracks — the 13 losses are muons that dumped a
+cascade in the first few layers.
+
+The tracker's own `HitPurgeWindow` / `IsolationWindow` filters remain as
+fine-grained cleanup for delta rays inside an otherwise track-like event; with
+`ShowerTagger` upstream they no longer carry the shower problem on their own.
+
+---
+
 ## SiPadMeasConverter
 
 **File:** `gaudi_source/SiPadMeasConverter.cpp`
@@ -175,6 +238,10 @@ Reads a pad-hit collection and writes `edm4hep::TrackerHit3D`:
 * Position is taken **from the hit** (`getPosition()`), not recomputed from the
   cell ID.
 * Covariance is `pitch²/12` on each transverse axis, from `PixelSizeX/Y`.
+
+`InputFlags` names the per-hit veto collection (`ShowerTagger`'s
+`OutputFlags`); flagged hits are counted as `vetoed(shower)` in the DEBUG line
+and never become measurements. Leaving it empty disables the veto.
 
 `BitField` and `PixelSize*` come from `parse_geometry` in the job, i.e. straight
 out of the compact XML's `<readout>` block, so they cannot drift from the

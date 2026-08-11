@@ -6,6 +6,7 @@
 
 // edm4hep input
 #include "edm4hep/SimCalorimeterHitCollection.h"
+#include "podio/UserDataCollection.h"
 
 // edm4hep output
 #include "edm4hep/TrackerHit3DCollection.h"
@@ -55,6 +56,14 @@ private:
       this, "BitField", "system:8,layer:8,slice:5,x:9,y:9",
       "DD4hep BitField string for SiPad cellID decoding"};
 
+  Gaudi::Property<std::string> m_inputFlags{
+      this, "InputFlags", "",
+      "Optional per-hit veto flags (podio::UserDataCollection<int32_t>, one "
+      "entry per input hit, non-zero = drop). Set to ShowerTagger's "
+      "OutputFlags so that hits belonging to an electromagnetic cascade never "
+      "become ACTS measurements: a track through a shower is not a physical "
+      "object. Empty disables the veto."};
+
   Gaudi::Property<double> m_pixelSizeX{
       this, "PixelSizeX", 5.53,
       "Pixel pitch in X [mm], Ecal_CellSizeX — sets the measurement variance"};
@@ -70,6 +79,10 @@ private:
   mutable std::unique_ptr<
       k4FWCore::DataHandle<edm4hep::TrackerHit3DCollection>>
       m_outputHandle;
+
+  mutable std::unique_ptr<
+      k4FWCore::DataHandle<podio::UserDataCollection<std::int32_t>>>
+      m_flagsHandle;
 
   // ---- Services ----
   ServiceHandle<ISNDGeoSvc> m_geoSvc{
@@ -97,6 +110,14 @@ StatusCode SiPadMeasConverter::initialize() {
     m_outputHandle = std::make_unique<
         k4FWCore::DataHandle<edm4hep::TrackerHit3DCollection>>(
         m_outputCollection.value(), Gaudi::DataHandle::Writer, this);
+
+    if (!m_inputFlags.value().empty()) {
+      m_flagsHandle = std::make_unique<
+          k4FWCore::DataHandle<podio::UserDataCollection<std::int32_t>>>(
+          m_inputFlags.value(), Gaudi::DataHandle::Reader, this);
+      info() << "[SiPadMeasConverter] Vetoing hits flagged in '"
+             << m_inputFlags.value() << "'." << endmsg;
+    }
 
     // Build BitField decoder
     m_decoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(
@@ -160,10 +181,28 @@ StatusCode SiPadMeasConverter::execute(const EventContext&) const {
     cov[3] = static_cast<float>(varY);  // yy
     // Same covariance for all SiPad hits — computed once outside the loop
 
+    // Optional shower veto. The flags are one-per-input-hit and positional, so
+    // a size mismatch means the flags were produced from a different
+    // collection; refusing to guess is safer than silently vetoing the wrong
+    // hits (or none).
+    const podio::UserDataCollection<std::int32_t>* vetoFlags = nullptr;
+    if (m_flagsHandle) {
+      vetoFlags = m_flagsHandle->get();
+      if (vetoFlags && vetoFlags->size() != hits->size()) {
+        error() << "[SiPadMeasConverter] evt=" << evtNum << " flag collection '"
+                << m_inputFlags.value() << "' has " << vetoFlags->size()
+                << " entries but the input has " << hits->size()
+                << " hits — they must be parallel." << endmsg;
+        return StatusCode::FAILURE;
+      }
+    }
+
     std::size_t nConverted = 0;
     std::size_t nSkipped   = 0;
+    std::size_t nVetoed    = 0;
 
     for (std::size_t i = 0; i < hits->size(); ++i) {
+      if (vetoFlags && (*vetoFlags)[i] != 0) { ++nVetoed; continue; }
       const auto&    hit = (*hits)[i];
       const uint64_t cid = hit.getCellID();
 
@@ -207,7 +246,8 @@ StatusCode SiPadMeasConverter::execute(const EventContext&) const {
     debug() << "[SiPadMeasConverter] evt=" << evtNum
             << " input=" << hits->size()
             << " converted=" << nConverted
-            << " skipped=" << nSkipped << endmsg;
+            << " skipped=" << nSkipped
+            << " vetoed(shower)=" << nVetoed << endmsg;
 
     return StatusCode::SUCCESS;
   } catch (const std::exception& e) {

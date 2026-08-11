@@ -11,7 +11,8 @@ output_*.edm4hep.root
   → job2: EventWindowSplitter → timewindows.edm4hep.root     (optional: time windows)
   → job3: GeV2MIPConversion + BasicDigitizer + DetectorFlipper + ChannelMapper
                               → digitized.edm4hep.root
-  → job4: SiPadMeasConverter + ACTSProtoTracker → tracks.edm4hep.root
+  → job4: ShowerTagger + SiPadMeasConverter + ACTSProtoTracker
+                              → tracks.edm4hep.root  (ACTSTracks + EMShowers)
   → job5: EDM4HEP2RNTuple     → ShipHits.root                (optional)
 ```
 
@@ -101,7 +102,7 @@ from the compact XML.
 
 ## Job 4 — Tracking
 
-**Files:** `gaudi_source/SiPadMeasConverter.cpp`, `gaudi_source/ACTSProtoTracker.cpp`, `gaudi_source/ACTSGeoSvc.cpp`
+**Files:** `gaudi_source/ShowerTagger.cpp`, `SiPadMeasConverter.cpp`, `ACTSProtoTracker.cpp`, `ACTSGeoSvc.cpp`
 **Config:** `gaudi_jobs/pid2026_common/job4_tracking.py` — a single job shared by every pipeline
 
 There is exactly one tracking job. It used to be copy-pasted into each
@@ -124,14 +125,64 @@ Always a *pre-flip* collection: `DetectorFlipper` rewrites the hit z into the
 test-beam frame, which no longer matches the ACTS surfaces — those come from
 the same compact XML as the simulation.
 
-**Step 1 — `SiPadMeasConverter`:** turns the pad hits into
+**Step 1 — `ShowerTagger`:** identifies electromagnetic cascades and keeps
+their hits out of the ACTS measurement pool — see below. Writes per-hit veto
+flags (`SiPadShowerFlags`) and reconstructed showers (`EMShowers`).
+
+**Step 2 — `SiPadMeasConverter`:** turns the pad hits into
 `edm4hep::TrackerHit3D` measurements, writing the layer index into `quality` so
 the tracker can look the surface up by address. Variance is `pitch²/12` per
 axis. Positions are taken from the hit, not recomputed.
 
-**Step 2 — `ACTSProtoTracker`:** Hough seeding → CKF → KalmanFitter refit →
+**Step 3 — `ACTSProtoTracker`:** Hough seeding → CKF → KalmanFitter refit →
 event-level deduplication, writing `ACTSTracks` with one `AtIP` state carrying
 the seed position and one `AtOther` state per surface.
+
+### Showers are not tracks
+
+A track through an electromagnetic cascade is not a physical object: the pads
+are secondaries spraying transversely, not samples of a trajectory. Fitting a
+line through them yields a well-formed track with a small chi2 and no meaning.
+So shower hits are identified **before** the measurement pool is built and never
+reach ACTS; what an EM event produces is a *shower*, not a track.
+
+This bites harder here than in a tracker-plus-calorimeter setup: every layer is
+1.2-2.0 X0, so a high-energy electron is already showering in layer 0 or 1 and
+there is no incoming segment left to fit.
+
+`ShowerTagger` counts hits per layer. A MIP lights one or two pads per layer, a
+shower lights tens; `ShowerMinConsecutive` consecutive layers at or above
+`ShowerNHitsThreshold` hits mark the onset (two layers, so a single delta-ray
+spike does not count). Hits from the onset onwards are flagged. If fewer than
+`MinTrackLayers` layers precede the onset, **every** hit is flagged — a stub of
+one to three points cannot define a trajectory, and letting it through is how a
+shower event ends up with a "track" anyway.
+
+| Property | Default | Description |
+|---|---|---|
+| `ShowerNHitsThreshold` | 4 | Hits in one layer for that layer to count as dense |
+| `ShowerMinConsecutive` | 2 | Consecutive dense layers required to declare an onset |
+| `MinTrackLayers` | 4 | Pre-shower layers needed to still offer the segment to the tracker |
+| `Enabled` | `True` | `False` disables tagging (all flags zero, no showers) |
+
+The veto reaches ACTS through `SiPadMeasConverter.InputFlags`, the same
+per-hit-flag idiom as `ChannelMapper`'s `OutputMaskedFlags`. The flags are
+positional, so the converter fails loudly if the two collections have different
+lengths rather than vetoing the wrong hits.
+
+`EMShowers` is an `edm4hep::ClusterCollection`: `type = 1`, `energy` = total (in
+the input's units, MIPs after digitisation), `position` = energy-weighted
+barycentre, and `shapeParameters` = [start layer, layer of maximum, layers
+spanned, transverse RMS in mm, number of hits].
+
+Behaviour by particle:
+
+| | Result |
+|---|---|
+| Muon | No onset; the fifteen-layer track is untouched |
+| Electron | Onset at layer 0-1, so a shower and **no track** |
+| Radiative muon | Onset late: keeps the incoming track *and* gets a shower |
+| Pion punching through then showering | Same — incoming track plus shower, which is what PID wants |
 
 ### Geometry: one surface per layer, from DD4hep
 
@@ -221,12 +272,18 @@ slice of an e- 74 GeV chunk:
 
 | | mu- 100 GeV | e- 74 GeV |
 |---|---|---|
-| Events with a track | 999/1000 | 298/300 |
-| Tracks per event | 1.00 | 2.11 |
+| Showers reconstructed | 49 (radiative muons) | 299/300 |
+| Events with a track | 987/1000 | **0** |
+| Tracks per event | 1.00 | 0 |
 | Track spans all 15 layers | 99.8% | — |
 | Residual vs hits (rms) | 0.21 mm (x), 0.28 mm (y) | — |
-| Best track within one pad of the layer-0 hit | — | 95.6% |
-| Hits purged as shower-like | ~0% | 30.5% |
+| Hits vetoed as shower | 0% in 951 events | 100% |
+
+Zero tracks in the electron sample is the intended result, not a failure. The 13
+muon events without a track are ones where the muon dumped a real EM cascade
+early (`ShowerTagger` finds an onset in 49 events; in 12 of them it starts at
+layer 2-3, leaving too short a stub). Median reconstructed shower: 4990 MIP,
+onset at layer 1, maximum at layer 6, transverse RMS 22.6 mm.
 
 chi2/ndf has a median near zero and that is expected, not a bug: with a 5.53 mm
 pitch and 15 mm between layers a track must be tilted by more than

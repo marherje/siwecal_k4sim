@@ -27,6 +27,7 @@ gaudi_add_module(SND_reco
     gaudi_source/RealDigitizer.cpp
     gaudi_source/DetectorFlipper.cpp
     gaudi_source/ChannelMapper.cpp
+    gaudi_source/ShowerTagger.cpp
   LINK
     Gaudi::GaudiKernel
     k4FWCore::k4FWCore

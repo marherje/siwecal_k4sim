@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 from k4FWCore import ApplicationMgr, IOSvc
-from Configurables import ACTSGeoSvc, SiPadMeasConverter, ACTSProtoTracker
+from Configurables import ACTSGeoSvc, ShowerTagger, SiPadMeasConverter, ACTSProtoTracker
 from Gaudi.Configuration import DEBUG, INFO
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -55,10 +55,35 @@ geosvc = ACTSGeoSvc("ACTSGeoSvc")
 geosvc.CompactFile = str(COMPACT_FILE)
 geosvc.OutputLevel = loglevel
 
+# ---- Shower tagging ------------------------------------------------------
+# A track through an electromagnetic cascade is not a physical object: the pads
+# are secondaries spraying transversely, not samples of a trajectory. So the
+# shower hits are identified FIRST and never reach the ACTS measurement pool;
+# what the event gets instead is a reconstructed shower (EMShowers).
+#
+# Every layer of this detector is 1.2-2.0 X0, so a high-energy electron is
+# already showering in layer 0 or 1: with fewer than MinTrackLayers layers
+# before the onset there is no incoming segment to fit, and the whole event is
+# vetoed for tracking. A muon never triggers the onset and is untouched. A pion
+# that punches through and then showers keeps its incoming track AND gets a
+# shower — which is the information PID wants.
+shower = ShowerTagger("ShowerTagger")
+# MultiTransformer collection properties are lists, as in job3's ChannelMapper.
+shower.InputCollection      = [inputcoll]
+shower.OutputFlags          = ["SiPadShowerFlags"]
+shower.OutputShowers        = ["EMShowers"]
+shower.BitField             = geo.bitfields["SiPadHits"]
+shower.ShowerNHitsThreshold = 4    # a MIP lights 1-2 pads per layer
+shower.ShowerMinConsecutive = 2    # ignore a single-layer delta-ray spike
+shower.MinTrackLayers       = 4
+shower.OutputLevel          = loglevel
+
 sipad_conv = SiPadMeasConverter("SiPadMeasConverter")
 sipad_conv.GeoSvc           = "ACTSGeoSvc"
 sipad_conv.InputCollection  = inputcoll
 sipad_conv.OutputCollection = "SiPadMeasurements"
+# Shower hits are dropped here, so they are never sampled by ACTS.
+sipad_conv.InputFlags       = "SiPadShowerFlags"
 # Straight from the <readout> block, so it cannot drift from the segmentation.
 sipad_conv.BitField         = geo.bitfields["SiPadHits"]
 sipad_conv.PixelSizeX       = geo.ecal_cell_size_x
@@ -118,6 +143,6 @@ proto.OutputLevel      = loglevel
 ApplicationMgr(
     EvtSel  = "NONE",
     EvtMax  = -1,
-    TopAlg  = [sipad_conv, proto],
+    TopAlg  = [shower, sipad_conv, proto],
     ExtSvc  = [iosvc, geosvc]
 )
