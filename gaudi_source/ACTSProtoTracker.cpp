@@ -24,6 +24,8 @@
 
 // ACTS track fitting + finding
 #include "Acts/TrackFitting/GainMatrixUpdater.hpp"
+#include "Acts/TrackFitting/GainMatrixSmoother.hpp"
+#include "Acts/TrackFitting/KalmanFitter.hpp"
 #include "Acts/Propagator/DirectNavigator.hpp"
 #include "Acts/Propagator/Navigator.hpp"
 #include "Acts/TrackFinding/CombinatorialKalmanFilter.hpp"
@@ -61,6 +63,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -130,6 +133,19 @@ struct SNDSourceLinkAccessor {
           return id < sl.get<SNDSourceLink>().geometryId();
         });
     return {lo, hi};
+  }
+};
+
+// ---------------------------------------------------------------------------
+// SNDSurfaceAccessor — resolves a SourceLink back to its Acts::Surface.
+// Required by KalmanFitterExtensions: the KF groups input source links by
+// surface before propagation (SNDSourceLink only stores the geometryId).
+// ---------------------------------------------------------------------------
+
+struct SNDSurfaceAccessor {
+  const std::vector<SNDMeasurement>* meas = nullptr;
+  const Acts::Surface* operator()(const Acts::SourceLink& sl) const {
+    return (*meas)[sl.get<SNDSourceLink>().index].surface;
   }
 };
 
@@ -211,7 +227,15 @@ struct SNDFixedNavigator {
   const Acts::Surface* targetSurface(const State& s) const {
     return s.options.targetSurface;
   }
-  bool endOfWorldReached(State&) const { return false; }
+  // For a FIXED surface sequence, running out of surfaces IS the end of the
+  // world, and it must be reported as such: Propagator::propagate() only
+  // leaves its stepping loop when an aborter fires, and the CKF's only
+  // geometric aborter is EndOfWorldReached (which calls exactly this method).
+  // Returning a hardcoded false left the propagator free-stepping at
+  // maxStepSize after DirectNavigator had set navigationBreak, until it hit
+  // maxSteps and returned PropagatorError::StepCountLimitReached — the CKF
+  // then discarded the branch, so EVERY event produced zero tracks.
+  bool endOfWorldReached(State& s) const { return s.navigationBreak; }
   bool navigationBreak(const State& s) const { return s.navigationBreak; }
 };
 
@@ -230,6 +254,12 @@ using SNDTrackContainer = Acts::TrackContainer<
 
 using SNDCKF = Acts::CombinatorialKalmanFilter<SNDCKFPropagator,
                                                SNDTrackContainer>;
+
+// Final-refit KalmanFitter: the surface-sequence fit() overload requires a
+// plain Acts::DirectNavigator (the sequence is passed per-fit call).
+using SNDKFPropagator = Acts::Propagator<SNDStepper, Acts::DirectNavigator>;
+using SNDKF           = Acts::KalmanFitter<SNDKFPropagator,
+                                           Acts::VectorMultiTrajectory>;
 
 // ---------------------------------------------------------------------------
 // IronSlabBField — By inside registered slabs, zero everywhere else.
@@ -411,11 +441,50 @@ private:
       "Maximum number of crossing neighbors within IsolationWindow for a "
       "crossing to be considered isolated (track-like). "
       "Muon: 0 neighbors. Shower: hundreds of neighbors."};
-      
+
+  Gaudi::Property<bool> m_finalRefit{
+      this, "FinalRefit", true,
+      "If true, refit the hits selected by the CKF with an Acts::KalmanFitter "
+      "on the frozen hit set (no re-selection possible), giving unbiased "
+      "parameters and covariances. Falls back to the CKF track on failure."};
+
+  Gaudi::Property<bool> m_seedCleaning{
+      this, "SeedCleaning", true,
+      "If true, the measurements assigned to an accepted track are removed "
+      "from the source-link pool before processing the next seed. Nearby "
+      "seeds then cannot converge onto an already-used particle, which "
+      "recovers the second track at small opening angles."};
+
+  // ---- Shower-hit purge (measurement-pool level) ---------------------------
+  Gaudi::Property<double> m_hitPurgeWindow{
+      this, "HitPurgeWindow", 0.0,
+      "Distance [mm] for the density-based shower-hit purge of the "
+      "measurement pool (applied per surface, before seeding and CKF). A "
+      "measurement with more than HitPurgeMaxNeighbors same-surface "
+      "neighbors within this distance is dropped. 0.0 = disabled."};
+
+  Gaudi::Property<int> m_hitPurgeMaxNeighbors{
+      this, "HitPurgeMaxNeighbors", 4,
+      "Maximum number of same-surface neighbors within HitPurgeWindow for a "
+      "measurement to be kept. MIP + delta rays: a few. Shower core: tens."};
+
+  // ---- Duplicate-track filter ---------------------------------------------
+  // Two accepted tracks are duplicates if they share more than
+  // DuplicateOverlapFraction of the SMALLER track's hits. The event's tracks
+  // are deduplicated at the END of the event, best-first (lowest chi2/ndf), so
+  // the survivor of each overlap group is always the best-quality fit —
+  // independent of the order seeds were processed in.
+  Gaudi::Property<double> m_dupOverlapFraction{
+      this, "DuplicateOverlapFraction", 0.7,
+      "Fraction of the smaller track's hits that must be shared for two tracks "
+      "to be considered duplicates (0..1). The higher-chi2/ndf one is dropped."};
+
   // ---- Hough-based auto-seeding -------------------------------------------
   struct SeedCandidate {
-    double x;            // transverse X [mm]
-    double y;            // transverse Y [mm]
+    double x;            // transverse X [mm], extrapolated to the first surface
+    double y;            // transverse Y [mm], extrapolated to the first surface
+    double dx;           // dx/dz slope [-] from the straight-line regression
+    double dy;           // dy/dz slope [-] from the straight-line regression
     double z_start;      // beam Z of first compatible layer [mm]
     int    nVotes;       // number of crossing points supporting this seed
     double multiplicity; // nCompatCrossings / nCompatStations — track/shower discriminant
@@ -497,8 +566,8 @@ std::vector<ACTSProtoTracker::SeedCandidate> ACTSProtoTracker::findSeeds(
   }
 
   if (points2D.empty()) {
-    SeedCandidate sc;
-    sc.x = 0.0; sc.y = 0.0; sc.nVotes = 0;
+    SeedCandidate sc{};
+    sc.x = 0.0; sc.y = 0.0; sc.dx = 0.0; sc.dy = 0.0; sc.nVotes = 0;
     sc.z_start = measurements.empty() ? 0.0
                : measurements.front().surface->center(gctx).x();
     seeds.push_back(sc);
@@ -623,6 +692,12 @@ std::vector<ACTSProtoTracker::SeedCandidate> ACTSProtoTracker::findSeeds(
   // =========================================================================
   const int    maxS       = m_maxSeeds.value();
   const double stripPitch = m_stripPitch.value();
+  // Beam coordinate of the surface the seed is built on (execute() always uses
+  // allSurfaces.front()), so the regression extrapolates to the right plane.
+  const auto&  geoSurfaces = m_geoSvc->allSurfaces();
+  const double zSeed = geoSurfaces.empty()
+      ? measurements.front().surface->center(gctx).x()
+      : geoSurfaces.front()->center(gctx).x();
 
   for (std::size_t pi = 0; pi < peaksWithMult.size() && (int)seeds.size() < maxS; ++pi) {
     if (suppressed[pi]) continue;
@@ -645,18 +720,38 @@ std::vector<ACTSProtoTracker::SeedCandidate> ACTSProtoTracker::findSeeds(
       continue;
     }
 
-    // Most-frequent strip refinement
+    // Straight-line regression over the compatible points, plus the
+    // most-frequent-position fallback.
+    //
+    // The Hough peak is only the (x,y) CENTROID over the layers: seeding with
+    // it and a direction fixed along the beam is right only for a track
+    // exactly parallel to the beam. For a track crossing pads (a tilt of just
+    // atan(5.53/15) ~ 20 deg is a full pad per layer, and beam divergence
+    // alone moves the entry point over 225 mm) the prediction on the first
+    // layer lands pads away from the hit, the MeasurementSelector rejects it,
+    // and the trajectory is never corrected — the CKF then picks up one or two
+    // hits and the candidate is discarded. Fitting x(z) and y(z) gives the
+    // seed both the correct entry point AND a direction estimate.
     std::map<int,int> xFreq, yFreq;
     double firstZ = std::numeric_limits<double>::max();
     int nPts = 0;
+    // Regression accumulators (z = beam coordinate).
+    double sw = 0.0, sz = 0.0, szz = 0.0;
+    double sx = 0.0, szx = 0.0, sy = 0.0, szy = 0.0;
+    std::set<int> zKeys;
 
     for (const auto& p : points2D) {
-      double dx = p.x - peakX, dy = p.y - peakY;
-      if (dx*dx + dy*dy < compatR2) {
+      double ddx = p.x - peakX, ddy = p.y - peakY;
+      if (ddx*ddx + ddy*ddy < compatR2) {
         xFreq[static_cast<int>(std::round(p.x/stripPitch))] += p.weight;
         yFreq[static_cast<int>(std::round(p.y/stripPitch))] += p.weight;
         nPts += p.weight;
         if (p.z < firstZ) firstZ = p.z;
+        const double w = static_cast<double>(p.weight);
+        sw  += w;        sz  += w * p.z;   szz += w * p.z * p.z;
+        sx  += w * p.x;  szx += w * p.z * p.x;
+        sy  += w * p.y;  szy += w * p.z * p.y;
+        zKeys.insert(static_cast<int>(std::round(p.z / stationTolerance)));
       }
     }
 
@@ -672,9 +767,25 @@ std::vector<ACTSProtoTracker::SeedCandidate> ACTSProtoTracker::findSeeds(
     for (const auto& [strip, freq] : yFreq)
       if (freq > maxYF) { maxYF = freq; refinedY = strip * stripPitch; }
 
-    SeedCandidate sc;
+    // The seed is built on the first surface, so extrapolate there. Require
+    // at least 3 distinct layers and a non-degenerate z lever arm; otherwise
+    // fall back to the parallel-to-beam assumption.
+    const double det = sw * szz - sz * sz;
+    double slopeX = 0.0, slopeY = 0.0;
+    if (zKeys.size() >= 3 && std::abs(det) > 1e-6) {
+      slopeX = (sw * szx - sz * sx) / det;
+      slopeY = (sw * szy - sz * sy) / det;
+      const double interX = (sx - slopeX * sz) / sw;
+      const double interY = (sy - slopeY * sz) / sw;
+      refinedX = interX + slopeX * zSeed;
+      refinedY = interY + slopeY * zSeed;
+    }
+
+    SeedCandidate sc{};
     sc.x            = refinedX;
     sc.y            = refinedY;
+    sc.dx           = slopeX;
+    sc.dy           = slopeY;
     sc.z_start      = firstZ;
     sc.nVotes       = pk.votes;
     sc.multiplicity = pk.multiplicity;
@@ -803,9 +914,59 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
                        b.surface->center(gctx).x();
               });
 
+    // ---- Shower-hit purge ---------------------------------------------------
+    // Density-based cleaning of the measurement pool BEFORE seeding and the
+    // CKF: on each surface, a measurement with more than HitPurgeMaxNeighbors
+    // other measurements within HitPurgeWindow is shower-like and is dropped
+    // entirely (a MIP leaves 1-2 hits per layer; a shower leaves tens to
+    // hundreds). Unlike the Hough isolation filter (which only steers the
+    // seeding), this removes the hits from the fit itself, so shower cores
+    // can no longer contaminate track candidates.
+    const std::size_t nBeforePurge = measurements.size();
+    const double purgeWin  = m_hitPurgeWindow.value();
+    const int    purgeMaxN = m_hitPurgeMaxNeighbors.value();
+    if (purgeWin > 0.0) {
+      std::unordered_map<const Acts::Surface*, std::vector<std::size_t>> bySurf;
+      for (std::size_t i = 0; i < measurements.size(); ++i) {
+        bySurf[measurements[i].surface].push_back(i);
+      }
+
+      std::vector<bool> keep(measurements.size(), true);
+      for (const auto& [surf, idxs] : bySurf) {
+        if (static_cast<int>(idxs.size()) <= purgeMaxN) continue;  // cannot exceed
+        for (std::size_t i : idxs) {
+          const auto& a = measurements[i];
+          int n = 0;
+          for (std::size_t j : idxs) {
+            if (j == i) continue;
+            const auto& b = measurements[j];
+            const double d = std::hypot(a.localCoord  - b.localCoord,
+                                        a.localCoord2 - b.localCoord2);
+            if (d < purgeWin && ++n > purgeMaxN) break;
+          }
+          if (n > purgeMaxN) keep[i] = false;
+        }
+      }
+
+      std::vector<SNDMeasurement> purged;
+      purged.reserve(measurements.size());
+      for (std::size_t i = 0; i < measurements.size(); ++i) {
+        if (keep[i]) purged.push_back(measurements[i]);
+      }
+      measurements.swap(purged);
+
+      if (measurements.empty()) {
+        debug() << "[ACTSProtoTracker] evt=" << evtNum
+                << " all measurements purged as shower-like." << endmsg;
+        return StatusCode::SUCCESS;
+      }
+    }
+
     debug() << "[ACTSProtoTracker] evt=" << evtNum
             << " SiPad=" << (spHits ? spHits->size() : 0)
-            << " total measurements=" << measurements.size() << endmsg;
+            << " total measurements=" << measurements.size()
+            << " (purged " << (nBeforePurge - measurements.size())
+            << " shower-like)" << endmsg;
 
     // =========================================================================
     // STEP 4: Build shared KF components (once per event)
@@ -847,6 +1008,10 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
                       Acts::VectorMultiTrajectory::TrackStateProxy ts) const {
         const auto& ssl = sl.get<SNDSourceLink>();
         const auto& m   = (*meas)[ssl.index];
+        // Store the source link on the track state: TrackStateCreator leaves
+        // this to the calibrator (ACTS convention). Without it the hit
+        // fingerprints (duplicate rejection, frozen-hit refit) are empty.
+        ts.setUncalibratedSourceLink(Acts::SourceLink{sl});
         // SiPad: 2D measurement (loc0,loc1) = (DD4hep X, DD4hep Y)
         constexpr std::array<Acts::BoundIndices, 2> indices = {
             Acts::eBoundLoc0, Acts::eBoundLoc1};
@@ -930,6 +1095,32 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
     SNDCKF ckf(std::move(ckfPropagator),
                Acts::getDefaultLogger("CKF", Acts::Logging::WARNING));
 
+    // ---- KalmanFitter infrastructure for the final refit --------------------
+    // Reuses the same updater and calibrator as the CKF; the smoother and the
+    // surface accessor are KF-specific. The surface sequence is passed per
+    // fit() call, which is why a plain DirectNavigator is used.
+    Acts::GainMatrixSmoother kfSmoother;
+    SNDSurfaceAccessor kfSurfaceAccessor;
+    kfSurfaceAccessor.meas = &measurements;
+
+    Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> kfExtensions;
+    kfExtensions.calibrator
+        .template connect<&SNDCalibrator::operator()>(&calibrator);
+    kfExtensions.updater
+        .connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(
+            &gainMatrixUpdater);
+    kfExtensions.smoother
+        .connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(
+            &kfSmoother);
+    kfExtensions.surfaceAccessor
+        .connect<&SNDSurfaceAccessor::operator()>(&kfSurfaceAccessor);
+
+    SNDStepper kfStepper(bField);
+    Acts::DirectNavigator kfNavigator;
+    SNDKFPropagator kfPropagator(std::move(kfStepper), std::move(kfNavigator));
+    SNDKF kf(std::move(kfPropagator),
+             Acts::getDefaultLogger("KF", Acts::Logging::WARNING));
+
     // Track container accumulates tracks from all seeds this event.
     auto trackBackend = std::make_shared<Acts::VectorTrackContainer>();
     auto trajBackend  = std::make_shared<Acts::VectorMultiTrajectory>();
@@ -958,7 +1149,9 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
 
       for (const auto& sc : autoSeeds) {
         seedPositions3D.push_back({sc.x, sc.y, sc.z_start});
-        seedDirections3D.push_back({0.0, 0.0, 1.0});
+        // Direction from the seed's straight-line regression (dz = 1 by
+        // construction); the caller normalises before creating the parameters.
+        seedDirections3D.push_back({sc.dx, sc.dy, 1.0});
       }
 
       if (evtNum < 3) {
@@ -1005,10 +1198,142 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
 
     std::size_t nTracks = 0;
 
-    // Fingerprints store sets of hit indices (not surface geoIDs) for
-    // accurate duplicate detection across seeds with different hit selection.
-    std::vector<std::set<std::size_t>> acceptedFingerprints;
-    const double kDuplicateOverlapFraction = 0.7;  // reject if >70% shared hits
+    // Provisional per-seed winners, deduplicated at the end of the event.
+    // Fingerprints store sets of hit indices (not surface geoIDs) for accurate
+    // duplicate detection across seeds with different hit selection.
+    struct AcceptedTrack {
+      Acts::TrackIndexType   idx;    // into ckfTracks (states read at write time)
+      std::set<std::size_t>  fp;     // hit-index fingerprint
+      double                 chi2;
+      int                    ndf;
+      double                 ddx, ddy;  // seed transverse position (AtIP state)
+      std::size_t            iSeed;
+    };
+    std::vector<AcceptedTrack> provisional;
+
+    // Standard goodness-of-fit convention:
+    //   chi² = Σ per-state innovation chi² (filled by ACTS during filtering)
+    //   ndf  = Σ calibratedSize − n_fit_params   (5 helix params: loc0, loc1,
+    //          phi, theta, q/p; ACTS's nDoF() returns Σ calibratedSize only).
+    // For a well-fit track, chi²/ndf is centered at ≈ 1.
+    constexpr int kHelixParams = 5;
+
+    // ---- Fit options (seed-independent, shared by all seeds) ----------------
+    Acts::PropagatorPlainOptions pOptions(gctx, m_mctx);
+    pOptions.direction = Acts::Direction::Forward();
+    pOptions.stepping.maxStepSize = m_maxStepSize.value();
+    pOptions.maxSteps = static_cast<std::size_t>(m_maxPropSteps.value());
+
+    Acts::CombinatorialKalmanFilterOptions<SNDTrackContainer> ckfOptions(
+        gctx, m_mctx, std::cref(m_cctx),
+        ckfExtensions,
+        pOptions,
+        true,
+        true);
+
+    Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory> kfOptions(
+        gctx, m_mctx, std::cref(m_cctx), kfExtensions, pOptions);
+
+    // ---- Per-seed fit helpers -----------------------------------------------
+    auto chi2NdfOf = [&](const auto& track) -> double {
+      const int ndf =
+          std::max(1, static_cast<int>(track.nDoF()) - kHelixParams);
+      return track.chi2() / static_cast<double>(ndf);
+    };
+
+    // NOTE: TrackStateCreator sets MeasurementFlag on outlier states too (plus
+    // OutlierFlag), so outliers must be excluded explicitly — they are not
+    // part of the fit and must not be fed to the frozen-hit KF refit.
+    auto fingerprintOf = [](const auto& track) -> std::set<std::size_t> {
+      std::set<std::size_t> fp;
+      for (const auto& ts : track.trackStatesReversed()) {
+        if (ts.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag) &&
+            !ts.typeFlags().test(Acts::TrackStateFlag::OutlierFlag) &&
+            ts.hasUncalibratedSourceLink()) {
+          fp.insert(ts.getUncalibratedSourceLink()
+                        .template get<SNDSourceLink>().index);
+        }
+      }
+      return fp;
+    };
+
+    // Run one CKF pass from the given seed parameters; return the index (into
+    // ckfTracks) of the best candidate: nMeas >= 3, lowest chi2/ndf. The
+    // MaxChi2PerNdf cut and duplicate rejection are applied to the FINAL
+    // track only, after the optional KF refit.
+    auto runCKFPass = [&](const Acts::BoundTrackParameters& sp,
+                          std::size_t iSeed)
+        -> std::optional<Acts::TrackIndexType> {
+      auto ckfResult = ckf.findTracks(sp, ckfOptions, ckfTracks);
+      if (!ckfResult.ok()) {
+        warning() << "[ACTSProtoTracker] evt=" << evtNum
+                  << " seed=" << iSeed
+                  << " CKF failed: " << ckfResult.error() << endmsg;
+        return std::nullopt;
+      }
+      std::optional<Acts::TrackIndexType> bestIdx;
+      double bestChi2Ndf = std::numeric_limits<double>::max();
+      for (const auto& t : *ckfResult) {
+        const std::size_t nMeas = t.nMeasurements();
+        const double      c2n   = chi2NdfOf(t);
+        debug() << "[ACTSProtoTracker] evt=" << evtNum
+                << " seed=" << iSeed
+                << " CKF nMeas=" << nMeas
+                << " nHoles=" << t.nHoles()
+                << " chi2=" << t.chi2()
+                << " chi2/ndf=" << c2n << endmsg;
+        if (nMeas < 3) continue;
+        if (c2n < bestChi2Ndf) {
+          bestChi2Ndf = c2n;
+          bestIdx     = t.index();
+        }
+      }
+      return bestIdx;
+    };
+
+    // Re-seed parameters from a fitted track: smoothed state at the most
+    // upstream measurement, extrapolated back to the first surface with a
+    // straight line (the setup is field-free), at the given loose covariance
+    // so the refit stays measurement-dominated.
+    auto reseedFrom = [&](const auto& track, const Acts::BoundSquareMatrix& cov)
+        -> std::optional<Acts::BoundTrackParameters> {
+      // trackStatesReversed walks tip -> stem, so the LAST measurement state
+      // visited is the most upstream one.
+      std::optional<Acts::BoundVector> bound;
+      const Acts::Surface* surf = nullptr;
+      for (const auto& ts : track.trackStatesReversed()) {
+        if (!ts.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag)) {
+          continue;
+        }
+        if (ts.hasSmoothed()) {
+          bound = ts.smoothed();
+          surf  = &ts.referenceSurface();
+        } else if (ts.hasFiltered()) {
+          bound = ts.filtered();
+          surf  = &ts.referenceSurface();
+        }
+      }
+      if (!bound || surf == nullptr) return std::nullopt;
+      const double phi   = (*bound)[Acts::eBoundPhi];
+      const double theta = (*bound)[Acts::eBoundTheta];
+      Acts::Vector3 dir(std::sin(theta) * std::cos(phi),
+                        std::sin(theta) * std::sin(phi),
+                        std::cos(theta));
+      if (std::abs(dir.x()) < 1e-6) return std::nullopt;
+      Acts::Vector3 pos = surf->localToGlobal(
+          gctx,
+          Acts::Vector2((*bound)[Acts::eBoundLoc0], (*bound)[Acts::eBoundLoc1]),
+          dir);
+      const Acts::Surface* front = allSurfaces.front();
+      const double xFront = front->center(gctx).x();
+      pos += dir * ((xFront - pos.x()) / dir.x());
+      Acts::Vector4 pos4(pos.x(), pos.y(), pos.z(), 0.0);
+      auto res = Acts::BoundTrackParameters::create(
+          gctx, front->getSharedPtr(), pos4, dir,
+          (*bound)[Acts::eBoundQOverP], cov, Acts::ParticleHypothesis::muon());
+      if (!res.ok()) return std::nullopt;
+      return *res;
+    };
 
     // =========================================================================
     // STEPS 5-7: Loop over seeds
@@ -1031,24 +1356,36 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
 
       Acts::Vector4 seedPos4;
       // Beam coordinate goes into ePos0 (ACTS X, after X<->Z swap in geometry).
-      // Surface rotation rot90Y maps: local X = global Z, local Y = global Y.
-      // Therefore: eBoundLoc0 = global Z, eBoundLoc1 = global Y.
-      // BoundTrackParameters maps: ePos1 → eBoundLoc1, ePos2 → eBoundLoc0.
-      // DD4hep convention: dd_x = transverse X (→ global Z → eBoundLoc0 → ePos2)
-      //                    dd_y = transverse Y (→ global Y → eBoundLoc1 → ePos1)
+      //
+      // Surface frame: the geometry applies rot90Y = R_Y(pi/2), whose columns
+      // are the images of the local axes:
+      //     local x -> (0, 0, -1)     local y -> (0, 1, 0)     local z -> (1, 0, 0)
+      // so local z (the normal) is the beam, as intended, but local x maps to
+      // MINUS global Z. Inverting, a global offset (0, dy, dz) from the surface
+      // centre has bound coordinates (loc0, loc1) = (-dz, dy).
+      //
+      // The calibrator defines the measurement as (loc0, loc1) = (dd_x, dd_y),
+      // so consistency requires global Z = -dd_x and global Y = dd_y. Filling
+      // ePos2 with +dd_x instead put the seed at -dd_x in loc0, i.e. 2*|dd_x|
+      // away from its own track: harmless at dd_x = 0, but 88 mm for a muon at
+      // dd_x = -44 mm, whose first-layer chi2 (88/10.1)^2 = 76 then exceeds
+      // Chi2CutOff = 70 and the CKF loses the track entirely.
       seedPos4[Acts::ePos0] = sfSeed->center(gctx).x();  // beam coord (ACTS X)
-      seedPos4[Acts::ePos1] = dd_y;  // DD4hep Y → global Y → eBoundLoc1
-      seedPos4[Acts::ePos2] = dd_x;  // DD4hep X → global Z → eBoundLoc0
+      seedPos4[Acts::ePos1] =  dd_y;  // DD4hep Y → global Y  → eBoundLoc1
+      seedPos4[Acts::ePos2] = -dd_x;  // DD4hep X → -global Z → eBoundLoc0
       seedPos4[Acts::eTime] = 0.0;
 
       // ---- Seed direction (DD4hep → ACTS coordinate swap) ------------------
-      // DD4hep convention: (dx, dy, dz), Z=beam.
-      // ACTS swap: ACTS_x = dz (beam), ACTS_y = dx, ACTS_z = dy
+      // Same mapping as the position above: beam → ACTS X, dd_y → ACTS Y,
+      // dd_x → MINUS ACTS Z. The old (dd_dz, dd_dx, dd_dy) swap was wrong in
+      // both transverse components; it stayed invisible only because the seed
+      // direction used to be hardcoded to (0, 0, 1), which maps to (1, 0, 0)
+      // either way. It matters now that the Hough seeds carry real slopes.
       const double dd_dx = seedDirections3D[iSeed][0];
       const double dd_dy = seedDirections3D[iSeed][1];
       const double dd_dz = seedDirections3D[iSeed][2];
 
-      Acts::Vector3 seedDir(dd_dz, dd_dx, dd_dy);
+      Acts::Vector3 seedDir(dd_dz, dd_dy, -dd_dx);
       if (seedDir.norm() < 1e-6) seedDir = Acts::Vector3(1.0, 0.001, 0.001);
       seedDir = seedDir.normalized();
 
@@ -1067,19 +1404,6 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
       }
       const auto& seedParams = *seedParamsResult;
 
-      // ---- CKF options ------------------------------------------------------
-      Acts::PropagatorPlainOptions pOptions(gctx, m_mctx);
-      pOptions.direction = Acts::Direction::Forward();
-      pOptions.stepping.maxStepSize = m_maxStepSize.value();
-      pOptions.maxSteps = static_cast<std::size_t>(m_maxPropSteps.value());
-
-      Acts::CombinatorialKalmanFilterOptions<SNDTrackContainer> ckfOptions(
-          gctx, m_mctx, std::cref(m_cctx),
-          ckfExtensions,
-          pOptions,
-          true,
-          true);
-
       // ---- Seed surface diagnostic ------------------------------------------
       if (evtNum < 1 && iSeed == 0) {
         const Acts::Surface* sf = &seedParams.referenceSurface();
@@ -1094,88 +1418,103 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
                 << " allSurfaces.size()=" << allSurfaces.size() << endmsg;
       }
 
-      // ---- Run CKF ----------------------------------------------------------
-      auto ckfResult = ckf.findTracks(seedParams, ckfOptions, ckfTracks);
+      // ---- Run CKF: best chi2/ndf candidate for this seed --------------------
+      auto bestIdxOpt = runCKFPass(seedParams, iSeed);
+      if (!bestIdxOpt) continue;
+      std::set<std::size_t> bestFp =
+          fingerprintOf(ckfTracks.getTrack(*bestIdxOpt));
 
-      if (!ckfResult.ok()) {
-        warning() << "[ACTSProtoTracker] evt=" << evtNum
+      // ---- Final KalmanFitter refit on the frozen hit set --------------------
+      // The hit set selected by the CKF is refit as-is (no re-selection
+      // possible), giving unbiased parameters and covariances.
+      if (m_finalRefit.value() && bestFp.size() >= 3) {
+        std::vector<Acts::SourceLink> fitSLinks;
+        fitSLinks.reserve(bestFp.size());
+        for (std::size_t mIdx : bestFp) {
+          SNDSourceLink ssl;
+          ssl.index = mIdx;
+          ssl.setGeometryId(measurements[mIdx].surface->geometryId());
+          fitSLinks.emplace_back(ssl);
+        }
+        // Start from the CKF solution; the loose covariance keeps the prior
+        // uninformative, so the refit stays unbiased.
+        Acts::BoundTrackParameters kfStart = seedParams;
+        if (auto rs = reseedFrom(ckfTracks.getTrack(*bestIdxOpt), seedCov)) {
+          kfStart = *rs;
+        }
+        auto kfResult = kf.fit(fitSLinks.begin(), fitSLinks.end(), kfStart,
+                               kfOptions, allSurfaces, ckfTracks);
+        if (evtNum < 3 && kfResult.ok()) {
+          debug() << "[ACTSProtoTracker][DIAG-KF] evt=" << evtNum
                   << " seed=" << iSeed
-                  << " CKF failed: " << ckfResult.error() << endmsg;
+                  << " fitSLinks=" << fitSLinks.size()
+                  << " nMeas=" << (*kfResult).nMeasurements()
+                  << " nHoles=" << (*kfResult).nHoles()
+                  << " chi2=" << (*kfResult).chi2() << endmsg;
+        }
+        if (kfResult.ok() && (*kfResult).nMeasurements() >= 3) {
+          bestIdxOpt = (*kfResult).index();
+          bestFp     = fingerprintOf(*kfResult);
+        } else if (kfResult.ok()) {
+          warning() << "[ACTSProtoTracker] evt=" << evtNum
+                    << " seed=" << iSeed
+                    << " KF refit kept too few measurements, keeping CKF track"
+                    << endmsg;
+        } else {
+          warning() << "[ACTSProtoTracker] evt=" << evtNum
+                    << " seed=" << iSeed
+                    << " KF refit failed: " << kfResult.error()
+                    << ", keeping CKF track" << endmsg;
+        }
+      }
+
+      // ---- Track-level acceptance (final track only) -------------------------
+      auto finalCand = ckfTracks.getTrack(*bestIdxOpt);
+      const int    ndf     = std::max(
+          1, static_cast<int>(finalCand.nDoF()) - kHelixParams);
+      const double chi2    = finalCand.chi2();
+      const double chi2Ndf = chi2 / static_cast<double>(ndf);
+
+      debug() << "[ACTSProtoTracker] evt=" << evtNum
+              << " seed=" << iSeed
+              << " final nMeas=" << finalCand.nMeasurements()
+              << " nHoles=" << finalCand.nHoles()
+              << " chi2=" << chi2
+              << " ndf=" << ndf
+              << " chi2/ndf=" << chi2Ndf << endmsg;
+
+      if (chi2Ndf > m_maxChi2PerNdf.value()) {
+        debug() << "[ACTSProtoTracker] evt=" << evtNum
+                << " seed=" << iSeed
+                << " rejected: chi2/ndf=" << chi2Ndf << endmsg;
         continue;
       }
 
-      const auto& ckfTrackVec = *ckfResult;
-
-      if (evtNum < 1) {
-        debug() << "[ACTSProtoTracker] DIAG evt=" << evtNum
-                << " seed=" << iSeed
-                << " ckfTrackVec.size()=" << ckfTrackVec.size() << endmsg;
+      // ---- Seed cleaning ----------------------------------------------------
+      // Remove the accepted track's hits from the source-link pool so the
+      // remaining seeds can only build tracks from unused measurements.
+      // sortedSLinks stays sorted (erase preserves order) and the accessor
+      // holds a pointer to the vector, so no re-wiring is needed.
+      if (m_seedCleaning.value()) {
+        sortedSLinks.erase(
+            std::remove_if(sortedSLinks.begin(), sortedSLinks.end(),
+                           [&bestFp](const Acts::SourceLink& sl) {
+                             return bestFp.count(
+                                        sl.get<SNDSourceLink>().index) > 0;
+                           }),
+            sortedSLinks.end());
       }
 
-      // ---- Process CKF results: select first acceptable track per seed ------
-      // Standard goodness-of-fit convention:
-      //   chi² = Σ per-state innovation chi² (filled by ACTS during filtering)
-      //   ndf  = Σ calibratedSize − n_fit_params   (5 helix params: loc0, loc1,
-      //          phi, theta, q/p; ACTS's nDoF() returns Σ calibratedSize only).
-      // For a well-fit track, chi²/ndf is centered at ≈ 1.
-      constexpr int kHelixParams = 5;
-      for (const auto& ckfTrack : ckfTrackVec) {
-        const std::size_t nMeas    = ckfTrack.nMeasurements();
-        const int         rawDof   = static_cast<int>(ckfTrack.nDoF());
-        const int         ndf      = std::max(1, rawDof - kHelixParams);
-        const double      chi2     = ckfTrack.chi2();
-        const double      chi2Ndf  = chi2 / static_cast<double>(ndf);
+      // Defer the accept/write decision: collect this seed's winner and
+      // deduplicate the whole event at the end, best-first (see below).
+      provisional.push_back({*bestIdxOpt, bestFp, chi2, ndf, dd_x, dd_y, iSeed});
 
-        debug() << "[ACTSProtoTracker] evt=" << evtNum
-                << " seed=" << iSeed
-                << " CKF nMeas=" << nMeas
-                << " nHoles=" << ckfTrack.nHoles()
-                << " chi2=" << chi2
-                << " ndf=" << ndf
-                << " chi2/ndf=" << chi2Ndf << endmsg;
+    }  // end loop over seeds
 
-        if (nMeas < 3) continue;
-
-        if (chi2Ndf > m_maxChi2PerNdf.value()) {
-          debug() << "[ACTSProtoTracker] evt=" << evtNum
-                  << " seed=" << iSeed
-                  << " rejected: chi2/ndf=" << chi2Ndf << endmsg;
-          continue;
-        }
-
-        // ---- Duplicate rejection ------------------------------------------
-        // Build fingerprint from measurement track states (source link indices).
-        std::set<std::size_t> fingerprint;
-        for (const auto& ts : ckfTrack.trackStatesReversed()) {
-          if (ts.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag) &&
-              ts.hasUncalibratedSourceLink()) {
-            fingerprint.insert(
-                ts.getUncalibratedSourceLink().template get<SNDSourceLink>().index);
-          }
-        }
-
-        bool isDuplicate = false;
-        for (const auto& accepted : acceptedFingerprints) {
-          std::size_t nShared = 0;
-          for (const auto& idx : fingerprint) {
-            if (accepted.count(idx)) ++nShared;
-          }
-          const double smaller = static_cast<double>(
-              std::min(fingerprint.size(), accepted.size()));
-          const double overlapFraction = (smaller > 0) ? nShared / smaller : 0.0;
-          if (overlapFraction > kDuplicateOverlapFraction) {
-            isDuplicate = true;
-            debug() << "[ACTSProtoTracker] evt=" << evtNum
-                    << " seed=" << iSeed
-                    << " rejected as duplicate (hit overlap="
-                    << overlapFraction << ")" << endmsg;
-            break;
-          }
-        }
-        if (isDuplicate) continue;
-
-        acceptedFingerprints.push_back(fingerprint);
-
+    // ---- Write helper -------------------------------------------------------
+    auto writeTrack = [&](Acts::TrackIndexType bestIdx, double chi2, int ndf,
+                          double dd_x, double dd_y, std::size_t iSeed) {
+      auto finalTrack = ckfTracks.getTrack(bestIdx);
         // ---- Write output --------------------------------------------------
         auto track = output->create();
         track.setType(1);
@@ -1193,7 +1532,7 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
 
         // Write per-surface filtered states for event display / analysis.
         try {
-          auto tipIdx = ckfTrack.tipIndex();
+          auto tipIdx = finalTrack.tipIndex();
           auto& mutableTraj = ckfTracks.trackStateContainer();
           std::vector<edm4hep::TrackState> collected;
           while (true) {
@@ -1359,10 +1698,40 @@ StatusCode ACTSProtoTracker::execute(const EventContext&) const {
                     << " trackStates iteration failed: " << e.what() << endmsg;
         }
         ++nTracks;
-        break;  // take first acceptable track per seed
-      }
+    };  // end writeTrack
 
-    }  // end loop over seeds
+    // ---- Deduplicate the event's tracks, best-first ------------------------
+    // Sort accepted candidates by chi2/ndf ascending, then greedily keep a
+    // candidate only if it does not overlap an already-kept (better) track by
+    // more than DuplicateOverlapFraction of the smaller hit set. The survivor
+    // of each overlap group is therefore always the best-quality fit,
+    // independent of the order the seeds were processed in.
+    std::sort(provisional.begin(), provisional.end(),
+              [](const AcceptedTrack& a, const AcceptedTrack& b) {
+                return a.chi2 / std::max(1, a.ndf) <
+                       b.chi2 / std::max(1, b.ndf);
+              });
+    const double dupFrac = m_dupOverlapFraction.value();
+    std::vector<const AcceptedTrack*> survivors;
+    for (const auto& cand : provisional) {
+      bool dup = false;
+      for (const auto* kept : survivors) {
+        std::size_t nShared = 0;
+        for (std::size_t h : cand.fp) if (kept->fp.count(h)) ++nShared;
+        const double smaller =
+            static_cast<double>(std::min(cand.fp.size(), kept->fp.size()));
+        if (smaller > 0 && nShared / smaller > dupFrac) { dup = true; break; }
+      }
+      if (dup) {
+        debug() << "[ACTSProtoTracker] evt=" << evtNum << " seed=" << cand.iSeed
+                << " dropped as duplicate (kept a better-chi2/ndf track)" << endmsg;
+        continue;
+      }
+      survivors.push_back(&cand);
+    }
+    for (const auto* sv : survivors) {
+      writeTrack(sv->idx, sv->chi2, sv->ndf, sv->ddx, sv->ddy, sv->iSeed);
+    }
 
     info() << "[ACTSProtoTracker] evt=" << evtNum
            << " measurements=" << measurements.size()
