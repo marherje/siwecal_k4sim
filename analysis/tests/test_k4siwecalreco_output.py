@@ -3,7 +3,7 @@ Integration tests for the k4SiWEcalReco output produced by run_pid_sim.sh.
 
 Validates that:
   - ecal_sim.edm4hep.root exists and has the expected EDM4hep schema
-  - all 21 shower variables are present
+  - all 23 shower variables are present
   - per-layer profiles (15 layers) are present
   - physical values are consistent with 5 GeV muons traversing the detector
 
@@ -31,6 +31,11 @@ EDM4HEP_FILE = os.path.join(
 )
 VALTREE_FILE = os.path.join(
     REPO_ROOT, "gaudi_jobs", "1_mu_beam_pipeline", "ecal_sim.valtree.root"
+)
+# The ecal TTree the PID ran on; test_event_count derives the expected count
+# from it rather than hardcoding one.
+ECAL_TREE_FILE = os.path.join(
+    REPO_ROOT, "gaudi_jobs", "1_mu_beam_pipeline", "ecal_sim.root"
 )
 
 
@@ -70,10 +75,30 @@ SCALAR_VARS = [
     "is_shower", "shower_start", "shower_max", "shower_end",
     "shower_start_10", "shower_end_10", "shower_length",
     "first_layer", "last_layer", "n_layers_hit", "e_over_nhit",
+    "shower_onset", "n_layers_before_onset",
 ]
 
 def test_event_count(pid):
-    assert pid.n_events == 1000, f"expected 1000 events, got {pid.n_events}"
+    """Every simulated event that survives the reco must be in the output.
+
+    Not a hardcoded count: how many events come out depends on the run mode.
+    EcalToEDM4hep drops masked channels and, in the default physics mode, hits
+    below 0.5 MIP; an event left with no hits is then dropped by the total-energy
+    filter. ``--validation`` disables the hit cut, so both counts are accepted
+    and the failure message says which mode was expected.
+    """
+    import uproot
+    tree = uproot.open(ECAL_TREE_FILE)["ecal"]
+    energy = tree["hit_energy"].array(library="np")
+    masked = tree["hit_ismasked"].array(library="np")
+    alive = [(np.asarray(m) == 0) for m in masked]
+    n_validation = sum(1 for a in alive if a.any())
+    n_physics = sum(1 for a, e in zip(alive, energy)
+                    if (a & (np.asarray(e) >= 0.5)).any())
+    assert pid.n_events in (n_physics, n_validation), (
+        f"got {pid.n_events} events; expected {n_physics} (physics mode, "
+        f"hit cut 0.5 MIP) or {n_validation} (--validation, no hit cut) "
+        f"out of {tree.num_entries} simulated")
 
 
 @pytest.mark.parametrize("var", SCALAR_VARS)
@@ -132,6 +157,28 @@ def test_not_shower(pid):
     shower_fraction = np.mean(is_shower)
     assert shower_fraction < 0.10, \
         f"shower fraction={shower_fraction:.2%} too high for muons (expected <10%)"
+
+
+def test_shower_onset_defined_whenever_flagged(pid):
+    """The onset is what sets is_shower, so it must exist wherever the flag is.
+
+    This is the structural guarantee the onset criterion buys over the old
+    ascending-pairs one: shower_start can be NaN on a flagged event (it only
+    searches before the profile maximum), shower_onset cannot.
+    """
+    flag  = np.array(pid.scalar("is_shower"))
+    onset = np.array(pid.scalar("shower_onset"))
+    before = np.array(pid.scalar("n_layers_before_onset"))
+    flagged = flag > 0
+    if not flagged.any():
+        pytest.skip("no shower in this sample")
+    assert np.all(np.isfinite(onset[flagged])), \
+        "is_shower set on an event with no shower_onset"
+    assert np.all(np.isfinite(before[flagged]))
+    assert np.all(before[flagged] <= onset[flagged]), \
+        "more hit layers before the onset than there are layers before it"
+    assert np.all(np.isnan(onset[~flagged])), \
+        "shower_onset set on a non-shower event"
 
 
 def test_n_layers_hit(pid):

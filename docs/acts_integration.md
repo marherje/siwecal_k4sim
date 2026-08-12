@@ -224,6 +224,25 @@ The tracker's own `HitPurgeWindow` / `IsolationWindow` filters remain as
 fine-grained cleanup for delta rays inside an otherwise track-like event; with
 `ShowerTagger` upstream they no longer carry the shower problem on their own.
 
+### The analysis shares this onset definition
+
+`is_shower` in the PID analysis (`showerOnset()` in
+`siwecal-tb2026/gaudi_source/include/k4SiWEcalReco/EcalShowerVars.h`, mirrored in
+`siwecal_validation/metrics.py` and `event_viewer/_metrics.py`) uses the same
+criterion: *N consecutive layers each with at least K hits*, with the onset layer
+and the pre-shower length (`shower_onset`, `n_layers_before_onset`) exposed as
+per-event variables. So the simulation and the analysis agree on where a shower
+begins instead of each having its own notion.
+
+One deliberate difference: `ShowerTagger` counts **raw** hits per layer, while
+the analysis counts hits within 30 mm of the transverse barycentre. This runs
+before any barycentre exists, and its failure mode is asymmetric — a missed
+shower feeds cascade hits to the track fit, whereas an over-broad veto only costs
+a track. The analysis is classifying an event, not protecting a fit, so there the
+core restriction is affordable and guards against scattered noise. The thresholds
+are properties on both sides, so either can be retuned without touching the
+other.
+
 ---
 
 ## SiPadMeasConverter
