@@ -7,7 +7,11 @@
 #   bash gaudi_jobs/1_mu_beam_pipeline/1_mu_pipeline.sh
 
 EOS_BASE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
-SIM_FILE="${EOS_BASE}/Generated/output_beam_mu-_100GeV_xy_1_1_sigx24.75_sigy13.75_sigE0.02.edm4hep.root"
+# The sample in Generated/; the previous name (sigx24.75_sigy13.75) no longer
+# exists there. This beam is wider than the 180 mm acceptance, so ~7% of the
+# muons miss the detector entirely and come out as empty events -- expected, and
+# the reason several tests skip empty events rather than failing on them.
+SIM_FILE="${EOS_BASE}/Generated/output_beam_mu-_100GeV_xy_1_1_sigx38.5_sigy46.75_sigE0.02.edm4hep.root"
 LABEL=$(basename "${SIM_FILE}" .edm4hep.root | sed 's/^output_//')
 PROCESSED="${EOS_BASE}/Processed"
 

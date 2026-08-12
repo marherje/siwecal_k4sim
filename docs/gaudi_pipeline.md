@@ -98,6 +98,31 @@ SiPadHits → GeV2MIPConversion → SiPadHitsMIP
 hit z into the test-beam frame, which no longer matches the ACTS surfaces built
 from the compact XML.
 
+### Where the layer z comes from
+
+There is one z table per frame and nothing may hold a private copy:
+
+| Frame | Source | Values |
+|---|---|---|
+| Simulation | the compact XML, via `sipad::sensitiveLayers` (`gaudi_source/SiPadLayerGeometry.h`) | 49.35 … 274.275 mm, pitch 15 mm |
+| Test beam | `mappings/slab_z_positions.yml` | 0 … −225 mm, pitch 15 mm |
+
+`Ecal_LayerDistance` is 15 mm and layers 10→11 are two pitches apart (the empty
+rail slot). The two tables are the same detector, mirrored and offset.
+
+`ACTSGeoSvc` and `DetectorFlipper` both read the simulation frame through the
+same helper, so they cannot disagree about where layer N is. `DetectorFlipper`
+has **no built-in table**: leaving `ZPositions` unset takes z from DD4hep and
+emits a WARNING saying so (that is a no-op flip — the hits keep the simulation
+frame). When `ZPositions` *is* given, its layer spacing is cross-checked against
+the geometry and a mismatch is warned about.
+
+That guard exists because the pitch went 11 mm → 15 mm in July 2026 and three
+separate copies of the table stayed behind — `DetectorFlipper`'s default (on a
+third value, 16.6 mm) and two test files. A wrong z table does not fail, it
+produces perfectly plausible hits in the wrong place. The tests read the same
+two sources through `analysis/tests/geometry_ref.py`.
+
 ---
 
 ## Job 4 — Tracking

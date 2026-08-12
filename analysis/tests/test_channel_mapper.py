@@ -255,10 +255,22 @@ def test_position_preserved(frames):
 
 @pytest.mark.skipif(_SKIP_DIGI is not None, reason=_SKIP_DIGI or "")
 def test_all_slabs_hit(frames):
-    """A muon should fire hits in all 15 slabs."""
+    """A muon that enters the detector fires all 15 slabs — all or nothing.
+
+    Empty events are skipped rather than failed: the beam is wider than the
+    180 mm acceptance, so a few percent of muons miss entirely. On the reference
+    sample every event is either 0 slabs (73/1000) or all 15 (927/1000), never
+    partial, so the assertion below stays exact — a muon that clips only part of
+    the stack would still be caught.
+    """
+    n_seen = 0
     for frame in frames[:50]:
         slabs = {_decode_tb(h.getCellID())["slab"] for h in frame.get("SiPadHitsMapped")}
-        assert len(slabs) == 15, f"expected 15 slabs, got {slabs}"
+        if not slabs:
+            continue  # muon missed the detector
+        n_seen += 1
+        assert len(slabs) == 15, f"expected 15 slabs, got {sorted(slabs)}"
+    assert n_seen > 0, "no event in the sample hit the detector at all"
 
 
 @pytest.mark.skipif(_SKIP_DIGI is not None, reason=_SKIP_DIGI or "")

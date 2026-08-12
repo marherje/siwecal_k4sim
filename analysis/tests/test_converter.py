@@ -106,9 +106,21 @@ def test_entry_count(tree):
 # Value range tests                                                   #
 # ------------------------------------------------------------------ #
 
-def test_nhit_chan_positive(tree):
-    for entry in tree:
-        assert entry.nhit_chan > 0, "empty event in ecal tree"
+def test_nhit_chan_sane(tree):
+    """nhit_chan must be non-negative, and most events must have hits.
+
+    Empty events are legitimate, not a converter bug: the muon beam is wider
+    than the 180 mm detector (sigx 38.5, sigy 46.75 mm in the reference sample)
+    so a few percent of muons miss it entirely, and the converter writes those
+    frames with nhit_chan = 0 rather than dropping them, which keeps the tree
+    aligned with the input frames. This used to assert nhit_chan > 0, which held
+    only for the older, narrower beam.
+    """
+    counts = [entry.nhit_chan for entry in tree]
+    assert all(n >= 0 for n in counts)
+    empty = sum(1 for n in counts if n == 0)
+    assert empty < 0.5 * len(counts), \
+        f"{empty}/{len(counts)} events are empty; the beam is missing the detector"
 
 
 def test_run_number(tree):
@@ -156,12 +168,30 @@ def test_hit_position_y_range(tree):
             f"y out of expected range: min={min(ys):.1f} max={max(ys):.1f}"
 
 
-def test_hit_position_z_range(tree):
-    """Z must cover the detector depth (simulation: ~-120 to +130 mm)."""
+def test_hit_position_z_is_the_layer_structure(tree):
+    """z must reproduce the layer stack of the compact geometry.
+
+    Not a hardcoded window: this test used to assert -150 <= z <= 150, written
+    when the detector was centred on z=0, and it kept failing after the geometry
+    moved without anything being wrong with the converter. What actually matters
+    is that the converter preserves the longitudinal structure, so check that
+    against Ecal_LayerDistance instead of against a remembered range.
+    """
+    from analysis.tests.geometry_ref import layer_pitch_mm
+
+    pitch = layer_pitch_mm()
+    zs = set()
     for entry in tree:
-        zs = [entry.hit_z[i] for i in range(entry.nhit_chan)]
-        assert all(-150 <= z <= 150 for z in zs), \
-            f"z out of expected range: min={min(zs):.1f} max={max(zs):.1f}"
+        for i in range(entry.nhit_chan):
+            zs.add(round(entry.hit_z[i], 3))
+    zs = sorted(zs)
+    assert len(zs) > 1, "converter produced a single z; no layer structure"
+
+    steps = [zs[i + 1] - zs[i] for i in range(len(zs) - 1)]
+    for i, s in enumerate(steps):
+        assert abs(s - pitch) < 0.5 or abs(s - 2 * pitch) < 0.5, \
+            (f"consecutive layer z differ by {s:.3f} mm, which is neither one "
+             f"nor two Ecal_LayerDistance ({pitch} mm). z = {zs}")
 
 
 def test_sum_energy_consistent(tree):

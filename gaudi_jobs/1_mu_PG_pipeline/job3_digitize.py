@@ -29,6 +29,10 @@ with open(os.path.join(REPO_ROOT, "mappings", "slab_z_positions.yml")) as _zf:
     # Single source of truth for the per-slab z [mm], shared with the event
     # viewer and the compact geometry; never hardcode the array here.
     flip.ZPositions = [float(_z) for _z in yaml.safe_load(_zf)["slab_z_mm"]]
+# Lets DetectorFlipper cross-check the YAML's layer spacing against the geometry
+# and warn if the two have drifted apart -- the check that would have caught the
+# table being left at the old 11 mm pitch.
+flip.CompactFile = os.path.join(REPO_ROOT, "simulation", "geometry", "SND_compact.xml")
 flip.BitField = "system:8,layer:8,slice:5,x:9,y:9"
 flip.DebugFrequency = 500
 

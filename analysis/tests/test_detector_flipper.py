@@ -23,13 +23,19 @@ import pytest
 import numpy as np
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, REPO_ROOT)
+
 DIGI_FILE = os.path.join(
     REPO_ROOT, "gaudi_jobs", "1_mu_beam_pipeline", "digitized.edm4hep.root"
 )
 
-# Simulation z positions (defaults in DetectorFlipper.cpp)
-SIM_Z = [-116.35, -99.75, -83.15, -66.55, -49.95, -33.35, -16.75, -0.15,
-          16.45,   33.05,  49.65,  77.25,  93.85, 110.45, 126.98]
+# The z table the pipeline actually flips to, read from the same file job3 reads
+# (see geometry_ref.py). Never hardcode it here: this test used to carry its own
+# copy, which survived the layer pitch going 11 mm -> 15 mm and then asserted the
+# old geometry against new files. DetectorFlipper has no built-in table either.
+from analysis.tests.geometry_ref import layer_pitch_mm, slab_z_mm  # noqa: E402
+
+SLAB_Z = slab_z_mm()
 
 
 def _check():
@@ -100,29 +106,37 @@ def test_xy_energy_preserved(frames):
                 f"energy changed: {d.getEnergy()} -> {f.getEnergy()}"
 
 
-def test_z_matches_sim_z_table(frames):
-    """For simulation (default ZPositions), z_flip must equal SIM_Z[layer]."""
+def test_z_matches_slab_z_table(frames):
+    """z_flip must equal slab_z_positions.yml[layer], the table job3 configures."""
     for frame in frames[:50]:
         flipped = list(frame.get("SiPadHitsFlipped"))
         for hit in flipped:
             layer = (hit.getCellID() >> 8) & 0xFF
-            expected_z = SIM_Z[layer]
+            expected_z = SLAB_Z[layer]
             got_z = hit.getPosition().z
             assert abs(got_z - expected_z) < 0.1, \
                 f"layer={layer}: z_flip={got_z:.3f} != expected {expected_z:.3f}"
 
 
 def test_z_replaced_not_original(frames):
-    """Sanity: both collections have same layer but z values confirm remapping.
+    """The flipped z must come from the table, not be carried over from the sim.
 
-    For simulation the sim z and the flipped z are numerically identical, so
-    we just check that the flipped z is exactly one of the SIM_Z values.
+    Every flipped z has to be one of the table's values, and the collection as a
+    whole must not simply be the simulation z: the frames differ, so a flipper
+    that forgot to write would show up here.
     """
+    sim_z_seen = set()
     for frame in frames[:20]:
         for hit in frame.get("SiPadHitsFlipped"):
             z = hit.getPosition().z
-            assert any(abs(z - sz) < 0.1 for sz in SIM_Z), \
-                f"z={z:.3f} is not in SIM_Z lookup table"
+            assert any(abs(z - sz) < 0.1 for sz in SLAB_Z), \
+                f"z={z:.3f} is not in the slab_z_positions.yml table"
+        for hit in frame.get("SiPadHitsDigi"):
+            sim_z_seen.add(round(hit.getPosition().z, 3))
+    # The simulation frame starts well downstream of 0; the TB frame starts at 0
+    # and runs negative. If these ever coincide the test above is vacuous.
+    assert min(sim_z_seen) > max(SLAB_Z), \
+        "simulation and target frames overlap; this test no longer proves a remap"
 
 
 # ------------------------------------------------------------------ #
@@ -142,10 +156,28 @@ def test_cellid_preserved(frames):
 # ------------------------------------------------------------------ #
 def test_flip_reversal_logic():
     """If ZPositions is reversed, layer 0 gets the max z and layer 14 gets the min."""
-    sim_z   = SIM_Z
-    flipped = list(reversed(sim_z))
-    # layer 0 → flipped[0] = sim_z[14] = 126.98 (detector flipped)
-    assert abs(flipped[0]  - sim_z[14]) < 0.01
-    assert abs(flipped[14] - sim_z[0])  < 0.01
+    slab_z  = SLAB_Z
+    flipped = list(reversed(slab_z))
+    assert abs(flipped[0]  - slab_z[-1]) < 0.01
+    assert abs(flipped[-1] - slab_z[0])  < 0.01
     # total span is the same
-    assert abs((max(flipped) - min(flipped)) - (max(sim_z) - min(sim_z))) < 0.01
+    assert abs((max(flipped) - min(flipped)) - (max(slab_z) - min(slab_z))) < 0.01
+
+
+def test_slab_table_spacing_matches_the_geometry():
+    """The YAML must describe the same detector as the compact XML.
+
+    Same check DetectorFlipper does at initialize(), here as a fast unit test so
+    a drift is caught without running the pipeline. Compares |z[i+1]-z[i]|, so
+    the sign flip and offset between the two frames do not matter -- only that
+    the layer pitch and the gap at the empty rail slot agree.
+    """
+    pitch = layer_pitch_mm()
+    steps = [abs(SLAB_Z[i + 1] - SLAB_Z[i]) for i in range(len(SLAB_Z) - 1)]
+    # Every step is one pitch, except the empty rail slot which is two.
+    for i, s in enumerate(steps):
+        assert abs(s - pitch) < 0.5 or abs(s - 2 * pitch) < 0.5, \
+            (f"slab_z_positions.yml layers {i}->{i+1} are {s} mm apart, which is "
+             f"neither one nor two Ecal_LayerDistance ({pitch} mm)")
+    assert sum(1 for s in steps if abs(s - 2 * pitch) < 0.5) == 1, \
+        "expected exactly one double-pitch gap (the empty rail slot)"

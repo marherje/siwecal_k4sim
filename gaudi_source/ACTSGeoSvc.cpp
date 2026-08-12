@@ -1,11 +1,8 @@
 #include "ACTSGeoSvc.h"
+// The DetElement walk and the TGeo/DD4hep headers it needs live here; this file
+// only consumes its result plus dd4hep::Detector for the material lookup.
+#include "SiPadLayerGeometry.h"
 #include "DD4hep/Detector.h"
-#include "DD4hep/DetElement.h"
-#include "DD4hep/Volumes.h"
-#include "TGeoManager.h"
-#include "TGeoMatrix.h"
-#include "TGeoNode.h"
-#include "TGeoBBox.h"
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Definitions/Units.hpp"
 #include "Acts/Geometry/GeometryContext.hpp"
@@ -30,8 +27,6 @@
 #include "Acts/Material/HomogeneousSurfaceMaterial.hpp"
 #include <algorithm>
 #include <cmath>
-#include <functional>
-#include <map>
 #include <string>
 
 // ---------------------------------------------------------------------------
@@ -121,39 +116,16 @@ StatusCode ACTSGeoSvc::initialize() {
     Acts::MaterialSlab material;  // full layer stack, combined
   };
 
-  // A volume "is the sensitive slice" when it or any descendant carries the
-  // sensitive-detector flag: with the tiled segmentation the flag sits on the
-  // <slice>_wafer_pads volume (detector_plugin/SiPadDetector.cpp, buildWafers),
-  // not on the slice container, which is plain gap material.
-  std::function<bool(TGeoVolume*)> subtreeIsSensitive =
-      [&](TGeoVolume* v) -> bool {
-    if (!v) return false;
-    if (dd4hep::Volume(v).isSensitive()) return true;
-    for (int i = 0; i < v->GetNdaughters(); ++i)
-      if (subtreeIsSensitive(v->GetNode(i)->GetVolume())) return true;
-    return false;
-  };
-  std::function<TGeoVolume*(TGeoVolume*)> firstSensitiveVolume =
-      [&](TGeoVolume* v) -> TGeoVolume* {
-    if (!v) return nullptr;
-    if (dd4hep::Volume(v).isSensitive()) return v;
-    for (int i = 0; i < v->GetNdaughters(); ++i)
-      if (TGeoVolume* s = firstSensitiveVolume(v->GetNode(i)->GetVolume()))
-        return s;
-    return nullptr;
-  };
-
-  // Walk the DD4hep DetElement tree instead of matching TGeo volume names:
-  // the SiPadDetector plugin registers one DetElement per layer (id = layer
-  // number) and one child per slice (id = slice number), so the sensitive
-  // slice of each layer is found by asking DD4hep for sensitivity — robust
-  // against slice reordering in the XML, which silently broke the previous
-  // "_slice_4" name match when the segmentation changed.
+  // Where the sensitive layers are comes from the shared DD4hep walk in
+  // SiPadLayerGeometry.h, not from a copy of it here: DetectorFlipper reads the
+  // same helper, so the two cannot disagree about where layer N sits. See that
+  // header for why the tree is walked by DetElement rather than by volume name.
   const std::string detName = "SiPad";
-  dd4hep::DetElement sdet = desc.detector(detName);
-  if (!sdet.isValid()) {
-    error() << "[ACTSGeoSvc] Detector '" << detName
-            << "' not found in the compact geometry." << endmsg;
+  std::vector<sipad::LayerPlane> layerPlanes;
+  try {
+    layerPlanes = sipad::sensitiveLayers(desc, detName);
+  } catch (const std::exception& e) {
+    error() << "[ACTSGeoSvc] " << e.what() << endmsg;
     return StatusCode::FAILURE;
   }
 
@@ -161,64 +133,26 @@ StatusCode ACTSGeoSvc::initialize() {
   double globalHalfX = 0.0;
   double globalHalfY = 0.0;
 
-  // children() is keyed by name; re-key by DetElement id (= layer number).
-  std::map<int, dd4hep::DetElement> layersById;
-  for (const auto& [name, layerDe] : sdet.children())
-    layersById[layerDe.id()] = layerDe;
-
-  for (const auto& [layerId, layerDe] : layersById) {
-    std::map<int, dd4hep::DetElement> slicesById;
-    for (const auto& [name, sliceDe] : layerDe.children())
-      slicesById[sliceDe.id()] = sliceDe;
-
-    int nSensitive = 0;
+  for (const auto& lp : layerPlanes) {
     PlaneInfo pi{};
-    std::vector<Acts::MaterialSlab> slabs;
+    pi.z          = lp.z;
+    pi.halfX      = lp.halfX;
+    pi.halfY      = lp.halfY;
+    pi.thickness  = lp.halfThickness;
+    pi.plane      = -1;
+    pi.detID      = 1;
+    pi.station    = -1;
+    pi.layerInDet = lp.layer;
 
-    for (const auto& [sliceId, sliceDe] : slicesById) {
-      TGeoVolume* vol = sliceDe.volume().ptr();
-      TGeoBBox*   box = vol ? dynamic_cast<TGeoBBox*>(vol->GetShape()) : nullptr;
-      if (!box) continue;
-      const double thickMm = 2.0 * box->GetDZ() * 10.0;
-
-      const bool sensitive = subtreeIsSensitive(vol);
-      if (sensitive) {
-        ++nSensitive;
-        const TGeoHMatrix& w = sliceDe.nominal().worldTransformation();
-        pi.z          = w.GetTranslation()[2] * 10.0;
-        pi.halfX      = box->GetDX() * 10.0;
-        pi.halfY      = box->GetDY() * 10.0;
-        pi.thickness  = box->GetDZ() * 10.0;
-        pi.plane      = -1;
-        pi.detID      = 1;
-        pi.station    = -1;
-        pi.layerInDet = layerId;
-      }
-
-      // Material budget of the layer: every non-air slice contributes. For a
-      // tiled sensitive slice the container is gap material (air), so take
-      // the material of the sensitive volume itself (the silicon wafer).
-      std::string matName = dd4hep::Volume(vol).material().name();
-      if (sensitive) {
-        if (TGeoVolume* sv = firstSensitiveVolume(vol))
-          matName = dd4hep::Volume(sv).material().name();
-      }
-      if (matName != "Air" && matName != "Vacuum")
-        slabs.push_back(makeSlab(matName, thickMm));
-    }
-
-    if (nSensitive != 1) {
-      error() << "[ACTSGeoSvc] Layer " << layerId << " of " << detName
-              << " has " << nSensitive << " sensitive slices (expected 1) — "
-              << "geometry and ACTS surface model out of sync." << endmsg;
-      return StatusCode::FAILURE;
-    }
-
-    // Fold the slice stack into one homogeneous slab attached to the surface.
-    for (const auto& s : slabs)
+    // Fold the layer's slice stack into one homogeneous slab attached to the
+    // surface. The helper already dropped air/vacuum and resolved the tiled
+    // sensitive slice down to the silicon.
+    for (const auto& s : lp.slices) {
+      const Acts::MaterialSlab slab = makeSlab(s.material, s.thicknessMm);
       pi.material = (pi.material.thickness() > 0.0)
-                        ? Acts::MaterialSlab::combineLayers(pi.material, s)
-                        : s;
+                        ? Acts::MaterialSlab::combineLayers(pi.material, slab)
+                        : slab;
+    }
 
     globalHalfX = std::max(globalHalfX, pi.halfX);
     globalHalfY = std::max(globalHalfY, pi.halfY);
