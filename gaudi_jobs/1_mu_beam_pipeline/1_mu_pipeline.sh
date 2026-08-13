@@ -33,9 +33,9 @@ echo "=== Step 1b: ACTS tracking ==="
 # SiPadMeasurements end up in the ONE edm4hep file that gets staged, instead of
 # a separate tracks.edm4hep.root product.
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \
-    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" SEED_MOMENTUM=100.0 \
+    OUTPUT_FILE="digitized_tracks_tmp.edm4hep.root" SEED_MOMENTUM=100.0 \
     k4run ../pid2026_common/job4_tracking.py 2>&1 | grep -v "^TCling::LoadPCM"
-mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
+mv digitized_tracks_tmp.edm4hep.root digitized.edm4hep.root
 
 echo "=== Step 2: ecal tree + shower variables ==="
 cd "${REPO_ROOT}"

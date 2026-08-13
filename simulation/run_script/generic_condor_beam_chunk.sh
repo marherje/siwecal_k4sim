@@ -222,15 +222,19 @@ fi
 # digitised collections forward) so ACTSTracks/EMShowers/SiPadMeasurements end
 # up in the ONE edm4hep file that gets staged, instead of a separate
 # tracks.edm4hep.root product.
+LOCAL_DIGITIZED_TMP="digitized_tracks_tmp.edm4hep.root"
+# Must end in .root (k4FWCore's IOSvc picks its Writer backend off the
+# filename; digitized.edm4hep.root.tracks_tmp made it fail initialisation
+# with "Unknown file type").
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
-      OUTPUT_FILE="\${LOCAL_DIGITIZED}.tracks_tmp" SEED_MOMENTUM=${energy} \\
+      OUTPUT_FILE="\${LOCAL_DIGITIZED_TMP}" SEED_MOMENTUM=${energy} \\
       k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
       &>> ${log_path}/${label}.log
-if [[ ! -s "\${LOCAL_DIGITIZED}.tracks_tmp" ]]; then
+if [[ ! -s "\${LOCAL_DIGITIZED_TMP}" ]]; then
     echo "ERROR: tracking produced no output (raw sim is safe on EOS)."
     exit 5
 fi
-mv "\${LOCAL_DIGITIZED}.tracks_tmp" "\${LOCAL_DIGITIZED}"
+mv "\${LOCAL_DIGITIZED_TMP}" "\${LOCAL_DIGITIZED}"
 
 # ---------- 5. ecal TTree conversion ----------
 python3 -m analysis.sim_to_ecal_tree \\

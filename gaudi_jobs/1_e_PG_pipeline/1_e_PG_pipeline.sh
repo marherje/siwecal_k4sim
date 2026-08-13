@@ -24,9 +24,9 @@ echo "=== Step 4: tracking ==="
 # rather than a separate tracks.edm4hep.root -- ACTSTracks/EMShowers/
 # SiPadMeasurements end up in the one edm4hep file that gets staged.
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsWindowed" \
-    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" \
+    OUTPUT_FILE="digitized_tracks_tmp.edm4hep.root" \
     k4run ../pid2026_common/job4_tracking.py
-mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
+mv digitized_tracks_tmp.edm4hep.root digitized.edm4hep.root
 
 echo "=== Step 5: RNTuple conversion ==="
 k4run job5_rntuple.py

@@ -159,15 +159,21 @@ the same compact XML as the simulation.
 The job itself is a plain Gaudi `IOSvc` reader/writer, so it always needs a
 distinct `OUTPUT_FILE` name (writing back onto the file it is still reading
 would corrupt it). Every calling `.sh` script therefore points `OUTPUT_FILE`
-at a temp name (`digitized.edm4hep.root.tracks_tmp`) and, once `k4run` exits,
-`mv`s it back onto `digitized.edm4hep.root`:
+at a temp name and, once `k4run` exits, `mv`s it back onto
+`digitized.edm4hep.root`:
 
 ```bash
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \
-    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" SEED_MOMENTUM=100.0 \
+    OUTPUT_FILE="digitized_tracks_tmp.edm4hep.root" SEED_MOMENTUM=100.0 \
     k4run ../pid2026_common/job4_tracking.py
-mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
+mv digitized_tracks_tmp.edm4hep.root digitized.edm4hep.root
 ```
+
+The temp name must still **end in `.root`**: `IOSvc`'s `Writer` picks its
+backend off the filename, and a name like `digitized.edm4hep.root.tracks_tmp`
+(the first thing tried here) fails initialization with `Unknown file type for
+file ... with type default` — caught by actually running the condor chunk
+script locally, not just `bash -n`.
 
 `outputCommands = ["keep *"]` means the swapped-in file still carries every
 collection `digitized.edm4hep.root` had (`SiPadHitsDigi`, `SiPadHitsFlipped`,
