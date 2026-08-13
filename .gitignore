@@ -53,3 +53,6 @@ masking_info/calibration/**/anchor/
 
 # Working notes for the tracking rework — never commit
 instructions_opus.md
+
+# Personal notes with hardcoded EOS example paths — never commit
+docs/ejemplos_tracking.md
