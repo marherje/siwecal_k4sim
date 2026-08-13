@@ -7,13 +7,16 @@
 #   * One condor job = one CHUNK of a point, with its own RNG seed, so a 50k
 #     point is split over many jobs instead of a single ~26 h job.
 #   * The job does ddsim AND the two cheap downstream steps (job3 digitisation
-#     + ecal-tree conversion) on the worker's local scratch, and stages out:
-#         Generated/chunks/output_<chunk_label>.edm4hep.root   (raw sim, kept
-#                                                               for reprocessing)
-#         Processed/chunks/<chunk_label>_ecal.root             (ecal TTree)
-#     The huge digitized.edm4hep.root stays on scratch and is discarded: it can
-#     always be regenerated from the raw sim chunk, and 6 points x 9 GB of it
-#     would be pure dead weight.
+#     + ACTS tracking + ecal-tree conversion) on the worker's local scratch,
+#     and stages out:
+#         Generated/chunks/output_<chunk_label>.edm4hep.root       (raw sim,
+#                                                        kept for reprocessing)
+#         Processed/chunks/<chunk_label>_ecal.root                 (ecal TTree)
+#         Processed/chunks/<chunk_label>_digitized.edm4hep.root    (digitised
+#                                        hits + ACTSTracks/EMShowers, ONE file:
+#                                        job4 writes its tracks back into
+#                                        digitized.edm4hep.root rather than a
+#                                        separate tracks.edm4hep.root product)
 #   * The per-point pipelines then only have to hadd the small ecal trees and
 #     run k4SiWEcalReco (see gaudi_jobs/pid2026_common/pipeline_common.sh).
 #
@@ -70,7 +73,7 @@ condorfile=runddsim_${PHYSLIST}_${label}
 sim_name="output_${label}.edm4hep.root"
 remote_sim="${data_path}/${sim_name}"
 remote_tree="${tree_path}/${label}_ecal.root"
-remote_track="${tree_path}/${label}_tracks.edm4hep.root"
+remote_digitized="${tree_path}/${label}_digitized.edm4hep.root"
 
 sigma_E_GeV=$(python3 -c "print(${energy} * ${sigma_E})")
 
@@ -169,7 +172,7 @@ export PYTHONPATH=${repo_root}/install/lib64:${repo_root}/install/lib:${repo_roo
 
 LOCAL_SIM="${sim_name}"
 LOCAL_TREE="${label}_ecal.root"
-LOCAL_TRACK="${label}_tracks.edm4hep.root"
+LOCAL_DIGITIZED="digitized.edm4hep.root"
 
 # ---------- 1. Geant4 simulation ----------
 ddsim --enableG4GPS \\
@@ -214,15 +217,20 @@ fi
 # ---------- 4. ACTS tracking ----------
 # Runs on SiPadHitsDigi, BEFORE the flip: DetectorFlipper rewrites the hit z
 # into the test-beam frame, which no longer matches the ACTS surfaces (those
-# come from the same compact XML as the simulation).
+# come from the same compact XML as the simulation). Written to a temp file
+# and swapped back onto digitized.edm4hep.root itself (keep * carries the
+# digitised collections forward) so ACTSTracks/EMShowers/SiPadMeasurements end
+# up in the ONE edm4hep file that gets staged, instead of a separate
+# tracks.edm4hep.root product.
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
-      OUTPUT_FILE="\${LOCAL_TRACK}" SEED_MOMENTUM=${energy} \\
+      OUTPUT_FILE="\${LOCAL_DIGITIZED}.tracks_tmp" SEED_MOMENTUM=${energy} \\
       k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
       &>> ${log_path}/${label}.log
-if [[ ! -s "\${LOCAL_TRACK}" ]]; then
+if [[ ! -s "\${LOCAL_DIGITIZED}.tracks_tmp" ]]; then
     echo "ERROR: tracking produced no output (raw sim is safe on EOS)."
     exit 5
 fi
+mv "\${LOCAL_DIGITIZED}.tracks_tmp" "\${LOCAL_DIGITIZED}"
 
 # ---------- 5. ecal TTree conversion ----------
 python3 -m analysis.sim_to_ecal_tree \\
@@ -235,7 +243,7 @@ if [[ ! -s "\${LOCAL_TREE}" ]]; then
     exit 3
 fi
 
-# ---------- 6. Stage out the ecal chunk tree and the tracks ----------
+# ---------- 6. Stage out the ecal chunk tree and the digitized+tracks file ----------
 LOCAL_TREE_SIZE=\$(stat -c%s "\${LOCAL_TREE}")
 xrdcp --force "\${LOCAL_TREE}" "root://eosexperiment.cern.ch/${remote_tree}"
 if [[ \$? -ne 0 ]]; then
@@ -248,19 +256,19 @@ if [[ "\${REMOTE_TREE_SIZE}" != "\${LOCAL_TREE_SIZE}" ]]; then
     exit 4
 fi
 
-LOCAL_TRACK_SIZE=\$(stat -c%s "\${LOCAL_TRACK}")
-xrdcp --force "\${LOCAL_TRACK}" "root://eosexperiment.cern.ch/${remote_track}"
+LOCAL_DIGITIZED_SIZE=\$(stat -c%s "\${LOCAL_DIGITIZED}")
+xrdcp --force "\${LOCAL_DIGITIZED}" "root://eosexperiment.cern.ch/${remote_digitized}"
 if [[ \$? -ne 0 ]]; then
-    echo "ERROR: xrdcp stage-out of the tracks failed."
+    echo "ERROR: xrdcp stage-out of digitized+tracks failed."
     exit 4
 fi
-REMOTE_TRACK_SIZE=\$(xrdfs eosexperiment.cern.ch stat "${remote_track}" 2>/dev/null | awk '/Size:/{print \$2}')
-if [[ "\${REMOTE_TRACK_SIZE}" != "\${LOCAL_TRACK_SIZE}" ]]; then
-    echo "ERROR: track stage-out verification failed (local=\${LOCAL_TRACK_SIZE}, remote='\${REMOTE_TRACK_SIZE}')."
+REMOTE_DIGITIZED_SIZE=\$(xrdfs eosexperiment.cern.ch stat "${remote_digitized}" 2>/dev/null | awk '/Size:/{print \$2}')
+if [[ "\${REMOTE_DIGITIZED_SIZE}" != "\${LOCAL_DIGITIZED_SIZE}" ]]; then
+    echo "ERROR: digitized+tracks stage-out verification failed (local=\${LOCAL_DIGITIZED_SIZE}, remote='\${REMOTE_DIGITIZED_SIZE}')."
     exit 4
 fi
 
-echo "Job finished. sim=${remote_sim}  tree=${remote_tree} (\${REMOTE_TREE_SIZE} bytes)  tracks=${remote_track} (\${REMOTE_TRACK_SIZE} bytes)"
+echo "Job finished. sim=${remote_sim}  tree=${remote_tree} (\${REMOTE_TREE_SIZE} bytes)  digitized+tracks=${remote_digitized} (\${REMOTE_DIGITIZED_SIZE} bytes)"
 EOF
 
 chmod +x ${steer_path}/${condorsh}

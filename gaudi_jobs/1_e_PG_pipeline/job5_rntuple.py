@@ -4,17 +4,17 @@ from Configurables import EDM4HEP2RNTuple
 SIPAD_BITFIELD = "system:8,layer:8,slice:5,x:9,y:9"
 
 iosvc = IOSvc()
-iosvc.Input = ["tracks.edm4hep.root"]
+iosvc.Input = ["digitized.edm4hep.root"]
 
 converter = EDM4HEP2RNTuple("EDM4HEP2RNTuple")
-converter.InputFile      = "tracks.edm4hep.root"
+converter.InputFile      = "digitized.edm4hep.root"
 converter.OutputFile     = "ShipHits.root"
 converter.NTupleNames    = ["SiPad"]
 converter.Collections    = ["SiPadHitsWindowed"]
 converter.BitFields      = [SIPAD_BITFIELD]
 converter.SourceIDParams = ["SiPadSourceIDs"]
 converter.DetectorIDs    = [1]
-converter.TrackFile           = "tracks.edm4hep.root"
+converter.TrackFile           = "digitized.edm4hep.root"
 converter.TrackCollectionName = "ACTSTracks"
 converter.MeasCollections = ["SiPadMeasurements"]
 converter.MeasNtupleNames = ["SiPadMeas"]

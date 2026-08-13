@@ -12,7 +12,7 @@ shapes it into the per-event ``pandas`` table the viewer expects.
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -113,6 +113,16 @@ class Edm4hepEventReader:
 
     def all_hits(self) -> dict:
         return self._pid.all_hits()
+
+    # --------------------------------------------------------------- tracks --
+    def n_tracks(self, index: int) -> Optional[int]:
+        """ACTSTracks count for one event, or ``None`` if this file has none
+        (merged straight into the SAME file by write_filtered() -- no
+        companion file to look up, see docs/gaudi_pipeline.md)."""
+        counts = self._pid.track_counts()
+        if counts is None or index >= len(counts):
+            return None
+        return int(counts[index])
 
     def close(self) -> None:
         self._pid.close()

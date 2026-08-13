@@ -12,7 +12,11 @@ output_*.edm4hep.root
   → job3: GeV2MIPConversion + BasicDigitizer + DetectorFlipper + ChannelMapper
                               → digitized.edm4hep.root
   → job4: ShowerTagger + SiPadMeasConverter + ACTSProtoTracker
-                              → tracks.edm4hep.root  (ACTSTracks + EMShowers)
+                              → digitized.edm4hep.root  (ACTSTracks + EMShowers
+                                 + SiPadMeasurements, written back into the
+                                 SAME file via a temp-output + swap in the
+                                 pipeline script -- see "Single-file output"
+                                 below)
   → job5: EDM4HEP2RNTuple     → ShipHits.root                (optional)
 ```
 
@@ -149,6 +153,55 @@ and everything that varies per pipeline comes from environment variables:
 Always a *pre-flip* collection: `DetectorFlipper` rewrites the hit z into the
 test-beam frame, which no longer matches the ACTS surfaces — those come from
 the same compact XML as the simulation.
+
+### Single-file output — no separate tracks.edm4hep.root
+
+The job itself is a plain Gaudi `IOSvc` reader/writer, so it always needs a
+distinct `OUTPUT_FILE` name (writing back onto the file it is still reading
+would corrupt it). Every calling `.sh` script therefore points `OUTPUT_FILE`
+at a temp name (`digitized.edm4hep.root.tracks_tmp`) and, once `k4run` exits,
+`mv`s it back onto `digitized.edm4hep.root`:
+
+```bash
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \
+    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" SEED_MOMENTUM=100.0 \
+    k4run ../pid2026_common/job4_tracking.py
+mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
+```
+
+`outputCommands = ["keep *"]` means the swapped-in file still carries every
+collection `digitized.edm4hep.root` had (`SiPadHitsDigi`, `SiPadHitsFlipped`,
+`SiPadHitsMapped`, `SiPadHitsMasked`, …) *plus* `ACTSTracks`, `EMShowers`,
+`SiPadShowerFlags` and `SiPadMeasurements` — one edm4hep file staged to
+`Processed/` (`<label>_digitized.edm4hep.root`), not two overlapping ones.
+This used to write a standalone `tracks.edm4hep.root` (staged separately as
+`<label>_tracks.edm4hep.root` in some pipelines, and not staged at all — so
+silently dropped — in others); every `1_*_pipeline.sh` and the condor chunk
+scripts (`simulation/run_script/generic_condor_beam_chunk.sh`,
+`reprocess_chunk.sh`) now use the temp+swap pattern instead. `job5_rntuple.py`
+reads `digitized.edm4hep.root`, so `event_display` gets `ACTSTracks` straight
+from it (`ShipHits.root`'s `ACTSTracks`/`SiPadMeas` RNTuples).
+
+**The PID chain merges it in too — still one file, no companions.**
+`analysis/run_pid_sim.sh` feeds `digitized.edm4hep.root` to
+`analysis/sim_to_ecal_tree.py`, which writes `event = <original frame index>`
+for every row; `k4SiWEcalReco`'s `EcalToEDM4hep` (in `siwecal-tb2026`) reads
+that tree in the same order, so its own frame index is that same original
+frame index. `run_pid_batch.py` (also in `siwecal-tb2026`) then looks for a
+`digitized.edm4hep.root` next to the ecal tree
+(`siwecal_common.paths.tracks_path_for`) and, when found,
+`siwecal_common.edm4hep_pid.write_filtered` merges `ACTSTracks`/`EMShowers`/
+`SiPadMeasurements`/`SiPadShowerFlags` straight into the PID output at that
+matching index — so `ecal_sim.edm4hep.root` (or the staged
+`<label>_ecal.edm4hep.root`) itself carries the tracks: `event_viewer` reads
+them from the one file it already has open
+(`PidFileReader.track_counts()` / `Edm4hepEventReader.n_tracks()`), no sibling
+lookup. `SiPadHits*`/`MCParticles` are deliberately left out of that merge —
+`ECalHits` already covers the raw hits, and those collections'
+`SimCalorimeterHit`→`CaloHitContribution` relations segfault when resolved
+against a second, concurrently-open podio `Reader`; the four merged
+collections carry no such relations. See `siwecal-tb2026/README.md` ("EDM4hep
+PID file") and `docs/acts_integration.md` for more.
 
 **Step 1 — `ShowerTagger`:** identifies electromagnetic cascades and keeps
 their hits out of the ACTS measurement pool — see below. Writes per-hit veto

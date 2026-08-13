@@ -19,7 +19,14 @@ echo "=== Step 3: digitize + flip + channel mapping ==="
 INPUT_FILE=timewindows.edm4hep.root k4run job3_digitize.py
 
 echo "=== Step 4: tracking ==="
-k4run ../pid2026_common/job4_tracking.py
+# Tracks on the PRE-flip collection from digitized.edm4hep.root (job3's
+# output), and the result is written back into that same file (temp + swap)
+# rather than a separate tracks.edm4hep.root -- ACTSTracks/EMShowers/
+# SiPadMeasurements end up in the one edm4hep file that gets staged.
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsWindowed" \
+    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" \
+    k4run ../pid2026_common/job4_tracking.py
+mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
 
 echo "=== Step 5: RNTuple conversion ==="
 k4run job5_rntuple.py

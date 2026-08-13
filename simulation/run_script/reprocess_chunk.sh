@@ -45,7 +45,7 @@ export PYTHONPATH=${repo_root}/install/lib64:${repo_root}/install/lib:${repo_roo
 
 LOCAL_SIM="${base}.edm4hep.root"
 LOCAL_TREE="${label}_ecal.root"
-LOCAL_TRACK="${label}_tracks.edm4hep.root"
+LOCAL_DIGITIZED="digitized.edm4hep.root"
 
 xrdcp --force "root://eosexperiment.cern.ch/${sim_dir}/${base}.edm4hep.root" "\${LOCAL_SIM}"
 if [[ ! -s "\${LOCAL_SIM}" ]]; then
@@ -61,15 +61,20 @@ if [[ ! -s digitized.edm4hep.root ]]; then
 fi
 
 # Tracks on SiPadHitsDigi, BEFORE the flip: DetectorFlipper rewrites the hit z
-# into the test-beam frame, which no longer matches the ACTS surfaces.
+# into the test-beam frame, which no longer matches the ACTS surfaces. Written
+# to a temp file and swapped back onto digitized.edm4hep.root itself (keep *
+# carries the digitised collections forward) so ACTSTracks/EMShowers/
+# SiPadMeasurements end up in the ONE edm4hep file that gets staged, instead of
+# a separate tracks.edm4hep.root product.
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
-      OUTPUT_FILE="\${LOCAL_TRACK}" SEED_MOMENTUM=${BEAM_ENERGY} \\
+      OUTPUT_FILE="\${LOCAL_DIGITIZED}.tracks_tmp" SEED_MOMENTUM=${BEAM_ENERGY} \\
       k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
       &>> ${log_path}/reproc_${label}.log
-if [[ ! -s "\${LOCAL_TRACK}" ]]; then
+if [[ ! -s "\${LOCAL_DIGITIZED}.tracks_tmp" ]]; then
     echo "ERROR: tracking produced no output."
     exit 5
 fi
+mv "\${LOCAL_DIGITIZED}.tracks_tmp" "\${LOCAL_DIGITIZED}"
 
 # The run number encodes energy and chunk: E*1000 + chunk (see
 # generic_condor_beam_chunk.sh), so hadd'ed trees keep chunk identity.
@@ -91,15 +96,15 @@ if [[ "\${REMOTE_TREE_SIZE}" != "\${LOCAL_TREE_SIZE}" ]]; then
     exit 4
 fi
 
-LOCAL_TRACK_SIZE=\$(stat -c%s "\${LOCAL_TRACK}")
-xrdcp --force "\${LOCAL_TRACK}" "root://eosexperiment.cern.ch/${tree_dir}/${label}_tracks.edm4hep.root"
-REMOTE_TRACK_SIZE=\$(xrdfs eosexperiment.cern.ch stat "${tree_dir}/${label}_tracks.edm4hep.root" 2>/dev/null | awk '/Size:/{print \$2}')
-if [[ "\${REMOTE_TRACK_SIZE}" != "\${LOCAL_TRACK_SIZE}" ]]; then
-    echo "ERROR: track stage-out verification failed (local=\${LOCAL_TRACK_SIZE}, remote='\${REMOTE_TRACK_SIZE}')."
+LOCAL_DIGITIZED_SIZE=\$(stat -c%s "\${LOCAL_DIGITIZED}")
+xrdcp --force "\${LOCAL_DIGITIZED}" "root://eosexperiment.cern.ch/${tree_dir}/${label}_digitized.edm4hep.root"
+REMOTE_DIGITIZED_SIZE=\$(xrdfs eosexperiment.cern.ch stat "${tree_dir}/${label}_digitized.edm4hep.root" 2>/dev/null | awk '/Size:/{print \$2}')
+if [[ "\${REMOTE_DIGITIZED_SIZE}" != "\${LOCAL_DIGITIZED_SIZE}" ]]; then
+    echo "ERROR: digitized+tracks stage-out verification failed (local=\${LOCAL_DIGITIZED_SIZE}, remote='\${REMOTE_DIGITIZED_SIZE}')."
     exit 4
 fi
 
-echo "Done. tree=${tree_dir}/${label}_ecal.root (\${REMOTE_TREE_SIZE} bytes)  tracks=${tree_dir}/${label}_tracks.edm4hep.root (\${REMOTE_TRACK_SIZE} bytes)"
+echo "Done. tree=${tree_dir}/${label}_ecal.root (\${REMOTE_TREE_SIZE} bytes)  digitized+tracks=${tree_dir}/${label}_digitized.edm4hep.root (\${REMOTE_DIGITIZED_SIZE} bytes)"
 EOF
 
     chmod +x ${steer_path}/${condorsh}

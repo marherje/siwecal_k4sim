@@ -91,6 +91,8 @@ class PidFileReader:
         self._scalars: Optional[np.ndarray] = None   # (n_events, n_shape_params)
         self._ids: Optional[Dict[str, np.ndarray]] = None
         self._hits: Optional[Dict[str, np.ndarray]] = None  # jagged object arrays
+        self._track_counts: Optional[np.ndarray] = None
+        self._track_counts_built = False
 
     @property
     def _frames(self):
@@ -281,6 +283,32 @@ class PidFileReader:
             info["events"] = n
             info["hits"] = nhits
         return store
+
+    # ------------------------------------------------------- ACTS tracks -----
+    def track_counts(self) -> Optional[np.ndarray]:
+        """Per-event ``ACTSTracks`` count, or ``None`` if the file has none.
+
+        Simulation PID files get ``ACTSTracks`` merged straight in by
+        ``siwecal_common.edm4hep_pid.write_filtered`` in siwecal-tb2026 (see
+        ``docs/gaudi_pipeline.md``, "Single-file output") -- one edm4hep file,
+        no separate tracks file to go hunting for. Files produced before that
+        change, or from real test-beam data, simply have no ``ACTSTracks``
+        collection, which is not an error -- just nothing to report.
+        """
+        if not self._track_counts_built:
+            self._track_counts_built = True
+            try:
+                import awkward as ak
+                import uproot
+
+                tree = uproot.open(self.path)["events"]
+                branch = "ACTSTracks/ACTSTracks.chi2"
+                if branch in tree.keys():
+                    self._track_counts = ak.to_numpy(
+                        ak.num(tree[branch].array())).astype(np.int64)
+            except Exception:
+                self._track_counts = None
+        return self._track_counts
 
     def close(self) -> None:
         # podio Reader has no explicit close; drop references.

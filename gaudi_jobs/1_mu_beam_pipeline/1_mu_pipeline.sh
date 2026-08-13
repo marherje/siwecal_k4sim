@@ -28,9 +28,14 @@ INPUT_FILE="${SIM_FILE}" k4run job3_digitize.py
 echo "=== Step 1b: ACTS tracking ==="
 # Tracks on the PRE-flip collection: DetectorFlipper moves the hit z into
 # the test-beam frame, which no longer matches the ACTS surfaces.
+# Written to a temp file and swapped back onto digitized.edm4hep.root itself
+# (keep * carries the digitised collections forward) so ACTSTracks/EMShowers/
+# SiPadMeasurements end up in the ONE edm4hep file that gets staged, instead of
+# a separate tracks.edm4hep.root product.
 INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \
-    OUTPUT_FILE="tracks.edm4hep.root" SEED_MOMENTUM=100.0 \
+    OUTPUT_FILE="digitized.edm4hep.root.tracks_tmp" SEED_MOMENTUM=100.0 \
     k4run ../pid2026_common/job4_tracking.py 2>&1 | grep -v "^TCling::LoadPCM"
+mv digitized.edm4hep.root.tracks_tmp digitized.edm4hep.root
 
 echo "=== Step 2: ecal tree + shower variables ==="
 cd "${REPO_ROOT}"
@@ -39,8 +44,6 @@ bash analysis/run_pid_sim.sh --format both
 echo "=== Moving outputs to Processed (EOS only) ==="
 mv "${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/digitized.edm4hep.root" \
    "${PROCESSED}/${LABEL}_digitized.edm4hep.root"
-mv "${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/tracks.edm4hep.root" \
-   "${PROCESSED}/${LABEL}_tracks.edm4hep.root"
 for ext in root edm4hep.root valtree.root; do
     src="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/ecal_sim.${ext}"
     [[ -f "${src}" ]] && mv "${src}" "${PROCESSED}/${LABEL}_ecal.${ext}"

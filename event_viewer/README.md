@@ -93,6 +93,20 @@ python -m event_viewer --max-recompute-events 50000   # raise (or lower) the cap
 
 or set `max_recompute_events` on `ViewerConfig`.
 
+## ACTS tracks
+
+When the loaded file is a simulation PID file (`ecal_sim.edm4hep.root` /
+`<label>_ecal.edm4hep.root`) whose pipeline ran the ACTS tracking step, the
+Event tab shows **"tracks available: N tracks"** next to the navigation
+buttons. `ACTSTracks` lives straight inside that same edm4hep file —
+`job4_tracking.py` merges it into `digitized.edm4hep.root`
+(`siwecal_k4sim/docs/gaudi_pipeline.md`, "Single-file output") and
+`run_pid_batch.py` merges it again from there into the PID output
+(`siwecal-tb2026/README.md`, "EDM4hep PID file"). No companion file to find:
+if the currently open file has no `ACTSTracks` collection — a plain
+`ecal_*.root`/`.valcache.root` tree, a PID file predating the merge, or real
+test-beam data, which never has tracks at all — the readout is simply blank.
+
 ## Architecture (OOP)
 
 ```
