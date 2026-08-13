@@ -193,16 +193,18 @@ from it (`ShipHits.root`'s `ACTSTracks`/`SiPadMeas` RNTuples).
 `analysis/sim_to_ecal_tree.py`, which writes `event = <original frame index>`
 for every row; `k4SiWEcalReco`'s `EcalToEDM4hep` (in `siwecal-tb2026`) reads
 that tree in the same order, so its own frame index is that same original
-frame index. `run_pid_batch.py` (also in `siwecal-tb2026`) then looks for a
-`digitized.edm4hep.root` next to the ecal tree
-(`siwecal_common.paths.tracks_path_for`) and, when found,
-`siwecal_common.edm4hep_pid.write_filtered` merges `ACTSTracks`/`EMShowers`/
-`SiPadMeasurements`/`SiPadShowerFlags` straight into the PID output at that
-matching index — so `ecal_sim.edm4hep.root` (or the staged
+frame index. `run_pid_sim.sh` then passes that exact `digitized.edm4hep.root`
+path **explicitly** to `run_pid_batch.py --tracks-file` (no sibling-file
+auto-discovery — the caller already knows the path, so it just says so); `run_
+pid_batch.py` (also in `siwecal-tb2026`) forwards it to
+`siwecal_common.edm4hep_pid.write_filtered`, which merges `ACTSTracks`/
+`EMShowers`/`SiPadMeasurements`/`SiPadShowerFlags` straight into the PID
+output at that matching index — so `ecal_sim.edm4hep.root` (or the staged
 `<label>_ecal.edm4hep.root`) itself carries the tracks: `event_viewer` reads
 them from the one file it already has open
 (`PidFileReader.track_counts()` / `Edm4hepEventReader.n_tracks()`), no sibling
-lookup. `SiPadHits*`/`MCParticles` are deliberately left out of that merge —
+lookup anywhere in the chain. `SiPadHits*`/`MCParticles` are deliberately left
+out of that merge —
 `ECalHits` already covers the raw hits, and those collections'
 `SimCalorimeterHit`→`CaloHitContribution` relations segfault when resolved
 against a second, concurrently-open podio `Reader`; the four merged

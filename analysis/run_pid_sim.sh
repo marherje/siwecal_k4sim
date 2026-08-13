@@ -111,9 +111,10 @@ fi
 echo ""
 echo "=== Step 2/2: k4SiWEcalReco (shower variables + event selection) ==="
 python3 "${TB2026_ROOT}/gaudi_jobs/run_pid_batch.py" \
-    --file   "${ECAL_TREE}" \
-    --outdir "${OUT_DIR}" \
-    --format "${FORMAT}" \
+    --file        "${ECAL_TREE}" \
+    --tracks-file "${INPUT_EDM4HEP}" \
+    --outdir      "${OUT_DIR}" \
+    --format      "${FORMAT}" \
     ${VALIDATION_FLAG}
 
 echo ""
