@@ -61,7 +61,7 @@ class EventDataset:
         if want_tracks:
             read_tracks = getattr(self.reader, "read_tracks", None)
             if read_tracks:
-                tracks = read_tracks(index)
+                tracks = self._reframe_tracks(read_tracks(index))
         return Event(
             index=index,
             x=np.asarray(hits.get("hit_x", []), dtype=float),
@@ -76,6 +76,66 @@ class EventDataset:
             metrics=row,
             tracks=tracks,
         )
+
+    def _reframe_tracks(self, tracks):
+        """Remap track-state z into the hits' own frame, when the two disagree.
+
+        Simulation's ``ACTSTracks`` come out in the DD4hep frame (job4_tracking
+        runs on the pre-flip ``SiPadHitsDigi``, matching the DD4hep-built ACTS
+        surfaces) while this same file's hits are already in the test-beam
+        frame (``SiPadHitsMapped``/``ECalHits``) -- two different z
+        conventions in one file, so a track drawn as-is lands on the wrong
+        side of (or outside) the detector entirely. Real test-beam tracks have
+        no such mismatch (that repo's ACTSGeoSvc builds its surfaces straight
+        from the test-beam z table already), so this is a no-op there.
+
+        Detected from :meth:`PidFileReader.track_z_table`'s own sign: the
+        test-beam frame is always <= 0 (``mappings/slab_z_positions.yml``),
+        the DD4hep one always > 0 -- remap only when it's positive. x/y are
+        untouched (confirmed against a real digitized.edm4hep.root: only z
+        differs between the pre- and post-flip hit collections). Matched by
+        NEAREST value, not an exact/rounded lookup: ``track_z_table()``'s
+        entries come from a ``np.round`` over a float32 branch, which can
+        disagree with plain ``round()`` right at the 0.05 mm boundary (e.g.
+        49.349998 -- physically 49.35 -- rounds to 49.3 in float64 but 49.4 in
+        float32), silently dropping a few of the 15 slabs if matched by key.
+        A nearest-within-tolerance match is immune to that.
+        """
+        if not tracks:
+            return tracks
+        dd_table, tb_table = self._track_z_tables()
+        if dd_table is None:
+            return tracks
+        out = []
+        for tr in tracks:
+            pts = [(x, y, self._remap_z(z, dd_table, tb_table))
+                  for x, y, z in tr["points"]]
+            out.append({**tr, "points": pts})
+        return out
+
+    # Half the 15 mm layer pitch would already be unambiguous; well under it
+    # to stay clear of the one 30 mm gap (layer 10->11, the empty rail slot).
+    _Z_MATCH_TOL_MM = 5.0
+
+    @classmethod
+    def _remap_z(cls, z, dd_table, tb_table):
+        i = int(np.argmin(np.abs(dd_table - z)))
+        return float(tb_table[i]) if abs(dd_table[i] - z) < cls._Z_MATCH_TOL_MM else z
+
+    def _track_z_tables(self):
+        """Cached ``(dd4hep_z_array, test_beam_z_array)``, index-aligned by
+        slab, or ``(None, None)`` if no remap is needed/possible (see
+        :meth:`_reframe_tracks`)."""
+        if not hasattr(self, "_track_z_tables_cache"):
+            self._track_z_tables_cache = (None, None)
+            get_table = getattr(self.reader, "track_z_table", None)
+            dd_table = get_table() if get_table else None
+            if dd_table is not None and len(dd_table) and dd_table[0] > 0:
+                tb = np.asarray(self.detector.slab_z_mm, dtype=float)
+                n = min(len(dd_table), len(tb))
+                self._track_z_tables_cache = (
+                    np.asarray(dd_table[:n], dtype=float), tb[:n])
+        return self._track_z_tables_cache
 
     def accumulate(self, indices) -> Event:
         """Aggregate the hits of many events into one pseudo-:class:`Event`.

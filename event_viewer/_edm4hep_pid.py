@@ -93,6 +93,8 @@ class PidFileReader:
         self._hits: Optional[Dict[str, np.ndarray]] = None  # jagged object arrays
         self._track_counts: Optional[np.ndarray] = None
         self._track_counts_built = False
+        self._track_z_table: Optional[np.ndarray] = None
+        self._track_z_table_built = False
 
     @property
     def _frames(self):
@@ -335,14 +337,54 @@ class PidFileReader:
                 self._track_counts = None
         return self._track_counts
 
+    def track_z_table(self) -> Optional[np.ndarray]:
+        """Sorted, unique ``AtOther`` track-state z values across the whole
+        file, or ``None`` if it has no ACTSTracks states at all.
+
+        This is the detector's per-slab z table in WHATEVER frame
+        ``ACTSTracks`` was actually written in: for simulation, job4_tracking
+        runs on the pre-flip ``SiPadHitsDigi`` (see "Use the PRE-flip
+        collection" in ``docs/gaudi_pipeline.md``), so ``referencePoint.z``
+        comes out in the DD4hep/simulation frame (positive, ~49-274 mm) even
+        though ``ECalHits`` in this SAME file are already in the test-beam
+        frame (``SiPadHitsMapped``, negative, 0..-225 mm) -- two different z
+        conventions in one file. Real test-beam ACTSTracks have no such
+        mismatch (that repo's ``ACTSGeoSvc`` builds its surfaces straight from
+        the test-beam ``slab_z_positions.yml``), so this table already matches
+        the hits there and callers should treat a non-positive table as
+        "nothing to remap". One uproot scan, cached.
+        """
+        if not self._track_z_table_built:
+            self._track_z_table_built = True
+            try:
+                import awkward as ak
+                import uproot
+
+                tree = uproot.open(self.path)["events"]
+                branch = "_ACTSTracks_trackStates/_ACTSTracks_trackStates.referencePoint.z"
+                loc_branch = "_ACTSTracks_trackStates/_ACTSTracks_trackStates.location"
+                if branch in tree.keys():
+                    z = ak.flatten(tree[branch].array())
+                    loc = ak.flatten(tree[loc_branch].array())
+                    z_other = ak.to_numpy(z[loc != 1])  # drop the AtIP placeholder
+                    if z_other.size:
+                        self._track_z_table = np.unique(np.round(z_other, 1))
+            except Exception:
+                self._track_z_table = None
+        return self._track_z_table
+
     def read_tracks(self, index: int) -> List[dict]:
         """Track state points for one event, ``[]`` if there are none.
 
         Each dict is ``{"points": [(x,y,z), ...], "chi2": float, "ndf": int}``
-        -- only the ``AtOther`` states (one per detector surface, in the same
-        DD4hep frame as the hits), sorted by z. The ``AtIP`` state's
-        ``referencePoint`` is a ``(0,0,0)`` placeholder (its seed position
-        lives in ``D0``/``Z0`` instead) and is excluded from the polyline.
+        -- only the ``AtOther`` states (one per detector surface), sorted by
+        z. The ``AtIP`` state's ``referencePoint`` is a ``(0,0,0)``
+        placeholder (its seed position lives in ``D0``/``Z0`` instead) and is
+        excluded from the polyline. Points are in WHATEVER frame this file's
+        ``ACTSTracks`` was written in -- see :meth:`track_z_table` for why
+        that isn't always the same frame as the hits; callers that need the
+        hits' frame should remap through it (``EventDataset._reframe_tracks``
+        does this for the viewer).
         """
         try:
             # Keep an explicit reference to the Frame: an unnamed

@@ -129,5 +129,12 @@ class Edm4hepEventReader:
         ``[]`` if this file/event has none."""
         return self._pid.read_tracks(index)
 
+    def track_z_table(self) -> Optional[List[float]]:
+        """See ``PidFileReader.track_z_table`` -- the frame ``read_tracks``'s
+        points are actually in, so a caller with the hits' own z table (e.g.
+        ``EventDataset``, which has the detector geometry) can tell whether
+        and how to remap them."""
+        return self._pid.track_z_table()
+
     def close(self) -> None:
         self._pid.close()
