@@ -115,6 +115,26 @@ SIM.physicsList = "${physlist}"
 # Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions
 # with per-step timing. tracker_region_zmax/rmax are defined in the compact XML.
 
+
+def setup_step_limiter_apply_to_all(kernel):
+    from DDG4 import PhysicsList
+
+    physics_sequence = kernel.physicsList()
+    step_limiter_physics = PhysicsList(
+        kernel,
+        "Geant4PhysicsList/StepLimiterApplyToAll",
+    )
+    step_limiter_physics.enableUI()
+    physics_sequence.adopt(step_limiter_physics)
+
+    step_limiter = step_limiter_physics.addPhysicsConstructorType(
+        "G4StepLimiterPhysics"
+    )
+    step_limiter.SetApplyToAll(True)
+
+
+SIM.physics.setupUserPhysics(setup_step_limiter_apply_to_all)
+
 print("COMPACT FILE  =", SIM.compactFile)
 print("OUTPUT FILE   =", SIM.outputFile)
 print("PARTICLE      = ${particle}")

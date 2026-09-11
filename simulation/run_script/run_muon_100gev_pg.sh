@@ -60,6 +60,26 @@ SIM.gun.position = (${pos_x} * mm, ${pos_y} * mm, ${pos_z} * mm)
 SIM.gun.direction = (${dir_x}, ${dir_y}, ${dir_z})
 
 SIM.physicsList = "QGSP_BERT"
+
+
+def setup_step_limiter_apply_to_all(kernel):
+    from DDG4 import PhysicsList
+
+    physics_sequence = kernel.physicsList()
+    step_limiter_physics = PhysicsList(
+        kernel,
+        "Geant4PhysicsList/StepLimiterApplyToAll",
+    )
+    step_limiter_physics.enableUI()
+    physics_sequence.adopt(step_limiter_physics)
+
+    step_limiter = step_limiter_physics.addPhysicsConstructorType(
+        "G4StepLimiterPhysics"
+    )
+    step_limiter.SetApplyToAll(True)
+
+
+SIM.physics.setupUserPhysics(setup_step_limiter_apply_to_all)
 EOF
 
 source "${repo}/init_key4hep.sh"
