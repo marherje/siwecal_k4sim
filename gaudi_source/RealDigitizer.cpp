@@ -51,6 +51,10 @@ public:
         error() << "[RealDigitizer] MIPValue must be positive." << endmsg;
         return StatusCode::FAILURE;
       }
+      if (m_digitizedEnergyScale.value() <= 0.0) {
+        error() << "[RealDigitizer] DigitizedEnergyScale must be positive." << endmsg;
+        return StatusCode::FAILURE;
+      }
       if (mode == "real") {
         m_digitizedEnergyHandle =
             std::make_unique<k4FWCore::DataHandle<podio::UserDataCollection<float>>>(
@@ -68,6 +72,7 @@ public:
       info() << "[RealDigitizer] Mode=" << mode
              << "  InputEnergyUnit=" << unit
              << "  MIPValue=" << m_MIPValue.value() << " GeV/MIP"
+             << "  DigitizedEnergyScale=" << m_digitizedEnergyScale.value()
              << "  Threshold=" << m_threshold.value() << " MIP" << endmsg;
       return Gaudi::Algorithm::initialize();
     } catch (const std::exception& e) {
@@ -90,6 +95,7 @@ public:
       const bool inputIsGeV = (m_inputEnergyUnit.value() == "GeV");
       const double invMip = inputIsGeV ? (1.0 / m_MIPValue.value()) : 1.0;
       const double hitToGeV = inputIsGeV ? 1.0 : m_MIPValue.value();
+      const double digitizedEnergyScale = m_digitizedEnergyScale.value();
 
       int n_pass = 0;
       if (mode == "simple") {
@@ -186,7 +192,9 @@ public:
             for (const auto& contrib : hit.getContributions()) {
               nh.addToContributions(contrib);
             }
-            digitizedEnergy->create() = static_cast<float>(fastSearch.slowSignalSample);
+            const double scaledDigitizedEnergy =
+                fastSearch.slowSignalSample * digitizedEnergyScale;
+            digitizedEnergy->create() = static_cast<float>(scaledDigitizedEnergy);
             digitizedTime->create() = static_cast<float>(fastSearch.triggerTime);
             ++n_pass;
           }
@@ -203,7 +211,9 @@ public:
                     << "  digitized_time=" << fastSearch.triggerTime << " ns"
                     << "  fast_search slow_sample=" << fastSearch.slowSignalSample
                     << " MIP"
-                    << "  digitized_energy=" << fastSearch.slowSignalSample << " MIP"
+                    << "  digitized_energy=" << fastSearch.slowSignalSample * digitizedEnergyScale
+                    << " MIP"
+                    << "  digitized_energy_scale=" << digitizedEnergyScale
                     << "  fast_search pass=" << passThreshold
                     << "  pos=(" << pos.x << ", " << pos.y << ", " << pos.z << ") mm"
                     << endmsg;
@@ -250,6 +260,9 @@ private:
   Gaudi::Property<std::string> m_digitizedEnergyName{
       this, "DigitizedEnergyCollection", "SiPadHitsDigiDigitizedEnergy",
       "Output UserDataCollection<float> with shaped slow-sample amplitudes [MIP]"};
+  Gaudi::Property<double> m_digitizedEnergyScale{
+      this, "DigitizedEnergyScale", 1.0,
+      "Final multiplicative scale applied to shaped digitized energy"};
   Gaudi::Property<std::string> m_digitizedTimeName{
       this, "DigitizedTimeCollection", "SiPadHitsDigiDigitizedTime",
       "Output UserDataCollection<float> with fast trigger times [ns]"};

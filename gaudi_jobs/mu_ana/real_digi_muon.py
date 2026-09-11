@@ -1,7 +1,8 @@
+from pathlib import Path
+import os
+
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import RealDigitizer
-import os
-from pathlib import Path
 
 
 def env_float(name, default):
@@ -13,10 +14,11 @@ def env_int(name, default):
 
 
 default_input = Path(
-    "/home/llr/ilc/shi/data/siwecal_k4sim/output/"
-    "output_PG_gamma_10GeV_100evt.edm4hep.root"
+    "/home/llr/ilc/shi/data/siwecal_k4sim/output/muon/"
+    "mu-_100GeV_0degree.edm4hep.root"
 )
 infile = Path(os.environ.get("INPUT_FILE", default_input))
+
 default_output = infile.with_name(
     infile.name.replace(".edm4hep.root", "_real_digitized.edm4hep.root")
 )
@@ -40,7 +42,7 @@ dig.MIPValue = env_float("MIP_VALUE_GEV", 0.0002)
 dig.DigitizedEnergyScale = env_float("DIGITIZED_ENERGY_SCALE", 1.0)
 dig.Threshold = env_float("MIP_THRESHOLD", 0.5)
 dig.DigitizationMode = "real"
-dig.DebugFrequency = env_int("DEBUG_FREQUENCY", 1)
+dig.DebugFrequency = env_int("DEBUG_FREQUENCY", 100)
 
 dig.DelayNs = env_float("DELAY_NS", 160.0)
 dig.TauFastNs = env_float("TAU_FAST_NS", 30.0)

@@ -96,6 +96,7 @@ dig.DigitizedEnergyCollection = "SiPadHitsDigiDigitizedEnergy"
 dig.DigitizedTimeCollection = "SiPadHitsDigiDigitizedTime"
 dig.InputEnergyUnit = "GeV"
 dig.MIPValue = 0.0002
+dig.DigitizedEnergyScale = 1.0
 dig.Threshold = 0.5
 dig.DigitizationMode = "real"
 ```
@@ -111,8 +112,10 @@ This is the `fast_search` path in the example naming. It is meant for
 digitization speed and does not produce the full plotted waveform.
 
 `SiPadHitsDigi.energy` keeps the original input hit energy. The shaped
-slow-sample amplitude is written to `SiPadHitsDigiDigitizedEnergy` in MIP units,
-and the fast trigger time is written to `SiPadHitsDigiDigitizedTime` in ns. Both
-user-data collections follow the same order as `SiPadHitsDigi`. The output hits
-also keep the original contribution relation, so downstream code can still
-access the original contribution time and MC-particle links.
+slow-sample amplitude is multiplied by `DigitizedEnergyScale` and written to
+`SiPadHitsDigiDigitizedEnergy` in MIP units. The scale defaults to 1.0 and does
+not change the trigger or threshold decision. The fast trigger time is written
+to `SiPadHitsDigiDigitizedTime` in ns. Both user-data collections follow the
+same order as `SiPadHitsDigi`. The output hits also keep the original
+contribution relation, so downstream code can still access the original
+contribution time and MC-particle links.

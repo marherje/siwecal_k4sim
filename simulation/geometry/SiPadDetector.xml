@@ -16,37 +16,37 @@
   </envelope>
 
   <!-- Aluminium box and gap to first layer -->
-  <slice material = "Al"          thickness = "Ecal_AlThickness"   vis="AlVis"/>  
-  <slice material = "Air"         thickness = "Ecal_Al_frontdistance"   vis="Invisible"/>
+  <slice material = "Al"          thickness = "Ecal_AlThickness"   vis="AlVis" limits="cal_limits"/>
+  <slice material = "Air"         thickness = "Ecal_Al_frontdistance"   vis="Invisible" limits="cal_limits"/>
   <!-- Layers 2-4: W(1.40x) + W(4.20x) + CF + Cu + glue + Si(650um) + glue + Cu + PCB + chip + gap --> 
   <layer repeat="2" vis="EcalVis">
-  <slice material = "Air"         thickness = "1.40*mm"  vis="AirVis" />
-  <slice material = "TungstenDens1910" thickness = "4.20*mm"  vis="TungstenVis" />
-  <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis"/>
-  <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" />
-  <slice material = "Air"         thickness = "Ecal_GlueThickness_kap"  vis="AirVis"/>
-  <slice material = "Si"          thickness = "Ecal_WaferThickness650"     vis="SiVis" sensitive = "yes" />
-  <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
-  <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" />
-  <slice material = "PCB"         thickness = "Ecal_PcbThickness"       vis="PCBVis" />
-  <slice material = "Air"         thickness = "Ecal_ChipThickness"       vis="AirVis" />
-  <slice material = "Air"         thickness = "Ecal_w_slab_gap650"        vis="AirVis"/>
+  <slice material = "Air"         thickness = "1.40*mm"  vis="AirVis" limits="cal_limits"/>
+  <slice material = "TungstenDens1910" thickness = "4.20*mm"  vis="TungstenVis" limits="cal_limits"/>
+  <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis" limits="cal_limits"/>
+  <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" limits="cal_limits"/>
+  <slice material = "Air"         thickness = "Ecal_GlueThickness_kap"  vis="AirVis" limits="cal_limits"/>
+  <slice material = "Si"          thickness = "Ecal_WaferThickness650"     vis="SiVis" sensitive = "yes" limits="cal_limits"/>
+  <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis" limits="cal_limits"/>
+  <slice material = "Cu"          thickness = "Ecal_KaptonThickness"    vis="CuVis" limits="cal_limits"/>
+  <slice material = "PCB"         thickness = "Ecal_PcbThickness"       vis="PCBVis" limits="cal_limits"/>
+  <slice material = "Air"         thickness = "Ecal_ChipThickness"       vis="AirVis" limits="cal_limits"/>
+  <slice material = "Air"         thickness = "Ecal_w_slab_gap650"        vis="AirVis" limits="cal_limits"/>
   </layer>
 
   <layer repeat="13" vis="EcalVis">
-    <slice material="TungstenDens1910" thickness="5.6*mm"   vis="TungstenVis"/>
-    <slice material="CarbonFiber"     thickness="Ecal_CFThickness"        vis="CFVis"/>
-    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis"/>
-    <slice material="Air"             thickness="Ecal_GlueThickness_kap"  vis="AirVis"/>
-    <slice material="Silicon"         thickness="Ecal_WaferThickness500"  vis="SiVis" sensitive="yes"/>
-    <slice material="Air"             thickness="Ecal_GlueThickness_pcb"  vis="AirVis"/>
-    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis"/>
-    <slice material="PCB"             thickness="Ecal_PcbThickness"       vis="PCBVis"/>
-    <slice material="Air"             thickness="Ecal_ChipThickness"      vis="AirVis"/>
-    <slice material="Air"             thickness="Ecal_w_slab_gap500"      vis="AirVis"/>
+    <slice material="TungstenDens1910" thickness="5.6*mm"   vis="TungstenVis" limits="cal_limits"/>
+    <slice material="CarbonFiber"     thickness="Ecal_CFThickness"        vis="CFVis" limits="cal_limits"/>
+    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis" limits="cal_limits"/>
+    <slice material="Air"             thickness="Ecal_GlueThickness_kap"  vis="AirVis" limits="cal_limits"/>
+    <slice material="Silicon"         thickness="Ecal_WaferThickness500"  vis="SiVis" sensitive="yes" limits="cal_limits"/>
+    <slice material="Air"             thickness="Ecal_GlueThickness_pcb"  vis="AirVis" limits="cal_limits"/>
+    <slice material="Copper"          thickness="Ecal_KaptonThickness"    vis="CuVis" limits="cal_limits"/>
+    <slice material="PCB"             thickness="Ecal_PcbThickness"       vis="PCBVis" limits="cal_limits"/>
+    <slice material="Air"             thickness="Ecal_ChipThickness"      vis="AirVis" limits="cal_limits"/>
+    <slice material="Air"             thickness="Ecal_w_slab_gap500"      vis="AirVis" limits="cal_limits"/>
   </layer>
 
-  <slice material = "Air"         thickness = "Ecal_Al_reardistance"   vis="Invisible"/>
-  <slice material = "Al"      thickness = "Ecal_AlThickness"   vis="AlVis"/>
+  <slice material = "Air"         thickness = "Ecal_Al_reardistance"   vis="Invisible" limits="cal_limits"/>
+  <slice material = "Al"      thickness = "Ecal_AlThickness"   vis="AlVis" limits="cal_limits"/>
 
 </detector>
