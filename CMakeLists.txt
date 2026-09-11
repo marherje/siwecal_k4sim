@@ -12,6 +12,9 @@ find_package(k4ActsTracking REQUIRED)
 dd4hep_add_plugin(SiPadDetector_plugin SOURCES detector_plugin/SiPadDetector.cpp)
 target_link_libraries(SiPadDetector_plugin DD4hep::DDCore)
 
+dd4hep_add_plugin(StepLengthDebugger_plugin SOURCES detector_plugin/StepLengthDebugger.cpp)
+target_link_libraries(StepLengthDebugger_plugin DD4hep::DDCore DD4hep::DDG4)
+
 gaudi_add_module(SND_reco
   SOURCES
     gaudi_source/GeV2MIPConversion.cpp
@@ -49,4 +52,5 @@ target_include_directories(SND_reco PRIVATE
 )
 
 install(TARGETS SiPadDetector_plugin LIBRARY DESTINATION lib)
+install(TARGETS StepLengthDebugger_plugin LIBRARY DESTINATION lib)
 install(TARGETS SND_reco LIBRARY DESTINATION lib)

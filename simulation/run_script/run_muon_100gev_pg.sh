@@ -7,7 +7,7 @@ data_dir=/home/llr/ilc/shi/data/siwecal_k4sim
 particle=mu-
 energy=100
 angle_label=0degree
-nevents=1000
+nevents=${1:-1000}
 
 # Normal incidence along +z. The start point is upstream and near the ECAL
 # center, so the track stays inside the detector acceptance.
@@ -25,7 +25,7 @@ output_dir="${data_dir}/output/muon"
 
 steer_file="${steer_dir}/run_muon_100gev_${angle_label}_${nevents}.py"
 log_file="${log_dir}/run_muon_100gev_${angle_label}_${nevents}.log"
-output_file="${output_dir}/mu-_100GeV_0degree.edm4hep.root"
+output_file="${SIPAD_OUTPUT_FILE:-${output_dir}/mu-_100GeV_0degree.edm4hep.root}"
 
 mkdir -p "${steer_dir}" "${output_dir}" "${log_dir}"
 
@@ -63,6 +63,8 @@ SIM.physicsList = "QGSP_BERT"
 
 
 def setup_step_limiter_apply_to_all(kernel):
+    import os
+
     from DDG4 import PhysicsList
 
     physics_sequence = kernel.physicsList()
@@ -78,11 +80,32 @@ def setup_step_limiter_apply_to_all(kernel):
     )
     step_limiter.SetApplyToAll(True)
 
+    if os.environ.get("SIPAD_DEBUG_STEPS", "0") == "1":
+        from DDG4 import SteppingAction
+
+        step_debugger = SteppingAction(
+            kernel,
+            "StepLengthDebugger/StepLengthDebugger",
+        )
+        step_debugger.VolumeSubstring = "SiPad"
+        step_debugger.MaxPrintedSteps = 40
+        step_debugger.PrintOnlyOverLimit = False
+        step_debugger.enableUI()
+        kernel.steppingAction().adopt(step_debugger)
+
 
 SIM.physics.setupUserPhysics(setup_step_limiter_apply_to_all)
 EOF
 
 source "${repo}/init_key4hep.sh"
+
+if command -v geant4-config >/dev/null 2>&1; then
+  for lib_flag in $(geant4-config --libs); do
+    case "${lib_flag}" in
+      -L*) export LD_LIBRARY_PATH="${lib_flag#-L}:${LD_LIBRARY_PATH:-}" ;;
+    esac
+  done
+fi
 
 export LD_LIBRARY_PATH="${repo}/install/lib64:${repo}/install/lib:${LD_LIBRARY_PATH:-}"
 export PYTHONPATH="${repo}/install/lib64:${repo}/install/lib:${repo}/install/python:${PYTHONPATH:-}"

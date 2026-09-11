@@ -70,7 +70,8 @@
 
   <limits>
     <limitset name="cal_limits">
-      <limit name="step_length_max" particles="*" value="1" unit="mm"/>
+      <!-- DDSim/Geant4 debug confirms this gives max_allowed=0.25 mm. -->
+      <limit name="step_length_max" particles="*" value="0.0025" unit="cm"/>
     </limitset>
   </limits>
 
