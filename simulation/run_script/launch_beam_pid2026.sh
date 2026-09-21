@@ -33,8 +33,8 @@ pos_y=1.164   # mm — beam centre y
 sigma_E=0.02  # fractional energy spread (2 %), same for all species
 
 # Per-species beam optics (mm), as used in launch_beam.sh
-sigma_x_e=13.75;  sigma_y_e=8.25
-sigma_x_mu=38.5;  sigma_y_mu=46.75
+sigma_x_e=7.3;  sigma_y_e=4.4
+sigma_x_mu=26;  sigma_y_mu=26.8
 sigma_x_pi=24.75; sigma_y_pi=13.75
 
 # Deterministic, collision-free seeds: species offset + energy + chunk.

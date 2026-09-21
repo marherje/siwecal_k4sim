@@ -222,7 +222,15 @@ inherited from another set:
    over the whole range, so `(hit_lg − c)/k` is the true charge and `hit_hg`
    against it is the high gain's response curve, fitted with
    `S(q) = q / (1 + (q/A)^n)^(1/n)`. Only electrons reach the knee. This fit
-   involves no simulation at all.
+   involves no simulation at all. The same pass measures how the data's low
+   gain scatters about the anchor line (`lg_noise_adc`, 3.5–4.0 LG-ADC of
+   pedestal width, and `lg_gain_spread`, ~7 % growing with the amplitude — the
+   channel-to-channel dispersion of the gain ratio) and `AdcDigitizer` draws
+   them per hit (`LowGainNoiseAdc`, `LowGainSpread`): the simulated
+   `hit_lg`-vs-`hit_hg` band then has the data's width. Both are symmetric, so
+   they widen the energy of the hits reconstructed from the low gain (above
+   `SaturationAdc`) and move nothing on average — the 52 GeV event sum is the
+   same to four digits with and without them.
 3. **Every electron energy is then a validation**, nothing refitted.
 
 A shower anchor for the gain — tried first — is *not* a gain measurement: it

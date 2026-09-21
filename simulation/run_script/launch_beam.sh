@@ -6,12 +6,12 @@
 
 nevents=1000
 
-sigma_x_e=13.75  # mm — horizontal beam sigma
-sigma_y_e=8.25   # mm — vertical beam sigma
+sigma_x_e=7.3  # mm — horizontal beam sigma
+sigma_y_e=4.4   # mm — vertical beam sigma
 sigma_E_e=0.02   # fractional energy spread (2 %)
 
-sigma_x_mu=38.5   # mm — horizontal beam sigma
-sigma_y_mu=46.75  # mm — vertical beam sigma
+sigma_x_mu=26   # mm — horizontal beam sigma
+sigma_y_mu=26.8  # mm — vertical beam sigma
 sigma_E_mu=0.02   # fractional energy spread (2 %)
 
 sigma_x_pi=24.75  # mm — horizontal beam sigma                                                                 
