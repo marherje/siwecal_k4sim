@@ -2,7 +2,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-  <info name="SND_sim_poc" title="SND simulation proof-of-concept" author="J.P. Marquez"
+  <info name="SND_sim_beamline" title="SND simulation with H2/H6-like beamline material in front" author="J.P. Marquez"
         url="" status="development" version="1.0">
     <comment> key4hep 2026-02-01 compatible </comment>
   </info>
@@ -21,11 +21,50 @@
     <!-- <constant name="DetType_PIXEL"    value="0x100"/> -->
 
     <!-- World -->
-    <constant name="world_side" value="20*m"/>
+    <!-- 80 m so the beam can start 30 m upstream and cross that much air (0.1 X0). -->
+    <constant name="world_side" value="80*m"/>
     <constant name="world_x"    value="world_side"/>
     <constant name="world_y"    value="world_side"/>
     <constant name="world_z"    value="world_side"/>
 
+    <!-- BEAMLINE MATERIAL in front of the box: the H2 line as it was in June 2026.
+         Nothing sat between the end of the vacuum pipe and the box, which stood
+         2-3 m downstream of the vacuum window (eyewitness inventory, 2026-09-20).
+         What the beam crosses before the box front, the beam being started in
+         air just upstream of the window (BEAM_Z_MM = -2650):
+           2 XCET Cherenkovs (in the vacuum line), 2 Al windows each   4 x 0.5 mm   0.022 X0
+           vacuum exit window, Al                                      1.0 mm       0.011 X0
+           air, 2.5 m                                                                0.008 X0
+                                                                            total   0.04  X0
+         The CMS HGCAL 2018 figure of ~0.5 X0 (JINST 17 P05022) is NOT ours: half
+         of it was their own trigger scintillators, veto and delay wire chambers,
+         and the rest a longer air path.  That budget is kept for reference in
+         SND_compact_beamline_hgcal.xml; the knobs below (residual plate, DWC,
+         scintillators) stay at 1 um so a variant is a one-constant edit.
+         Measured effect (e- 20/52 GeV, th230): with 0.49 X0 the pre-shower put
+         layers 0/1 at sim/data 1.9/1.4; with this line they sit at 0.85-0.94.
+         X0: air 303.9 m, Al 88.97 mm, PCB(FR4) ~167 mm, scintillator 424 mm.
+         The box's front face sits at z = Ecal_z_position - Ecal_dim_z/2 ~ 0;
+         positions are measured from it. -->
+    <constant name="Beamline_Front_z"       value="0*mm"/>  <!-- = Ecal_z_position - Ecal_dim_z/2 by construction (defined later in this file) -->
+    <constant name="Beamline_XY"            value="300*mm"/>
+    <constant name="Beamline_ResidualAl"    value="0.001*mm"/>  <!-- knob: extra upstream material, none in 2026 -->
+    <constant name="Beamline_VacWindowAl"   value="1.0*mm"/>
+    <constant name="Beamline_XcetWindowAl"  value="0.5*mm"/>
+    <constant name="Beamline_DwcPcb"        value="0.001*mm"/>  <!-- knob: no wire chambers in 2026 -->
+    <constant name="Beamline_ScintThick"    value="0.001*mm"/>  <!-- knob: no trigger scintillators in 2026 -->
+    <constant name="Beamline_z_Residual"    value="Beamline_Front_z-3000*mm"/>
+    <constant name="Beamline_z_VacWindow"   value="Beamline_Front_z-2500*mm"/>
+    <constant name="Beamline_z_Xcet1_in"    value="Beamline_Front_z-2580*mm"/>
+    <constant name="Beamline_z_Xcet1_out"   value="Beamline_Front_z-2560*mm"/>
+    <constant name="Beamline_z_Xcet2_in"    value="Beamline_Front_z-2540*mm"/>
+    <constant name="Beamline_z_Xcet2_out"   value="Beamline_Front_z-2520*mm"/>
+    <constant name="Beamline_z_Dwc1"        value="Beamline_Front_z-1900*mm"/>
+    <constant name="Beamline_z_Scint1"      value="Beamline_Front_z-1750*mm"/>
+    <constant name="Beamline_z_Dwc2"        value="Beamline_Front_z-1500*mm"/>
+    <constant name="Beamline_z_Scint2"      value="Beamline_Front_z-1300*mm"/>
+    <constant name="Beamline_z_Dwc3"        value="Beamline_Front_z-1150*mm"/>
+    <constant name="Beamline_z_Scint3"      value="Beamline_Front_z-1000*mm"/>
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
     <!-- Front distance is from Al plate to layer "-1"-->
@@ -197,7 +236,80 @@
   </readouts>
 
   <detectors>
-    <include ref="SiPadDetector.xml"/>
+    <include ref="SiPadDetector_beamline.xml"/>
+    <!-- Beamline elements, 3 m to 1 m upstream of the box (see the Beamline_* constants). -->
+    <detector name="Beamline_Residual" type="DD4hep_BoxSegment" id="100" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ResidualAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Residual"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_VacWindow" type="DD4hep_BoxSegment" id="101" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_VacWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_VacWindow"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet1In" type="DD4hep_BoxSegment" id="102" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet1_in"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet1Out" type="DD4hep_BoxSegment" id="103" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet1_out"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet2In" type="DD4hep_BoxSegment" id="104" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet2_in"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet2Out" type="DD4hep_BoxSegment" id="105" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet2_out"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc1" type="DD4hep_BoxSegment" id="106" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc1"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint1" type="DD4hep_BoxSegment" id="107" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint1"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc2" type="DD4hep_BoxSegment" id="108" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc2"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint2" type="DD4hep_BoxSegment" id="109" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint2"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc3" type="DD4hep_BoxSegment" id="110" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc3"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint3" type="DD4hep_BoxSegment" id="111" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint3"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
   </detectors>
 
 

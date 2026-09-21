@@ -2,7 +2,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-  <info name="SND_sim_poc" title="SND simulation proof-of-concept" author="J.P. Marquez"
+  <info name="SND_sim_beamline" title="SND simulation with H2/H6-like beamline material in front" author="J.P. Marquez"
         url="" status="development" version="1.0">
     <comment> key4hep 2026-02-01 compatible </comment>
   </info>
@@ -21,11 +21,56 @@
     <!-- <constant name="DetType_PIXEL"    value="0x100"/> -->
 
     <!-- World -->
-    <constant name="world_side" value="20*m"/>
+    <!-- 80 m so the beam can start 30 m upstream and cross that much air (0.1 X0). -->
+    <constant name="world_side" value="80*m"/>
     <constant name="world_x"    value="world_side"/>
     <constant name="world_y"    value="world_side"/>
     <constant name="world_z"    value="world_side"/>
 
+    <!-- REFERENCE VARIANT, not the 2026 line: the HGCAL H2 budget of ~0.5 X0 (see
+         SND_compact_beamline.xml for what was really there).  Beam from -30 m.
+         BEAMLINE MATERIAL in front of the box, modelled after the H2 line of the
+         CMS HGCAL 2018 positron test (JINST 17 P05022): "from the last spectrometer
+         dipole to the face of the calorimeter there are air gaps, beam windows and
+         beam counters, including delay wire chambers and Cherenkov (XCET) detectors,
+         totalling approximately 0.5 X0".  The 2026 inventory is not known element by
+         element, so this is that budget split into plausible pieces, each its own
+         constant to be replaced by the real one when known:
+           air, 30 m, in the world volume (BEAM_Z_MM = -30000)          0.099 X0
+           residual upstream line (vacuum-pipe windows, air sections,
+             collimator material), lumped as one Al plate                0.26  X0
+           vacuum exit window, Al                          1.0 mm        0.011 X0
+           2 XCET Cherenkovs, 2 Al windows each            4 x 0.5 mm    0.022 X0
+           3 delay wire chambers, G10/mylar equivalent     3 x 1.67 mm   0.030 X0
+           3 trigger scintillators, polyvinyltoluene       3 x 10 mm     0.071 X0
+                                                                  total  0.49  X0
+         X0: air 303.9 m, Al 88.97 mm, PCB(FR4) ~167 mm, scintillator 424 mm.
+         The pieces are placed as their own volumes SPREAD BETWEEN 3 m AND 1 m
+         UPSTREAM of the box (the Beamline_* detectors below), which is roughly
+         where the real elements sat.  Lumping them against the box front put the
+         whole pre-shower compactly into layer 0 (sim/data 1.9 there); at metres
+         the conversion products open up and part of the pre-shower misses the
+         core, which is what the real line does.  The box's front face sits at
+         z = Ecal_z_position - Ecal_dim_z/2 ~ 0; positions are measured from it. -->
+    <constant name="Beamline_Front_z"       value="0*mm"/>  <!-- = Ecal_z_position - Ecal_dim_z/2 by construction (defined later in this file) -->
+    <constant name="Beamline_XY"            value="300*mm"/>
+    <constant name="Beamline_ResidualAl"    value="23.1*mm"/>
+    <constant name="Beamline_VacWindowAl"   value="1.0*mm"/>
+    <constant name="Beamline_XcetWindowAl"  value="0.5*mm"/>
+    <constant name="Beamline_DwcPcb"        value="1.67*mm"/>
+    <constant name="Beamline_ScintThick"    value="10.0*mm"/>
+    <constant name="Beamline_z_Residual"    value="Beamline_Front_z-3000*mm"/>
+    <constant name="Beamline_z_VacWindow"   value="Beamline_Front_z-2900*mm"/>
+    <constant name="Beamline_z_Xcet1_in"    value="Beamline_Front_z-2700*mm"/>
+    <constant name="Beamline_z_Xcet1_out"   value="Beamline_Front_z-2500*mm"/>
+    <constant name="Beamline_z_Xcet2_in"    value="Beamline_Front_z-2300*mm"/>
+    <constant name="Beamline_z_Xcet2_out"   value="Beamline_Front_z-2100*mm"/>
+    <constant name="Beamline_z_Dwc1"        value="Beamline_Front_z-1900*mm"/>
+    <constant name="Beamline_z_Scint1"      value="Beamline_Front_z-1750*mm"/>
+    <constant name="Beamline_z_Dwc2"        value="Beamline_Front_z-1500*mm"/>
+    <constant name="Beamline_z_Scint2"      value="Beamline_Front_z-1300*mm"/>
+    <constant name="Beamline_z_Dwc3"        value="Beamline_Front_z-1150*mm"/>
+    <constant name="Beamline_z_Scint3"      value="Beamline_Front_z-1000*mm"/>
     <!-- Aluminium box -->
     <constant name="Ecal_AlThickness" value="2*mm"/> 
     <!-- Front distance is from Al plate to layer "-1"-->
@@ -197,7 +242,80 @@
   </readouts>
 
   <detectors>
-    <include ref="SiPadDetector.xml"/>
+    <include ref="SiPadDetector_beamline.xml"/>
+    <!-- Beamline elements, 3 m to 1 m upstream of the box (see the Beamline_* constants). -->
+    <detector name="Beamline_Residual" type="DD4hep_BoxSegment" id="100" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ResidualAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Residual"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_VacWindow" type="DD4hep_BoxSegment" id="101" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_VacWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_VacWindow"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet1In" type="DD4hep_BoxSegment" id="102" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet1_in"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet1Out" type="DD4hep_BoxSegment" id="103" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet1_out"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet2In" type="DD4hep_BoxSegment" id="104" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet2_in"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Xcet2Out" type="DD4hep_BoxSegment" id="105" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_XcetWindowAl/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Xcet2_out"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc1" type="DD4hep_BoxSegment" id="106" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc1"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint1" type="DD4hep_BoxSegment" id="107" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint1"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc2" type="DD4hep_BoxSegment" id="108" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc2"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint2" type="DD4hep_BoxSegment" id="109" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint2"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Dwc3" type="DD4hep_BoxSegment" id="110" vis="AlVis">
+      <material name="PCB"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_DwcPcb/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Dwc3"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="Beamline_Scint3" type="DD4hep_BoxSegment" id="111" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="Beamline_ScintThick/2.0"/>
+      <position x="0" y="0" z="Beamline_z_Scint3"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
   </detectors>
 
 

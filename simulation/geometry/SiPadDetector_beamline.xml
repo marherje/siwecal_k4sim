@@ -51,6 +51,8 @@
   <!-- NOTE: The detector is flipped in this year TB setup, so the front and rear distances are swapped compared to the previous simulations. -->
   <!-- Note: asu2026_13 has thicker sensor (last layer) -->
   <layer repeat="1" vis="EcalVis">
+  <!-- The beamline material sits 1-3 m upstream as its own volumes: see the
+       Beamline_* detectors in SND_compact_beamline.xml, not slices here. -->
   <slice material = "Al"          thickness = "Ecal_AlThickness"   vis="AlVis"/>  
   <slice material = "Air"         thickness = "Ecal_Al_C_reardistance"   vis="Invisible"/>
   <slice material = "CarbonFiber" thickness = "Ecal_CFThickness"        vis="CFVis"/>

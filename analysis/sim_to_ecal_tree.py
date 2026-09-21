@@ -13,16 +13,22 @@ case chip/channel are set to 0 and hit_ismasked to 0 (legacy mode).
 
 CellID bitfields
 ----------------
-  SiPadHitsMapped  (TB format):   system:8, slab:8, chip:16, channel:8, sca:8
-  SiPadHitsFlipped (sim format):  system:8, layer:8, slice:5, x:9, y:9
-  SiPadHitsDigi    (sim format):  same as Flipped
+  SiPadHitsMapped     (TB format):   system:8, slab:8, chip:16, channel:8, sca:8
+  SiPadHitsRealMapped (TB format):   same, RealDigitizer branch (DIGI_MODE=real|both)
+  SiPadHitsFlipped    (sim format):  system:8, layer:8, slice:5, x:9, y:9
+  SiPadHitsDigi       (sim format):  same as Flipped
 
 Usage:
     python -m analysis.sim_to_ecal_tree \\
         --input  gaudi_jobs/1_mu_beam_pipeline/digitized.edm4hep.root \\
         --output gaudi_jobs/1_mu_beam_pipeline/ecal_sim.root \\
         [--collection SiPadHitsMapped] [--masking-collection SiPadHitsMasked] \\
+        [--time-collection SiPadHitsRealDigitizedTime] \\
         [--run 0] [--max-events N] [--verbose]
+
+With --collection SiPadHitsRealMapped (the RealDigitizer chain, DIGI_MODE=real
+or both in job3_digitize.py) the hit_time branch is filled from the digitised
+fast-channel trigger time.  The simple chain has no time, so hit_time stays 0.
 """
 
 from __future__ import annotations
@@ -52,8 +58,25 @@ _TB_CHAN_MASK      = 0xFF
 _TB_SCA_SHIFT     = 40
 _TB_SCA_MASK      = 0xFF
 
-# Collections that carry the TB-format CellID produced by ChannelMapper
-_TB_FORMAT_COLLECTIONS = {"SiPadHitsMapped"}
+# Collections that carry the TB-format CellID produced by ChannelMapper.
+# SiPadHitsRealMapped is the same thing on the RealDigitizer branch
+# (DIGI_MODE=real|both in gaudi_jobs/pid2026_common/job3_digitize.py).
+_TB_FORMAT_COLLECTIONS = {"SiPadHitsMapped", "SiPadHitsRealMapped",
+                          "SiPadHitsRealAdc"}
+
+# Hit collections of the RealDigitizer chain.  All three stay index-aligned with
+# the parallel digitised-time collection, because DetectorFlipper and
+# ChannelMapper emit exactly one output hit per input hit.
+_REAL_CHAIN_COLLECTIONS = {"SiPadHitsRealDigi", "SiPadHitsRealFlipped",
+                           "SiPadHitsRealMapped", "SiPadHitsRealAdc"}
+_REAL_TIME_COLLECTION = "SiPadHitsRealDigitizedTime"
+_REAL_FAST_COLLECTION = "SiPadHitsRealDigitizedFast"
+_REAL_ADC_HIGH_COLLECTION = "SiPadHitsRealAdcHigh"
+_REAL_ADC_LOW_COLLECTION = "SiPadHitsRealAdcLow"
+# AdcDigitizer's per-hit verdict of the chip-level hit selection (HIT_SELECTION=
+# chip in job3): 1 = the hit exists, 0 = the cell was sampled but is not a hit.
+# The collections upstream stay 1:1 so the flags line up; the tree drops the 0s.
+_REAL_KEPT_COLLECTION = "SiPadHitsRealAdcKept"
 
 # --------------------------------------------------------------------------- #
 # Radiation-length geometry
@@ -85,6 +108,21 @@ def _decode_layer_sim(cellid: int) -> int:
 _decode_layer = _decode_layer_sim
 
 
+def _get_collection(frame, name):
+    """Frame.get(name), or None when the collection is not in the frame.
+
+    podio raises KeyError for a missing collection rather than returning None,
+    so every optional collection has to go through this -- the parallel
+    time/fast vectors only exist on the RealDigitizer chain.
+    """
+    if not name:
+        return None
+    try:
+        return frame.get(name)
+    except Exception:
+        return None
+
+
 def _decode_tb(cellid: int):
     """Return (slab, chip, channel, sca) from TB-format CellID."""
     slab    = (cellid >> _TB_SLAB_SHIFT)  & _TB_SLAB_MASK
@@ -103,6 +141,10 @@ def convert(
     output_path: str,
     collection: str = "SiPadHitsMapped",
     masking_collection: str = "SiPadHitsMasked",
+    time_collection: Optional[str] = None,
+    fast_collection: Optional[str] = None,
+    adc_high_collection: Optional[str] = None,
+    adc_low_collection: Optional[str] = None,
     run_number: int = 0,
     max_events: Optional[int] = None,
     verbose: bool = False,
@@ -126,6 +168,28 @@ def convert(
     import podio.root_io
 
     use_tb_format = collection in _TB_FORMAT_COLLECTIONS
+
+    # The digitised time is a UserDataCollection written in parallel with the
+    # RealDigitizer hits, so it is only aligned with the collections of that
+    # chain.  Reading it alongside SiPadHitsMapped (the simple chain) would pair
+    # each hit with an unrelated time, so it is enabled only for the real chain
+    # unless the caller names one explicitly.  Pass "" to force it off.
+    if time_collection is None:
+        time_collection = (_REAL_TIME_COLLECTION
+                           if collection in _REAL_CHAIN_COLLECTIONS else "")
+    # Same contract as the time collection: only the RealDigitizer chain writes
+    # it, and only index alignment ties it to the hits.
+    if fast_collection is None:
+        fast_collection = (_REAL_FAST_COLLECTION
+                           if collection in _REAL_CHAIN_COLLECTIONS else "")
+    # The simulated ADC only exists on the AdcDigitizer output; with any other
+    # collection hit_hg / hit_lg stay 0, as they always did.
+    if adc_high_collection is None:
+        adc_high_collection = (_REAL_ADC_HIGH_COLLECTION
+                               if collection == "SiPadHitsRealAdc" else "")
+    if adc_low_collection is None:
+        adc_low_collection = (_REAL_ADC_LOW_COLLECTION
+                              if collection == "SiPadHitsRealAdc" else "")
 
     if not os.path.exists(input_path):
         sys.exit(f"ERROR: input file not found: {input_path}")
@@ -183,6 +247,8 @@ def convert(
     b_hit_z        = np.zeros(MAX_HITS, dtype=np.float32)
     b_hit_X0       = np.zeros(MAX_HITS, dtype=np.float32)
     b_hit_w_energy = np.zeros(MAX_HITS, dtype=np.float32)
+    b_hit_time     = np.zeros(MAX_HITS, dtype=np.float32)
+    b_hit_fast     = np.zeros(MAX_HITS, dtype=np.float32)
 
     tree.Branch("hit_slab",     b_hit_slab,     "hit_slab[nhit_chan]/I")
     tree.Branch("hit_chip",     b_hit_chip,     "hit_chip[nhit_chan]/I")
@@ -197,6 +263,13 @@ def convert(
     tree.Branch("hit_z",        b_hit_z,        "hit_z[nhit_chan]/F")
     tree.Branch("hit_X0",       b_hit_X0,       "hit_X0[nhit_chan]/F")
     tree.Branch("hit_w_energy", b_hit_w_energy, "hit_w_energy[nhit_chan]/F")
+    # Fast-channel trigger time [ns] from RealDigitizer's cell shaping.  Zero when
+    # the input has no digitised-time collection (the simple chain has no time).
+    tree.Branch("hit_time",     b_hit_time,     "hit_time[nhit_chan]/F")
+    # Fast-channel peak amplitude [MIP] -- what the trigger discriminator sees.
+    # The test beam's equivalent is hitbit_high, a bit rather than an amplitude,
+    # so the two are compared through the turn-on curve (analysis/compare_shapers.py).
+    tree.Branch("hit_fast",     b_hit_fast,     "hit_fast[nhit_chan]/F")
 
     # ---------------------------------------------------------------------- #
     # Fill loop
@@ -205,9 +278,12 @@ def convert(
     n_written = 0
     n_skipped = 0
     masking_warned = False
+    time_warned = False
+    fast_warned = False
+    adc_warned = False
 
     for frame_idx, frame in enumerate(frames):
-        hits_col = frame.get(collection)
+        hits_col = _get_collection(frame, collection)
         if hits_col is None:
             if verbose:
                 print(f"  frame {frame_idx}: collection '{collection}' missing, skip")
@@ -225,7 +301,7 @@ def convert(
         # Read masking flags if available
         mask_arr = None
         if use_tb_format and masking_collection:
-            mask_col = frame.get(masking_collection)
+            mask_col = _get_collection(frame, masking_collection)
             if mask_col is not None:
                 try:
                     mask_arr = np.fromiter(mask_col, dtype=np.int32, count=len(mask_col))
@@ -235,6 +311,54 @@ def convert(
                 print(f"[sim_to_ecal_tree] WARNING: masking collection "
                       f"'{masking_collection}' not found; hit_ismasked set to 0")
                 masking_warned = True
+
+        # The digitised trigger time and fast-peak amplitude, if present.
+        def _parallel(name, warned_flag):
+            """Read a parallel UserDataCollection<float>, or None.
+
+            The length check is the guard against pairing hits with the other
+            chain's vector: index alignment is the only thing tying them.
+            """
+            col = _get_collection(frame, name)
+            if col is None:
+                if not warned_flag:
+                    print(f"[sim_to_ecal_tree] WARNING: collection '{name}' not "
+                          f"found; branch set to 0")
+                return None, True
+            if len(col) != len(hits_col):
+                if not warned_flag:
+                    print(f"[sim_to_ecal_tree] WARNING: collection '{name}' has "
+                          f"{len(col)} entries but '{collection}' has "
+                          f"{len(hits_col)}; branch set to 0")
+                return None, True
+            try:
+                return np.fromiter(col, dtype=np.float32, count=len(col)), warned_flag
+            except Exception:
+                return None, warned_flag
+
+        fast_arr = None
+        if fast_collection:
+            fast_arr, fast_warned = _parallel(fast_collection, fast_warned)
+
+        adc_high_arr = adc_low_arr = None
+        if adc_high_collection:
+            adc_high_arr, adc_warned = _parallel(adc_high_collection, adc_warned)
+        if adc_low_collection:
+            adc_low_arr, adc_warned = _parallel(adc_low_collection, adc_warned)
+
+        time_arr = None
+        if time_collection:
+            time_arr, time_warned = _parallel(time_collection, time_warned)
+
+        # The chip-level selection, if the chain applied one: keep the hits
+        # flagged 1, in order, and let their parallel values follow by index.
+        indices = list(range(n))
+        if collection == "SiPadHitsRealAdc":
+            kept_col = _get_collection(frame, _REAL_KEPT_COLLECTION)
+            if kept_col is not None and len(kept_col) == len(hits_col):
+                kept_arr = np.fromiter(kept_col, dtype=np.int32, count=len(kept_col))
+                indices = [i for i in range(n) if kept_arr[i] > 0]
+        n = len(indices)
 
         b_run[0]   = run_number
         b_event[0] = frame_idx
@@ -246,7 +370,8 @@ def convert(
         chips_seen = set()
         total_energy = 0.0
 
-        for i, hit in enumerate(hits):
+        for j, i in enumerate(indices):
+            hit = hits[i]
             cid   = hit.getCellID()
             pos   = hit.getPosition()
             energy = hit.getEnergy()
@@ -261,22 +386,24 @@ def convert(
                 sca  = 0
                 ismasked = 0
 
-            b_hit_slab[i]     = slab
-            b_hit_chip[i]     = chip
-            b_hit_chan[i]      = chan
-            b_hit_sca[i]      = sca
-            b_hit_ismasked[i] = ismasked
-            b_hit_energy[i]   = float(energy)
-            b_hit_hg[i]       = 0.0
-            b_hit_lg[i]       = 0.0
-            b_hit_x[i]        = float(pos.x)
-            b_hit_y[i]        = float(pos.y)
-            b_hit_z[i]        = float(pos.z)
-            b_hit_X0[i]       = float(_LAYER_X0[slab]) if slab < len(_LAYER_X0) else 0.0
+            b_hit_slab[j]     = slab
+            b_hit_chip[j]     = chip
+            b_hit_chan[j]      = chan
+            b_hit_sca[j]      = sca
+            b_hit_ismasked[j] = ismasked
+            b_hit_energy[j]   = float(energy)
+            b_hit_hg[j]       = (float(adc_high_arr[i]) if adc_high_arr is not None else 0.0)
+            b_hit_lg[j]       = (float(adc_low_arr[i]) if adc_low_arr is not None else 0.0)
+            b_hit_x[j]        = float(pos.x)
+            b_hit_y[j]        = float(pos.y)
+            b_hit_z[j]        = float(pos.z)
+            b_hit_X0[j]       = float(_LAYER_X0[slab]) if slab < len(_LAYER_X0) else 0.0
             # Tungsten-weighted energy: E * W[slab] / X0, i.e. the hit corrected
             # for the absorber depth of its own layer.
-            b_hit_w_energy[i] = (float(energy) * _LAYER_W_X0[slab]
+            b_hit_w_energy[j] = (float(energy) * _LAYER_W_X0[slab]
                                  if slab < len(_LAYER_W_X0) else 0.0)
+            b_hit_time[j]     = (float(time_arr[i]) if time_arr is not None else 0.0)
+            b_hit_fast[j]     = (float(fast_arr[i]) if fast_arr is not None else 0.0)
 
             slabs_seen.add(slab)
             chips_seen.add(chip)
@@ -285,7 +412,7 @@ def convert(
         b_nhit_slab[0] = len(slabs_seen)
         b_nhit_chip[0] = len(chips_seen)
         b_sum_energy[0] = float(total_energy)
-        b_sum_hg[0]     = 0.0
+        b_sum_hg[0]     = float(b_hit_hg[:n].sum()) if n else 0.0
 
         tree.Fill()
         n_written += 1
@@ -327,6 +454,21 @@ def _parse_args(argv=None):
     p.add_argument("--masking-collection", default="SiPadHitsMasked",
                    help="Parallel UserDataCollection<int32> with masking flags "
                         "(default: SiPadHitsMasked; empty string to disable)")
+    p.add_argument("--time-collection", default=None,
+                   help="Parallel UserDataCollection<float> with the digitised "
+                        "trigger time [ns] (default: SiPadHitsRealDigitizedTime "
+                        "for the RealDigitizer chain, off otherwise; empty "
+                        "string to disable)")
+    p.add_argument("--fast-collection", default=None,
+                   help="Parallel UserDataCollection<float> with the fast-channel "
+                        "peak amplitude [MIP] (default: SiPadHitsRealDigitizedFast "
+                        "for the RealDigitizer chain, off otherwise)")
+    p.add_argument("--adc-high-collection", default=None,
+                   help="Parallel UserDataCollection<float> with the simulated "
+                        "pedestal-subtracted high-gain ADC (default: "
+                        "SiPadHitsRealAdcHigh when reading SiPadHitsRealAdc)")
+    p.add_argument("--adc-low-collection", default=None,
+                   help="Same for the low gain (default: SiPadHitsRealAdcLow)")
     p.add_argument("--run", type=int, default=0,
                    help="Run number written to the 'run' branch (default: 0)")
     p.add_argument("--max-events", "-n", type=int, default=None,
@@ -343,6 +485,10 @@ if __name__ == "__main__":
         output_path=args.output,
         collection=args.collection,
         masking_collection=args.masking_collection,
+        time_collection=args.time_collection,
+        fast_collection=args.fast_collection,
+        adc_high_collection=args.adc_high_collection,
+        adc_low_collection=args.adc_low_collection,
         run_number=args.run,
         max_events=args.max_events,
         verbose=args.verbose,

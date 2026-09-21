@@ -1,0 +1,124 @@
+_comment: "Per-threshold digitisation calibration. ONE file, read by gaudi_jobs/pid2026_common/job3_digitize.py\
+  \ through CALIB_THRESHOLD.\nNothing here is inherited from another threshold set:\
+  \ each one is anchored to test-beam data of its own set.\n  threshold_adc / sigma_mip\
+  \ / efficiency : the trigger, fitted from hitbit_high by analysis/trigger_turnon.py\n\
+  \  adc_per_mip                            : the absolute ADC scale, the gain: anchored\
+  \ on that set's MUON run (analysis/muon_gain_scan.py, cross-checked by analysis/fit_adc_scale.py\
+  \ --observable hit-peak)\n  adc_high_max / saturation_order        : the dynamic\
+  \ range, the roll-over fitted to that set's ELECTRON hit_lg-vs-hit_hg relation (analysis/compare_gains.py\
+  \ --write)\nThe trigger threshold RealDigitizer applies is threshold_adc / adc_per_mip.\n\
+  Hit selection: the data trees these were fitted against use EcalEventBuilder HitSelection=adc\
+  \ (hit bit OR adc-ped > 30, largest SCA) and the simulation HIT_SELECTION=chip,\
+  \ the same rule.\nslab_overrides: slabs that ran at a discriminator of their own\
+  \ (slab 12, the FEV11 chip-on-board, at DAC 243), measured per slab from hitbit_high;\
+  \ RealDigitizer gets them as ThresholdPerLayer / FastNoiseMIPPerLayer / TriggerEfficiencyPerLayer."
+thresholds:
+  th210:
+    threshold_adc: 16.26
+    sigma_mip: 0.1503
+    efficiency: 0.9643
+    turnon_source_run: TB2026CERN_eudaq_run_000253
+    adc_per_mip: 19.07
+    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
+      spectrum shape of ecal_TB2026CERN_eudaq_run_000151.root (EcalEventBuilder HitSelection=adc)
+      against mu- 10k events at (-21,-19) mm digitised with HIT_SELECTION=chip from
+      the beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from
+      30 m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC,
+      1 ADC/MIP steps; with the hit-bit selection on both sides it was 19.03; standard
+      geometry gave 19.05'
+    adc_high_max: 1950.6
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root
+      (hit_lg-vs-hit_hg, 784270 hits)
+    saturation_adc: 1500.0
+    saturation_order: 4.77
+    gain_ratio: 0.0925
+    gain_intercept: 2.24
+    slab_overrides:
+      0:
+        threshold_adc: 18.03
+        sigma_adc: 2.82
+        efficiency: 0.9963
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      12:
+        threshold_adc: 24.15
+        sigma_adc: 3.89
+        efficiency: 0.9966
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
+      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
+      in ADC, turned into MIP with this set''s adc_per_mip'
+    lg_noise_adc: 3.48
+    lg_gain_spread: 0.0698
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
+      ecal_TB2026CERN_eudaq_run_000286.root (6416796 hits, 30-1400 ADC)
+  th220:
+    threshold_adc: 19.67
+    sigma_mip: 0.1654
+    efficiency: 0.8522
+    turnon_source_run: TB2026CERN_run_000072
+    adc_per_mip: 21.33
+    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
+      spectrum shape of ecal_TB2026CERN_run_000085.root (EcalEventBuilder HitSelection=adc)
+      against mu- 10k events at (1,1) mm digitised with HIT_SELECTION=chip from the
+      beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from 30
+      m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC, 1 ADC/MIP
+      steps; with the hit-bit selection on both sides it was 21.53; standard geometry
+      gave 21.56'
+    adc_high_max: 1916.8
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg,
+      963425 hits)
+    saturation_adc: 1500.0
+    saturation_order: 6.0
+    gain_ratio: 0.0963
+    gain_intercept: 1.29
+    slab_overrides:
+      12:
+        threshold_adc: 30.09
+        sigma_adc: 4.94
+        efficiency: 0.9295
+        turnon_source_run: TB2026CERN_run_000072
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
+      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
+      in ADC, turned into MIP with this set''s adc_per_mip'
+    lg_noise_adc: 3.54
+    lg_gain_spread: 0.0716
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
+      ecal_TB2026CERN_run_000072.root (8137583 hits, 30-1400 ADC)
+  th230:
+    threshold_adc: 25.36
+    sigma_mip: 0.1408
+    efficiency: 0.8624
+    turnon_source_run: TB2026CERN_run_000013
+    adc_per_mip: 22.39
+    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
+      spectrum shape of ecal_TB2026CERN_run_000004.root (EcalEventBuilder HitSelection=adc)
+      against mu- 10k events at (1,1) mm digitised with HIT_SELECTION=chip from the
+      beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from 30
+      m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC, 1 ADC/MIP
+      steps; with the hit-bit selection on both sides it was 21.91; standard geometry
+      gave 22.23'
+    adc_high_max: 1932.8
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000013.root (hit_lg-vs-hit_hg,
+      1018058 hits)
+    saturation_adc: 1500.0
+    saturation_order: 5.66
+    gain_ratio: 0.0961
+    gain_intercept: 1.6
+    slab_overrides:
+      12:
+        threshold_adc: 30.82
+        sigma_adc: 4.29
+        efficiency: 0.9429
+        turnon_source_run: TB2026CERN_run_000013
+      14:
+        threshold_adc: 27.24
+        sigma_adc: 5.52
+        efficiency: 0.9923
+        turnon_source_run: TB2026CERN_run_000013
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
+      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
+      in ADC, turned into MIP with this set''s adc_per_mip'
+    lg_noise_adc: 4.04
+    lg_gain_spread: 0.0693
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
+      ecal_TB2026CERN_run_000013.root (8313380 hits, 30-1400 ADC)

@@ -1,0 +1,25 @@
+# Per-layer MIP scale of the SIMULATED stack [GeV per MIP], the peak of the raw
+# Geant4 energy per hit of a muon sample (MIPExtractor, Landau x Gaussian).
+# Written by gaudi_jobs/mip_extraction_pipeline/mip_extraction_pipeline.sh;
+# read by gaudi_jobs/pid2026_common/job3_digitize.py.  Do not edit by hand:
+# rerun the pipeline when the geometry (sensor thickness) changes.
+source_sample: output_beam_mu-_100GeV_xy_1_1_sigx38.5_sigy46.75_sigE0.02.edm4hep.root
+geometry: simulation/geometry/SND_compact.xml
+fit: langau peak (MIPExtractor FitMode 3)
+date: 2026-09-18
+mip_gev:
+  - 1.467890e-04   # layer  0
+  - 1.472310e-04   # layer  1
+  - 1.469590e-04   # layer  2
+  - 1.472160e-04   # layer  3
+  - 1.481930e-04   # layer  4
+  - 1.484280e-04   # layer  5
+  - 1.483380e-04   # layer  6
+  - 1.483960e-04   # layer  7
+  - 1.487300e-04   # layer  8
+  - 1.483330e-04   # layer  9
+  - 1.485530e-04   # layer 10
+  - 1.486540e-04   # layer 11
+  - 1.489500e-04   # layer 12
+  - 1.491200e-04   # layer 13
+  - 1.971010e-04   # layer 14

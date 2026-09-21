@@ -229,6 +229,121 @@ def test_synthetic_fields_zero(tree):
 
 
 # ------------------------------------------------------------------ #
+# RealDigitizer chain (DIGI_MODE=real|both in job3_digitize.py)       #
+# ------------------------------------------------------------------ #
+# SiPadHitsRealMapped only exists when job3 ran with DIGI_MODE=real or
+# both, so these skip rather than fail on a file from the default chain.
+REAL_COLLECTION = "SiPadHitsRealMapped"
+
+
+def _has_real_collection():
+    if _RUNTIME_SKIP is not None:
+        return False
+    from podio.root_io import Reader
+    frames = Reader(INPUT_FILE).get("events")
+    for frame in frames:
+        return REAL_COLLECTION in frame.getAvailableCollections()
+    return False
+
+
+@pytest.fixture(scope="module")
+def real_tree(tmp_path_factory):
+    if not _has_real_collection():
+        pytest.skip(f"{REAL_COLLECTION} not in {INPUT_FILE} "
+                    f"(run job3_digitize.py with DIGI_MODE=both)")
+    import ROOT
+    from analysis.sim_to_ecal_tree import convert
+
+    out = str(tmp_path_factory.mktemp("ecal_real") / "ecal_real.root")
+    n = convert(
+        input_path=INPUT_FILE,
+        output_path=out,
+        collection=REAL_COLLECTION,
+        masking_collection="SiPadHitsRealMasked",
+        run_number=0,
+        max_events=50,
+        verbose=False,
+    )
+    assert n > 0, "converter wrote 0 events for the real chain"
+    ROOT.gROOT.SetBatch(True)
+    f = ROOT.TFile(out, "READ")
+    t = f.Get("ecal")
+    assert t, f"TTree 'ecal' not found in {out}"
+    t._file_ref = f
+    return t
+
+
+def test_real_chain_energy_is_in_mip(real_tree):
+    """The shaped slow sample reaches the tree in MIP, not in GeV.
+
+    This is what HitEnergyContent='digitized' buys: without it the hit would
+    still carry the Geant4 energy (~1e-4 GeV) and every downstream MIP cut
+    would silently keep everything.
+    """
+    energies = []
+    for entry in real_tree:
+        energies.extend(entry.hit_energy[i] for i in range(entry.nhit_chan))
+    assert energies, "no hits in the real chain"
+
+    energies.sort()
+    median = energies[len(energies) // 2]
+    # A minimum-ionising muon deposits ~1 MIP per layer; in GeV it would be ~2e-4.
+    assert 0.5 <= median <= 5.0, f"median hit energy {median} is not MIP-scaled"
+
+
+def test_real_chain_energies_are_positive(real_tree):
+    """Shaping noise must not push a recorded hit below zero."""
+    for entry in real_tree:
+        for i in range(entry.nhit_chan):
+            assert entry.hit_energy[i] > 0.0, (
+                f"non-positive hit energy {entry.hit_energy[i]}")
+
+
+def test_real_chain_fills_hit_time(real_tree):
+    """The digitised trigger time reaches the tree through the parallel collection.
+
+    It survives DetectorFlipper and ChannelMapper only because both are 1:1, so
+    a zero here means the index alignment broke somewhere.
+    """
+    times = []
+    for entry in real_tree:
+        times.extend(entry.hit_time[i] for i in range(entry.nhit_chan))
+    assert times, "no hits in the real chain"
+    assert all(t > 0.0 for t in times), "hit_time has zero/negative entries"
+    # Dominated by the fast shaper's own latency (TauFastNs=30, order 2), not by
+    # the ns-scale time of flight across 15 layers.
+    times.sort()
+    median = times[len(times) // 2]
+    assert 1.0 <= median <= 100.0, f"median hit_time {median} ns is implausible"
+
+
+def test_simple_chain_leaves_hit_time_zero(tree):
+    """The time vector belongs to the real chain and must not leak into the simple one.
+
+    Both live in the same file under DIGI_MODE=both; pairing them by index would
+    silently attach unrelated times to every hit.
+    """
+    for entry in tree:
+        for i in range(entry.nhit_chan):
+            assert entry.hit_time[i] == 0.0, (
+                "hit_time is non-zero on a chain that has no digitised time")
+
+
+def test_real_chain_uses_tb_cellids(real_tree):
+    """SiPadHitsRealMapped goes through ChannelMapper, so it is TB-format.
+
+    If it were missing from _TB_FORMAT_COLLECTIONS the converter would decode
+    the CellID as the simulation format and hit_chip/hit_chan would be all zero.
+    """
+    chips = []
+    for entry in real_tree:
+        chips.extend(entry.hit_chip[i] for i in range(entry.nhit_chan))
+    assert chips, "no hits in the real chain"
+    assert any(c != 0 for c in chips), "hit_chip is all zeros — CellIDs decoded as sim format"
+    assert all(0 <= c <= 15 for c in chips), "hit_chip out of range [0, 15]"
+
+
+# ------------------------------------------------------------------ #
 # CellID decoder unit test (no I/O needed)                           #
 # ------------------------------------------------------------------ #
 

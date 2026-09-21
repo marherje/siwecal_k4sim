@@ -100,6 +100,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <map>
 
 // --------------------------------------------------------------------------- //
 using OutputType = std::tuple<edm4hep::SimCalorimeterHitCollection,
@@ -141,10 +142,38 @@ struct ChannelMapper final
     info() << "[ChannelMapper] Default pad map: " << m_padDefault.size()
            << " entries from " << m_padMapFile.value() << endmsg;
 
+    // Per-slab pad maps, "slab:path" entries -- the slabs whose board is not the
+    // default one (the FEV11 chip-on-board in slab 12 of the 2026 stack).  Which
+    // slabs those are is the technology block of mappings/slab_z_positions.yml,
+    // read by job3; nothing here knows a slab number.  PadMapFileSlab12 is the
+    // old form of the same thing and still works.
+    std::vector<std::string> overrides = m_padMapSlabOverrides.value();
     if (!m_padMapFileSlab12.value().empty()) {
-      if (!loadPadMap(m_padMapFileSlab12.value(), m_padSlab12)) return StatusCode::FAILURE;
-      info() << "[ChannelMapper] Slab-12 pad map: " << m_padSlab12.size()
-             << " entries from " << m_padMapFileSlab12.value() << endmsg;
+      warning() << "[ChannelMapper] PadMapFileSlab12 is deprecated: use "
+                   "PadMapSlabOverrides=['12:<path>']" << endmsg;
+      overrides.push_back("12:" + m_padMapFileSlab12.value());
+    }
+    for (const auto& entry : overrides) {
+      const auto colon = entry.find(':');
+      if (colon == std::string::npos || colon == 0) {
+        error() << "[ChannelMapper] PadMapSlabOverrides entry '" << entry
+                << "' is not 'slab:path'." << endmsg;
+        return StatusCode::FAILURE;
+      }
+      int slab = -1;
+      try {
+        slab = std::stoi(entry.substr(0, colon));
+      } catch (const std::exception&) {
+        error() << "[ChannelMapper] PadMapSlabOverrides entry '" << entry
+                << "': slab is not an integer." << endmsg;
+        return StatusCode::FAILURE;
+      }
+      const std::string path = entry.substr(colon + 1);
+      std::vector<PadEntry> pads;
+      if (!loadPadMap(path, pads)) return StatusCode::FAILURE;
+      info() << "[ChannelMapper] Slab " << slab << " pad map: " << pads.size()
+             << " entries from " << path << endmsg;
+      m_padOverrides[slab] = std::move(pads);
     }
 
     // --- load MIP calibration ---
@@ -198,7 +227,8 @@ struct ChannelMapper final
       const float hx  = pos.x, hy = pos.y;
 
       // --- nearest-neighbour lookup in the pad map ---
-      const auto& padMap = (!m_padSlab12.empty() && slab == 12) ? m_padSlab12 : pads;
+      const auto ovr = m_padOverrides.find(slab);
+      const auto& padMap = (ovr != m_padOverrides.end()) ? ovr->second : pads;
 
       int   bestChip = 0, bestChan = 0;
       float bestDist2 = 1e12f;
@@ -355,9 +385,14 @@ private:
       this, "PadMapFile",
       "mappings/fev10_rotate_chip_channel_x_y_mapping.txt",
       "Path to FEV10 pad map (chip/channel → x,y) for the default slab"};
+  Gaudi::Property<std::vector<std::string>> m_padMapSlabOverrides{
+      this, "PadMapSlabOverrides", {},
+      "Per-slab pad maps as 'slab:path' entries, for slabs whose board differs from "
+      "the default (e.g. '12:mappings/fev11_cob_good_rotate_chip_channel_x_y_mapping.txt'). "
+      "Same convention as EcalEventBuilder.PadMapSlabOverrides on the data side"};
   Gaudi::Property<std::string> m_padMapFileSlab12{
       this, "PadMapFileSlab12", "",
-      "Path to FEV11 pad map for slab 12 override (empty = use default map)"};
+      "Deprecated: the slab-12 entry of PadMapSlabOverrides"};
   Gaudi::Property<std::string> m_calibDir{
       this, "CalibDir", "masking_info/calibration/MuonCalib_gaudi",
       "Root of the muon calibration tree (expects mips/<threshold>/ inside)"};
@@ -392,7 +427,7 @@ private:
   // State initialised in initialize()
   // ----------------------------------------------------------------- //
   std::vector<PadEntry> m_padDefault;
-  std::vector<PadEntry> m_padSlab12;
+  std::map<int, std::vector<PadEntry>> m_padOverrides;
   mutable std::set<std::tuple<int,int,int>> m_masked;
 
   std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_decoderIn;

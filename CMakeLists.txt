@@ -27,6 +27,7 @@ gaudi_add_module(SND_reco
     gaudi_source/RealDigitizer.cpp
     gaudi_source/DetectorFlipper.cpp
     gaudi_source/ChannelMapper.cpp
+    gaudi_source/AdcDigitizer.cpp
     gaudi_source/ShowerTagger.cpp
   LINK
     Gaudi::GaudiKernel
@@ -54,6 +55,9 @@ get_target_property(_acts_include_dirs Acts::Core INTERFACE_INCLUDE_DIRECTORIES)
 if(_acts_include_dirs)
     target_include_directories(SND_reco PRIVATE ${_acts_include_dirs})
 endif()
+
+# Header-only helpers shared by the Gaudi algorithms (include/CellShaping.hh).
+target_include_directories(SND_reco PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 install(TARGETS SiPadDetector_plugin LIBRARY DESTINATION lib)
 install(TARGETS SND_reco LIBRARY DESTINATION lib)

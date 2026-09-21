@@ -21,7 +21,15 @@ sigma_x=$6
 sigma_y=$7
 sigma_E=$8
 
-BEAM_Z_MM=-2000
+# COMPACT_FILE (name inside ../geometry), BEAM_Z_MM and OUTPUT_TAG can be set in
+# the environment: a different geometry gets its own output name and never
+# overwrites the standard samples.  The June 2026 line is
+#   COMPACT_FILE=SND_compact_beamline.xml BEAM_Z_MM=-2650 OUTPUT_TAG=_beamline_real
+# (beam born in air just upstream of the vacuum window, 2.5 m from the box);
+# SND_compact_beamline_hgcal.xml (0.5 X0 reference budget) wants BEAM_Z_MM=-30000.
+BEAM_Z_MM=${BEAM_Z_MM:--2000}
+COMPACT_FILE=${COMPACT_FILE:-SND_compact.xml}
+OUTPUT_TAG=${OUTPUT_TAG:-}
 
 local=$PWD
 geometry_folder="${local}/../geometry"
@@ -29,13 +37,21 @@ data_path="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated"
 steer_path="${local}/steer"
 log_path="${local}/log"
 
-physl=("QGSP_BERT")
+# PHYSICS_LIST (default QGSP_BERT, i.e. EM option 0) and RANGE_CUT_MM (empty =
+# Geant4's 0.7 mm production cut) can be set in the environment; both end up in
+# the output name, the range cut as _rc<mm>.
+physl=("${PHYSICS_LIST:-QGSP_BERT}")
+RANGE_CUT_MM=${RANGE_CUT_MM:-}
 
 for physlist in ${physl[@]}; do
 
     echo "Beam-test: particle=${particle}  E=${energy} GeV  centre=(${pos_x},${pos_y}) mm  sigma_x=${sigma_x} mm  sigma_y=${sigma_y} mm  sigma_E=${sigma_E}  theta_max=${theta_max} deg"
 
-    label=${physlist}_SiWECAL_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}
+    rctag=""
+    [ -n "${RANGE_CUT_MM}" ] && rctag="_rc${RANGE_CUT_MM}"
+    phystag=""
+    [ "${physlist}" != "QGSP_BERT" ] && phystag="_${physlist}"
+    label=${physlist}_SiWECAL_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}${rctag}
 
     gpsmac=gps_${label}.mac
     scriptname=runddsim_${label}.py
@@ -95,7 +111,7 @@ try:
 except Exception:
     pass
 
-compact_path = os.path.abspath("${geometry_folder}/SND_compact.xml")
+compact_path = os.path.abspath("${geometry_folder}/${COMPACT_FILE}")
 if not os.path.isfile(compact_path):
     raise RuntimeError("Compact file not found: " + compact_path)
 
@@ -112,8 +128,10 @@ SIM._compactFile = SIM.compactFile
 # from a batch worker (eosxd FUSE) can report success while the file never
 # lands in the EOS namespace if the write-back cache isn't flushed before the
 # job slot is torn down. See runddsim shell script for the verified stage-out.
-SIM.outputFile   = "output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
+SIM.outputFile   = "output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}${phystag}${rctag}.edm4hep.root"
 SIM.physicsList = "${physlist}"
+if "${RANGE_CUT_MM}":
+    SIM.physics.rangecut = float("${RANGE_CUT_MM}")  # mm, production cut for e-/e+/gamma
 
 # Do NOT disable userParticleHandler: DDG4 needs it to write CaloHitContributions
 # with per-step timing. tracker_region_zmax/rmax are defined in the compact XML.
@@ -135,7 +153,7 @@ EOF
     # --enableG4GPS: activates G4GeneralParticleSource as the primary generator.
     # --macroFile:   passes the GPS macro (contains /run/beamOn N).
     # --------------------------------------------------
-    expected_output="${data_path}/output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
+    expected_output="${data_path}/output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}${phystag}${rctag}.edm4hep.root"
 
 cat > ${steer_path}/${condorsh} <<EOF
 #!/bin/bash
@@ -148,7 +166,7 @@ source ${local}/../../init_key4hep.sh
 export LD_LIBRARY_PATH=${local}/../../install/lib64:${local}/../../install/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=${local}/../../install/lib64:${local}/../../install/lib:${local}/../../install/python:\$PYTHONPATH
 
-LOCAL_OUTPUT="output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}.edm4hep.root"
+LOCAL_OUTPUT="output_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}${phystag}${rctag}.edm4hep.root"
 REMOTE_OUTPUT="${expected_output}"
 
 ddsim --enableG4GPS \\

@@ -16,8 +16,13 @@ mip.InputCollection  = "SiPadHitsWindowed"
 mip.OutputCollection = "SiPadHitsMIP"
 # --- Single MIP value (scalar mode) ---
 #mip.MIPValue = 0.0002
-# --- Per-layer mode: uncomment and set MIPValues from mip_extraction_pipeline output ---
-mip.MIPValues = [0.00020, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015]
+# --- Per-layer MIP values: from mappings/mip_values_sim.yml, written by
+#     gaudi_jobs/mip_extraction_pipeline/mip_extraction_pipeline.sh (step 0). Never a list here.
+import os as _os, yaml as _yaml
+_mip_file = _os.environ.get("MIP_VALUES_FILE", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "mappings", "mip_values_sim.yml"))
+if not _os.path.isfile(_mip_file):
+    raise SystemExit(f"MIP values file not found: {_mip_file} -- run gaudi_jobs/mip_extraction_pipeline/mip_extraction_pipeline.sh first")
+mip.MIPValues = [float(v) for v in _yaml.safe_load(open(_mip_file))["mip_gev"]]
 
 dig = BasicDigitizer("BasicDigitizer_SiPad")
 dig.InputCollection  = "SiPadHitsMIP"

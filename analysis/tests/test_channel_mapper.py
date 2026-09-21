@@ -34,7 +34,14 @@ PAD_MAP_FEV10  = os.path.join(REPO_ROOT, "mappings",
 PAD_MAP_FEV11  = os.path.join(REPO_ROOT, "mappings",
                                "fev11_cob_good_rotate_chip_channel_x_y_mapping.txt")
 PAD_MAP        = PAD_MAP_FEV10  # default alias for tests that only need one map
-SLAB12_OVERRIDE = 12            # slab that uses FEV11 board (per job3_digitize.py)
+# The slab(s) that use the FEV11 board: from the per-slab description, the
+# same file job3 reads (mappings/slab_z_positions.yml), never a number here.
+sys.path.insert(0, REPO_ROOT)
+from analysis.slab_description import load_slab_description  # noqa: E402
+_SLABS = load_slab_description(os.path.join(REPO_ROOT, "mappings", "slab_z_positions.yml"))
+_OVERRIDES = _SLABS.pad_map_overrides()
+assert list(_OVERRIDES) == [12], _OVERRIDES
+SLAB12_OVERRIDE = 12
 
 # TB CellID bitfield offsets
 _SLAB_SHIFT    = 8;   _SLAB_MASK    = 0xFF

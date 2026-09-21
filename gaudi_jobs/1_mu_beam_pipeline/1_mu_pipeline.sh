@@ -22,8 +22,12 @@ echo "=== Input:  ${SIM_FILE} ==="
 echo "=== Label:  ${LABEL} ==="
 echo "=== Output: ${PROCESSED}/ ==="
 
-echo "=== Step 1: digitize + flip + channel mapping ==="
-INPUT_FILE="${SIM_FILE}" k4run job3_digitize.py
+echo "=== Step 1: digitize + flip + channel mapping (DIGI_MODE=${DIGI_MODE:-simple}) ==="
+# Shared config, same as job4 below: this pipeline used to carry a byte-identical
+# copy of it.  DIGI_MODE=both adds the RealDigitizer chain (SiPadHitsReal*)
+# alongside the default one, in the same output file.
+INPUT_FILE="${SIM_FILE}" DIGI_MODE="${DIGI_MODE:-simple}" \
+    k4run ../pid2026_common/job3_digitize.py
 
 echo "=== Step 1b: ACTS tracking ==="
 # Tracks on the PRE-flip collection: DetectorFlipper moves the hit z into

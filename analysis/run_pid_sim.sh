@@ -23,6 +23,14 @@
 #   source init_key4hep.sh
 #   bash analysis/run_pid_sim.sh [--validation] [--format {edm4hep,valtree,both}]
 #                                [--max-events N] [--outdir DIR]
+#                                [--collection SiPadHitsMapped]
+#                                [--masking-collection SiPadHitsMasked]
+#
+#   --collection picks which digitisation chain to analyse.  With
+#   DIGI_MODE=both in job3, digitized.edm4hep.root carries both:
+#     SiPadHitsMapped      simple chain (GeV2MIP + BasicDigitizer)
+#     SiPadHitsRealMapped  RealDigitizer cell shaping
+#   The masking collection defaults to the matching one (Mapped -> Masked).
 #
 # Outputs (default: gaudi_jobs/1_mu_beam_pipeline/)
 #   ecal_sim.root           ecal TTree (intermediate, kept for inspection)
@@ -46,6 +54,8 @@ INPUT_EDM4HEP="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/digitized.edm4hep.root
 ECAL_TREE="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/ecal_sim.root"
 OUT_DIR="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline"
 COLLECTION="SiPadHitsMapped"
+MASKING_COLLECTION=""      # empty => derived from COLLECTION below
+TIME_COLLECTION=""         # empty => converter derives it from COLLECTION
 FORMAT="edm4hep"
 VALIDATION_FLAG=""
 MAX_EVENTS=""
@@ -66,6 +76,12 @@ while [[ $# -gt 0 ]]; do
         --input=*)          INPUT_EDM4HEP="${1#*=}"; shift ;;
         --ecal-tree)        ECAL_TREE="$2"; shift 2 ;;
         --ecal-tree=*)      ECAL_TREE="${1#*=}"; shift ;;
+        --collection)       COLLECTION="$2"; shift 2 ;;
+        --collection=*)     COLLECTION="${1#*=}"; shift ;;
+        --masking-collection)   MASKING_COLLECTION="$2"; shift 2 ;;
+        --masking-collection=*) MASKING_COLLECTION="${1#*=}"; shift ;;
+        --time-collection)      TIME_COLLECTION="$2"; shift 2 ;;
+        --time-collection=*)    TIME_COLLECTION="${1#*=}"; shift ;;
         -h|--help)
             sed -n '/^# Usage/,/^# Outputs/p' "$0" | grep -v '^#---'
             exit 0 ;;
@@ -93,10 +109,25 @@ export PYTHONPATH="${K4RECO_BUILD}/genConfDir:${TB2026_ROOT}:${REPO_ROOT}:${PYTH
 # --------------------------------------------------------------------------- #
 echo ""
 echo "=== Step 1/2: sim → ecal tree ==="
+# The masking flags are written in parallel with the hits, so the two collections
+# must come from the same chain: SiPadHitsMapped/SiPadHitsMasked (default) or
+# SiPadHitsRealMapped/SiPadHitsRealMasked (DIGI_MODE=real|both).
+if [[ -z "${MASKING_COLLECTION}" ]]; then
+    MASKING_COLLECTION="${COLLECTION/Mapped/Masked}"
+fi
+
+# hit_time comes from a parallel collection that only the RealDigitizer chain
+# writes; the converter picks it up on its own for SiPadHitsReal*, so pass the
+# flag only when it was given explicitly.
+TIME_ARG=()
+[[ -n "${TIME_COLLECTION}" ]] && TIME_ARG=(--time-collection "${TIME_COLLECTION}")
+
 python3 -m analysis.sim_to_ecal_tree \
     --input  "${INPUT_EDM4HEP}" \
     --output "${ECAL_TREE}" \
     --collection "${COLLECTION}" \
+    --masking-collection "${MASKING_COLLECTION}" \
+    ${TIME_ARG[@]+"${TIME_ARG[@]}"} \
     ${MAX_EVENTS} \
     --verbose
 

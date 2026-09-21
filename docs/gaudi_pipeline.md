@@ -11,6 +11,7 @@ output_*.edm4hep.root
   → job2: EventWindowSplitter → timewindows.edm4hep.root     (optional: time windows)
   → job3: GeV2MIPConversion + BasicDigitizer + DetectorFlipper + ChannelMapper
                               → digitized.edm4hep.root
+          (DIGI_MODE=real|both swaps in / adds RealDigitizer -- see Job 3)
   → job4: ShowerTagger + SiPadMeasConverter + ACTSProtoTracker
                               → digitized.edm4hep.root  (ACTSTracks + EMShowers
                                  + SiPadMeasurements, written back into the
@@ -81,26 +82,388 @@ Splits the merged super-event into 25 ns time windows. Each window becomes one E
 ## Job 3 — Digitization
 
 **Files:** `gaudi_source/GeV2MIPConversion.cpp`, `BasicDigitizer.cpp`,
-`DetectorFlipper.cpp`, `ChannelMapper.cpp`
+`RealDigitizer.cpp`, `include/CellShaping.hh`, `DetectorFlipper.cpp`,
+`ChannelMapper.cpp`
 **Config:** `gaudi_jobs/pid2026_common/job3_digitize.py` (shared)
 
+There are two digitisation chains. `DIGI_MODE` picks which one(s) run; leaving it
+unset is the production default and changes nothing.
+
 ```
+DIGI_MODE=simple  (default)
 SiPadHits → GeV2MIPConversion → SiPadHitsMIP
           → BasicDigitizer    → SiPadHitsDigi      <-- tracking input (pre-flip)
           → DetectorFlipper   → SiPadHitsFlipped
           → ChannelMapper     → SiPadHitsMapped + SiPadHitsMasked
+
+DIGI_MODE=real
+SiPadHits → RealDigitizer     → SiPadHitsRealDigi  <-- tracking input (pre-flip)
+                              + SiPadHitsRealDigitizedEnergy [MIP]
+                              + SiPadHitsRealDigitizedTime   [ns]
+          → DetectorFlipper   → SiPadHitsRealFlipped
+          → ChannelMapper     → SiPadHitsRealMapped + SiPadHitsRealMasked
+
+DIGI_MODE=both    both of the above, same input, same output file
 ```
 
 | Algorithm | Role |
 |---|---|
 | `GeV2MIPConversion` | Energy in GeV → MIPs. `MIPValues` takes one value per layer (from `mip_extraction_pipeline`); `MIPValue` is the scalar fallback |
 | `BasicDigitizer` | Applies the MIP `Threshold`, dropping hits below it |
+| `RealDigitizer` | `DigitizationMode='real'`: per-cell CR-RC shaping over the `CaloHitContributions`. The fast channel gives the trigger time at its first threshold crossing, the slow channel is sampled at `triggerTime + DelayNs`. Takes the same per-layer `MIPValues` as `GeV2MIPConversion`, and its trigger model (`Threshold`, `FastNoiseMIP`, `TriggerEfficiency`) from the threshold set — see "One threshold input" below. `DigitizationMode='simple'` is the `BasicDigitizer` threshold cut |
 | `DetectorFlipper` | Rewrites hit z into the **test-beam frame** using `mappings/slab_z_positions.yml` — the single source of truth for the per-slab z, shared with the event viewer |
 | `ChannelMapper` | Cell IDs → test-beam format (`system:8,slab:8,chip:16,channel:8,sca:8`) via the pad maps in `mappings/`, and masks dead channels from the muon calibration tree (`CalibThreshold`, e.g. `th230`, masks ~3.5% of channels) |
 
 **Tracking reads `SiPadHitsDigi`, before `DetectorFlipper`**: the flip moves the
 hit z into the test-beam frame, which no longer matches the ACTS surfaces built
 from the compact XML.
+
+### One threshold input — `CALIB_THRESHOLD`
+
+Everything that depends on the trigger threshold is driven by **one** environment
+variable, `CALIB_THRESHOLD` (`th210` / `th220` / `th230`, default `th230`):
+
+```bash
+DIGI_MODE=both CALIB_THRESHOLD=th220 INPUT_FILE=... k4run gaudi_jobs/pid2026_common/job3_digitize.py
+```
+
+- `ChannelMapper.CalibThreshold` — which `mips/<th>/` table masks the dead channels
+- `RealDigitizer.Threshold` / `.FastNoiseMIP` / `.TriggerEfficiency` — the trigger
+  model of that set, read from `mappings/trigger_turnon.yml`
+
+The trigger model is **measured**, not assumed. `hitbit_high` in the decoded
+chunks is the fast shaper's discriminator, and `EventBuilder::bestScaPerChannel`
+drops any channel whose bit never fired, so its turn-on IS the data's hit
+selection. `analysis/trigger_turnon.py` fits it per threshold set with
+`P(x) = plateau · ½(1 + erf((x − mu)/(√2 σ)))`, whose three parameters map onto
+the three properties one for one:
+
+| set | run | threshold [ADC] | σ [ADC] | threshold [MIP] | σ [MIP] | plateau |
+|---|---|---|---|---|---|---|
+| th210 | eudaq 253 | 16.26 | 2.64 | 0.886 | 0.150 | 0.964 |
+| th220 | run 72 | 19.67 | 4.05 | 0.872 | 0.165 | 0.852 |
+| th230 | run 13 | 25.36 | 4.66 | 0.781 | 0.141 | 0.862 |
+
+Before this the digitiser applied a hardcoded 0.5 MIP step with 100% efficiency,
+whatever the sample was meant to represent.
+
+**The ADC column is the trustworthy one.** The discriminator level rises
+monotonically with the DAC (16.3 → 19.7 → 25.4 ADC) while the pedestals and the
+LG→HG anchor stay put, which is the calibration-free statement that the DAC moves
+the threshold and nothing else. The MIP column divides each by *that set's own MPV
+table*, so it inherits whatever bias the table has — which is exactly why th230
+comes out *lowest* in MIP despite having the highest discriminator. When the ADC
+model lands (pedestal, gain, quantisation), the digitiser should take
+`threshold_adc` and stop going through MIP at all.
+
+Two implementation notes, both of which were bugs the turn-on exposed:
+
+- The pre-cut that skips the shaping for small cells now keeps a 5σ margin below
+  the threshold. Cutting exactly at the threshold removed every cell below it
+  *before* the noise was added, so the simulated turn-on could only ever be a
+  step, whatever `FastNoiseMIP` said.
+- The threshold decision and the trigger-time search now run on the **same**
+  waveform. The noise used to be added only to the peak while the crossing was
+  hunted on the clean curve, so a cell whose noisy peak passed but whose clean
+  peak did not never found a crossing and was dropped anyway.
+
+### The ADC model — `AdcDigitizer`
+
+**File:** `gaudi_source/AdcDigitizer.cpp`, after `ChannelMapper` (which is what
+knows the test-beam channel, and therefore which pedestal and MPV apply).
+`ADC_MODEL=0` turns it off and leaves the chain in raw digitised MIP.
+
+Until this existed the simulated chain worked in MIP from end to end, so it never
+had the thing that stands between charge and energy in the data: **a
+calibration**. The test beam's energy is `(adc_high − pedestal) / MPV`, with the
+MPV measured from a muon run. Dividing the simulation by its own clean MIP scale
+and the data by a measured one does not compare the same quantity.
+
+So the algorithm does what the detector *and* the reconstruction do, in order:
+
+1. **MIP → ADC** with `AdcPerMip`, the absolute charge scale, **fitted per
+   threshold set against that set's own test-beam data** (see "Calibrating the
+   ADC scale" below). Only the channel-to-channel *variation* comes from a table
+   (`GainShapeThreshold`, normalised to its median): the scale is data.
+2. **The readout**: add the pedestal, round to integer ADC, clamp the high gain at
+   `AdcHighMax` — **measured** from the upper edge of that set's `hit_hg`
+   spectrum (2046 / 2144 / 2062 ADC for th210 / th220 / th230; the preamp rolls
+   over rather than clipping, so a hard ceiling is an approximation) — and carry
+   the low gain through the anchor line `adc_low = k·adc_high + c`.
+3. **ADC → MIP** with the **reconstruction** table (`CalibThreshold`), low-gain
+   recovery above `SaturationAdc` included — a port of `EventBuilder::buildHit`.
+
+The output hits (`SiPadHitsRealAdc`) carry the *reconstructed* MIP, and the
+parallel `SiPadHitsRealAdcHigh` / `...AdcLow` carry the pedestal-subtracted ADC,
+which `sim_to_ecal_tree.py` puts in `hit_hg` / `hit_lg`. The simulated ecal tree
+is the same object as the data's, ADC included. The algorithm is strictly 1:1 so
+the parallel masking / time / fast-peak collections stay index-aligned.
+
+Every per-threshold number lives in **`mappings/digi_calibration.yml`** — the
+trigger (`threshold_adc`, `sigma_mip`, `efficiency`), the scale (`adc_per_mip`),
+the ceiling (`adc_high_max`) — each with its provenance, and `CALIB_THRESHOLD`
+picks the entry. The trigger threshold `RealDigitizer` applies is
+`threshold_adc / adc_per_mip`, so it moves with the scale. Nothing is inherited
+between sets: no MIP-table ratio, no reference gain borrowed from another set
+(`test_every_threshold_set_is_self_contained` fails if one comes back).
+
+### Calibrating the ADC scale — `analysis/fit_adc_scale.py`
+
+Per threshold set, three numbers, each from the data that measures it and none
+inherited from another set:
+
+1. **The gain** (`adc_per_mip`) from a **muon run** of that set: the
+   `adc_per_mip` whose simulated per-hit high-gain spectrum has the data's shape
+   (`analysis/muon_gain_scan.py`), cross-checked by the fixed-point fit of the
+   MIP peak (`fit_adc_scale.py --observable hit-peak`). The MIP is the gain by
+   definition, with no shower physics in between.
+2. **The dynamic range** (`adc_high_max`, `saturation_order`) from an **electron
+   run** of that set, `analysis/compare_gains.py --write`: the low gain is linear
+   over the whole range, so `(hit_lg − c)/k` is the true charge and `hit_hg`
+   against it is the high gain's response curve, fitted with
+   `S(q) = q / (1 + (q/A)^n)^(1/n)`. Only electrons reach the knee. This fit
+   involves no simulation at all.
+3. **Every electron energy is then a validation**, nothing refitted.
+
+A shower anchor for the gain — tried first — is *not* a gain measurement: it
+absorbs whatever the simulation gets wrong about the shower. Anchoring th220 on
+74 GeV showers gave 15.6 ADC/MIP and failed the muon check outright (5 simulated
+hits per muon event against 20: the threshold landed above the MIP peak).
+
+The beam positions differ per set — th230 ≈ (−42, +51), th220 ≈ (−40, +37),
+th210 ≈ (+24, −51) mm for electrons, and the muon runs sit elsewhere again —
+measured from each run's `hit_hg`-weighted barycentre, so the productions are
+position-matched (`launch_beam.sh` / `generic_condor_beam.sh`). The muon runs of
+th230 (run 4) and th210 (eudaq 151) had no ecal tree and were reconstructed with
+`siwecal-tb2026/gaudi_jobs/condor/generate_reco_dag.py`.
+
+Two things the muon anchor turned up, both now in the code:
+
+- **`RealDigitizer` applied a second threshold on the slow sample** after the
+  fast discriminator had fired. The chip does not: `hitbit_high` is the only
+  hit selection, and `bestScaPerChannel` asks for nothing else. The product of
+  the two cuts put the simulated 50% point at 1.0 MIP instead of
+  `threshold_adc / adc_per_mip` and narrowed the S-curve to two thirds of its
+  width. Removed — the simulated turn-on now lands exactly where it is
+  configured (0.85 / 0.91 / 1.16 MIP for th210 / th220 / th230, width 0.15–0.17).
+- **`EcalEventBuilder` keeps an event only if `MinSlabsHit = 10` slabs fired.**
+  Irrelevant for a shower, decisive for a muon: it is a selection on the Landau
+  fluctuations of its fifteen crossings. The anchor applies it to the simulated
+  sample too (`--min-layers 10`), plus `--max-hits 30` against pile-up (43% of
+  run 4's events are above 30 hits and they move the peak by 2 ADC).
+
+At th230 the discriminator (25.4 ADC) sits *above* the MIP, so what survives is
+the Landau tail — which is scale-free — and the mode of the surviving spectrum
+is not monotonic in the gain (26.6 / 27.6 / 27.5 / 28.4 / 26.6 ADC for gain
+20 / 21 / 22 / 23 / 24): a fixed-point fit on it lands wherever it starts. The
+gain is therefore taken from the **shape** of the whole spectrum just above the
+threshold (`analysis/muon_gain_scan.py`: χ² of the unit-normalised spectra over
+[threshold + 1, 80) ADC against a 1 ADC/MIP scan), which has one minimum. The
+same scan is run on the other two sets as a cross-check of the mode fit.
+
+Measured (2026-09-18), 10 000-event muon samples, 1000-event electron samples;
+the electron rows are validations with nothing refitted:
+
+| set | gain [ADC/MIP], scan (mode fit) | muon run | A [ADC] | n | discriminator [MIP] | electron point | sim/data ADC peak | sim/data hits |
+|---|---|---|---|---|---|---|---|---|
+| th210 | **19.0** ± 1.4 (18.3) | eudaq 151 | 1951 ± 26 | 4.9 | 0.85 | e⁻ 52 GeV, eudaq 287 | **1.07** | 1.13 |
+| th210 | | | | | | e⁻ 74 GeV, eudaq 286 | **1.15** | 1.45 |
+| th220 | **21.5** ± 1.4 (21.1) | run 85 | 1918 ± 16 | 6.1 | 0.91 | e⁻ 74 GeV, run 72 | **1.33** | 1.40 |
+| th230 | **21.9** ± 1.5 (22.0) | run 4 | 1930 ± 41 | 5.8 | 1.16 | e⁻ 20 GeV, run 20 | **1.12** | 1.05 |
+| th230 | | | | | | e⁻ 52 GeV, run 13 | **1.12** | 1.12 |
+
+(the ± is where the scan's χ² doubles, not a 1σ; the ADC peak is the mode of
+the per-event `sum_hg`, the hits are `nhit_chan` means.)
+
+Reading:
+
+- **The gain does not follow the DAC**: 19.0 / 21.5 / 21.9 ADC/MIP, the same
+  within the scan's resolution, as it must be for a preamplifier setting the
+  DAC does not touch. th210 is the lowest and is also the eudaq run at a
+  different position, so a few percent of channel-to-channel gain is plausible.
+- **The th230 MIP table (median 32.4 ADC/MIP) is 1.48× the gain the muons
+  give.** With 21.9 ADC/MIP the th230 discriminator is at **1.16 MIP**, above
+  the peak — consistent with the table having been fitted on a truncated
+  Landau, which is where the ×1.47 first showed up.
+- Validations: **within 7–15% at 20 and 52 GeV** at th230 and th210, and 1.33
+  at 74 GeV for th220 (1.15 for th210). The excess grows with energy at fixed
+  gain and roll-over, so it is not the ADC scale nor the high-gain ceiling: the
+  data's response per GeV falls with energy and the simulation's does not (the
+  occupancy loss already seen in MIP/GeV: 34 → 30 → 23 from 52 to 99 GeV).
+- The simulated hit count is high by 5–13% at 20–52 GeV and 40–45% at 74 GeV,
+  the same trend.
+- Muons: after the ≥ 10-slab selection the data carry 1.27 / 1.49 / 1.76 hits
+  per fired slab (th210 / th220 / th230) against 1.17 / 1.20 / 1.44 in the
+  simulation — extra neighbour or noise hits in the data that grow with the
+  threshold, which is not what noise does. Open.
+
+The three dynamic ranges agree within errors, as they should for a property of
+the preamplifier rather than of the threshold. The DAC law from the three
+turn-ons: **0.52 ADC per DAC unit** (run 20 for th230), residuals under 1 ADC.
+
+All figures, the digitised trees, the gain-scan samples and this table are at
+`/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Processed/adc_vs_tb/final/`.
+
+### Per-slab technology: slab 12 (the FEV11 chip-on-board) and layer 14 (650 µm)
+
+With the same hit selection on both sides the per-layer sim/data ratio was flat
+except at layer 12 (2.2) and layer 14 (1.4–1.6). Both are per-slab hardware facts
+that nothing described:
+
+- **Slab 12 is the FEV11 chip-on-board.** It ran at its own threshold DAC (243
+  against the sets' 215–230; run book), which a per-slab S-curve confirms
+  directly: discriminator at **30.8 / 30.1 / 24.2 ADC** for th230 / th220 / th210
+  where the sets sit at 25.3 / 19.7 / 16.2 (`trigger_turnon.py --per-slab`). The
+  truncated MIP spectrum inflates its table MPV (1.91 / 1.63 / 1.22 × the median
+  in th210 / th220 / th230 — a real gain would not depend on the DAC), and the
+  digitiser was inheriting that as *gain shape*.
+- **Layer 14 has the 650 µm sensor** (geometry), but job3 normalised it with the
+  500 µm MIP value (×1.34 in MIP) and the shape table added another ×1.25.
+
+What changed:
+
+| where | what |
+|---|---|
+| `mappings/slab_z_positions.yml` (both repos, identical) | technology block: `technologies`, `slab_technology` (slab 12 = `FEV11_COB`), `sensor_thickness_um` (650 at 14), `threshold_dac` (243 at 12). Loader `analysis/slab_description.py`. |
+| `gaudi_jobs/mip_extraction_pipeline/` | **step 0**: `mip_extraction_pipeline.sh <muon ddsim>` writes `mappings/mip_values_sim.yml` (per-layer MIP peak, Landau⊗Gauss; layer 14 = 1.34 × the others); job3 refuses to run without it. The simple chain uses the per-layer values; the real chain uses the **charge unit** (the 500 µm value for every layer) because the ADC follows the charge and the reconstruction table turns it back into the data's MIP. |
+| `ChannelMapper` | `PadMapSlabOverrides` (`"slab:path"`, from the description); `PadMapFileSlab12` kept as a deprecated alias. |
+| `RealDigitizer` | `ThresholdPerLayer` / `FastNoiseMIPPerLayer` / `TriggerEfficiencyPerLayer`; job3 fills them from `slab_overrides` in `digi_calibration.yml` (in ADC, measured by `trigger_turnon.py --per-slab --write-config`). |
+| `AdcDigitizer` | `GainShapeNormalisation = per-slab` (job3 default): each slab's table block divided by its own median, so a slab-level table offset never enters as gain. |
+| geometry | layer 12 is its own `<layer>` block with `Ecal_WaferThickness_L12` / `Ecal_w_slab_gap_L12` (500 µm; one constant to switch); `analysis/tests/test_sensor_thickness.py` pins the XML against the YAML. |
+| `siwecal-tb2026` | `SlabGeometry::fromYamlFile` reads the block (and no longer appends unknown lists to `w_thickness_mm`); `load_slab_technology()` in `siwecal_eventbuilder/geometry.py`; the `12:` pad-map override is derived from the YAML in `run_event_builder.py`, `run_full_pipeline_batch.py`, `generate_reco_dag.py`, the viewer and `add_xy_branches.py`; `PedestalMipCalibrator` has per-slab MIP windows (`SlabZFile`, `MipWindowSlabOverrides`). |
+
+Result on the run-4 muons (per-hit peak, sim/data per layer): layer 0 1.27 → 1.04,
+layer 12 1.24 → 0.92, layer 14 1.23 → 1.00; every layer within ±10 % except 6
+(the data's own outlier) and 13. On the 52 GeV th230 profile: layer 12
+**2.21 → 1.08**, layer 14 1.43 → 1.16; the total ratio does not move (1.17).
+
+## The beamline (20 Sep)
+
+`simulation/geometry/SND_compact_beamline.xml` is the H2 line as it stood in June
+2026: nothing between the vacuum pipe and the box, the box 2–3 m from the vacuum
+window — two XCET Cherenkovs (4 Al windows, 0.022 X₀), the exit window (1 mm Al,
+0.011 X₀) and 2.5 m of air (0.008 X₀), ≈ 0.04 X₀ in all. Run it with
+`COMPACT_FILE=SND_compact_beamline.xml BEAM_Z_MM=-2650`. The HGCAL 2018 budget
+of ≈ 0.5 X₀ (JINST 17 P05022), which was tried first, is kept as
+`SND_compact_beamline_hgcal.xml` for reference: half of it was HGCAL's own trigger
+scintillators, veto and delay wire chambers, and it is not ours. Three knobs
+(`Beamline_ResidualAl`, `Beamline_DwcPcb`, `Beamline_ScintThick`, all 1 µm) make a
+variant a one-constant edit.
+
+What the scan taught (e⁻ 20 / 52 GeV, th230, per-slab digitizer, chip selection):
+layers 0–1 measure the material in front and only that — 1.9 / 1.4 with 0.49 X₀,
+1.29 / 1.11 with 0.23, 0.85–0.91 / 0.92–0.94 with the real line; where it sits does
+not matter (0.49 X₀ lumped at the box or spread over 1–3 m: 1.87 → 1.75). With the
+real line the residual is a ratio rising with depth, 0.85 at layer 0 to 1.3 at
+layers 9–14, and a simulated shower 0.3 layer deeper. Split by hit amplitude the
+hits ≤ 60 ADC and the hit counts agree in every layer; the excess is entirely in
+hits > 300 ADC and grows with depth and with energy — not the trigger, not the
+upstream material; candidates are the SKIROC2 response at high occupancy, charge
+spreading in the data, and the tungsten thicknesses of the stack (step at layer 9,
+where the plates go from 4.2 to 5.6 mm). A Gaussian-core or shape selection of the
+data events changes none of this (the data depth distribution is shifted as a
+whole, not a tail).
+
+Caveat on the data MIP tables: re-fitting th230 from its merged histograms with
+the current calibrator (`calibration/MuonCalib_gaudi_slabwindow/`, not deployed)
+reproduces slab 12's 94 masked channels and MPV 39 — the window was never the
+limit, the truncation is — and changes ~17 % of the *other* channels' entries
+relative to the July table, i.e. the deployed tables are not reproducible with the
+current calibrator. Re-deploying means re-reconstructing every data tree; left
+for a dedicated pass (a truncated-Landau fit for slab 12 with it).
+
+### The hit selection: `HIT_SELECTION=chip` against `EcalEventBuilder HitSelection=adc`
+
+The data's event builder keeps a channel only if its `hitbit_high` is set
+(`bestScaPerChannel`). On the raw chunks, ~15% of the high-gain ADC of every
+layer sits in channels of a triggered chip with a clear signal and no hit bit
+(80% with no bit in any SCA of the window, 17% only in an earlier SCA, 3% only
+in the retrigger SCA), the same at 20 / 52 / 74 GeV and flat over layers 1-12.
+`siwecal-tb2026` gained `HitSelection='adc'` (bit in any SCA **or**
+`adc_high − pedestal > AdcHitThreshold` = 30 ADC, read at the largest SCA), and
+this repo the mirror image:
+
+| env (job3) | RealDigitizer | AdcDigitizer | tree |
+|---|---|---|---|
+| `HIT_SELECTION=cell` (default) | one hit per cell whose discriminator fired | every hit kept | — |
+| `HIT_SELECTION=chip` | every sampled cell is written, with `SiPadHitsRealDigitizedTrigger` (1 = fired); a cell that did not fire is sampled at fast peak + delay, where the chip's hold lands | `TriggerCollection` on: a chip counts when a cell fired; on it a cell is a hit if it fired or `hit_hg > AdcHitThreshold`; verdict in `SiPadHitsRealAdcKept` (still 1:1) | `sim_to_ecal_tree` drops the 0s |
+
+Redone like for like (data trees rebuilt with `adc`, gains rescanned, roll-overs
+refitted, Gaussian core μ of the event ADC sum):
+
+| set | point | gain old → new | sim/data, hit bit / cell | sim/data, adc / chip |
+|---|---|---|---|---|
+| th230 | e⁻ 20 GeV run 20 | 21.9 → 22.2 | 1.16 | **1.14** |
+| th230 | e⁻ 52 GeV run 13 | | 1.18 | **1.15** |
+| th220 | e⁻ 74 GeV run 72 | 21.5 → 21.6 | 1.36 | **1.27** |
+| th210 | e⁻ 52 GeV eudaq 287 | 19.0 → 19.05 | 1.16 | **1.08** |
+| th210 | e⁻ 74 GeV eudaq 286 | | 1.28 | **1.13** |
+
+The data recover 15-25%, but so does the simulation where its measured plateau
+efficiency is 0.86 (th230, th220): that plateau *was* the missing-bit effect,
+applied cell by cell. The gap that remains is a longitudinal one — the sim/data
+ratio per layer rises from 0.55 at layer 0 to 1.5 at layer 14 — i.e. the
+simulated shower is deeper and its sampling fraction larger: geometry (absorber
+thickness/density, upstream material), not electronics. The MIP tables were made
+with the hit-bit selection; redo them before using `adc` for calibrated energies.
+Results at `Simulation/Processed/adc_vs_tb/final_chip/`.
+
+### Why RealDigitizer runs before GeV2MIPConversion
+
+The shaping needs the per-step `CaloHitContributions`, and
+`GeV2MIPConversion` — like `BasicDigitizer`, `DetectorFlipper` and
+`ChannelMapper` — creates fresh hits copying only CellID, position and energy.
+So the real chain reads `SiPadHits` in GeV and normalises to MIP itself through
+`MIPValues`; `GeV2MIPConversion` would be redundant on that branch.
+
+### How the digitised energy and time reach the analysis
+
+`HitEnergyContent='digitized'` (the default) writes the shaped slow-sample
+amplitude, in MIP, into the **hit energy**. That is what makes the digitisation
+visible downstream: `DetectorFlipper:246`, `ChannelMapper:231` and
+`analysis/sim_to_ecal_tree.py` all read `hit.getEnergy()` and nothing else.
+
+The trigger time has nowhere to live in a `SimCalorimeterHit`, so it travels in
+the parallel `podio::UserDataCollection<float>` named by
+`DigitizedTimeCollection`. That works because **`DetectorFlipper` and
+`ChannelMapper` are 1:1** — one output hit per input hit, never dropping any —
+so the vector stays index-aligned all the way to `SiPadHitsRealMapped`, the same
+way `SiPadHitsMasked` already does. `sim_to_ecal_tree.py` reads it into the
+`hit_time` branch, with a length check guarding against pairing hits with the
+other chain's times.
+
+```bash
+# both chains into one file, then analyse the real one
+DIGI_MODE=both bash gaudi_jobs/1_mu_beam_pipeline/1_mu_pipeline.sh
+bash analysis/run_pid_sim.sh --collection SiPadHitsRealMapped --format both
+```
+
+### The shaping preserves the amplitude by construction
+
+`crRcResponse` is normalised to **unit peak gain**: one instantaneous step of
+A MIP produces a pulse whose maximum is exactly A MIP, at `t = tauNs`, for any
+order. That normalisation is `exp(n)/n^n`, and
+`analysis/tests/test_cell_shaping.py` pins it by compiling the header.
+
+It used to be `4/n!`, which is neither unit peak nor unit area: at order 2 it sat
+**8.3% above** unit peak ((4/2!)·2²·e⁻² = 1.0827), so every digitised energy
+carried a ~7% scale on top of the deposit — and the scale changed with the order
+(×1.47 at order 1, ×0.90 at order 3) with nothing to announce it.
+
+What is left is deliberate, and measured on the 1000-event samples as
+`sum_energy` of the real chain over the simple chain:
+
+| sample | real / simple | hits kept |
+|---|---|---|
+| mu- 100 GeV | 0.992 | 17.2 of 17.5 |
+| e- 52 GeV | 0.986 | 575 of 632 |
+| e- 74 GeV | 0.987 | 720 of 793 |
+
+Two effects, both physical: the slow channel is sampled at `triggerTime + DelayNs`
+(160 ns) while its peak is at `tauSlowNs` (180 ns), so the sample rides the rise
+and lands 1–3% low, by an amount that depends on the amplitude through the
+trigger's time walk; and the 0.5 MIP fast-channel threshold drops the smallest
+hits. Setting `DelayNs = TauSlowNs` samples the peak and removes the first.
 
 ### Where the layer z comes from
 
@@ -401,6 +764,151 @@ Converts EDM4HEP collections to a ROOT RNTuple (`ShipHits.root`) for analysis.
 
 Only the `1_*_PG*` pipelines run this job; the beam and per-chunk productions
 use `analysis/sim_to_ecal_tree` on `SiPadHitsMapped` instead.
+
+---
+
+## Comparing the digitisation with test-beam data (ADC)
+
+**File:** `analysis/compare_adc_data_sim.py`
+
+The simulation's ecal tree has no ADC at all (`hit_hg` is 0; the digitised
+amplitude lives in `hit_energy`, in MIP), while the test-beam tree's `hit_hg`
+IS the pedestal-subtracted high-gain ADC. The comparison is made on the data's
+own axis by pushing the simulated MIP back through the SAME per-channel MIP
+table the data reconstruction used:
+
+```
+ADC_sim(hit) = hit_energy[MIP] x mpv(slab, chip, channel)
+```
+
+which is only possible because `ChannelMapper` has already rewritten the
+simulated CellIDs into the test-beam `slab/chip/channel` format, and masks the
+channels that table has no MPV for — so both samples are missing the same ones.
+
+```bash
+python3 -m analysis.compare_adc_data_sim \
+    --data /eos/.../Reconstruction/TB2026CERN_run_000013/ecal_TB2026CERN_run_000013.root \
+    --sim digi=ecal_sim_e52_real.root --sim simple=ecal_sim_e52_simple.root \
+    --mip-file ../siwecal-tb2026/calibration/MuonCalib_gaudi/mips/th230/\
+MIP_pedestalsubmode1_TB2026CERN_run_000004_highgain.txt \
+    --tag e52 --outdir plots/
+```
+
+Two data curves are always drawn, because above `AdcSaturationThreshold`
+(1500 ADC) the two are not the same measurement:
+
+| curve | what it is |
+|---|---|
+| `data (raw hit_hg)` | the detector reading, high-gain saturation included |
+| `data (linearised)` | `hit_energy x mpv` — the ADC an unsaturated preamp would have given, recovered from the low gain |
+
+The simulation has **no high-gain saturation model**, so `data (linearised)` is
+the apples-to-apples curve; the gap between the two data curves above 1500 ADC
+is exactly what such a model would have to reproduce.
+
+### What the comparison currently says
+
+Measured on 1000-event samples against the P1 runs at the same energy
+(hits above 0.5 MIP, unmasked, calibrated channels only):
+
+| sample | hits/event | <ADC>/hit | event sum [ADC] | sigma/mu | sim/data |
+|---|---|---|---|---|---|
+| e- 52 GeV data (run 13) | 380 | 149 | 56 600 | 0.30 | 1.00 |
+| e- 52 GeV sim (digi) | 569 | 200 | 114 100 | 0.066 | **2.01** |
+| e- 52 GeV sim (simple) | 573 | 201 | 115 200 | 0.066 | 2.04 |
+| e- 74 GeV data (run 7) | 453 | 147 | 66 600 | 0.37 | 1.00 |
+| e- 74 GeV sim (digi) | 712 | 226 | 160 900 | 0.053 | **2.42** |
+| e- 74 GeV sim (simple) | 717 | 227 | 162 600 | 0.053 | 2.44 |
+
+Three things to keep in mind before reading that ratio as a digitisation bug:
+
+- **The single-hit ADC scale is right.** On a MIP-like run the simulated Landau
+  sits on the data's, peak within ~20% and the tail on top of it, so the
+  MIP -> ADC conversion and the per-hit response are not what is off.
+- **The discrepancy is in the shower, and grows with energy.** Layers 0-2 agree;
+  the data profile then flattens where the simulation peaks. The simulated
+  response is linear between the two energies (x1.41 for x1.42 in beam energy),
+  the data's is not (x1.18), and the data resolution gets *worse* with energy
+  (0.30 -> 0.37) — the signature of something limiting the data at high
+  occupancy (SCA depth, retriggers, BCID splitting, event selection), not of the
+  shaping.
+- **The flat part of the factor is a calibration scale, not saturation.**
+  `analysis/plot_response_scan.py` shows the data at 33-37 MIP/GeV from 7.5 to
+  52 GeV against the simulation's 69, and a factor that does not move with energy
+  cannot be an occupancy effect. The th230 MIP table's MPV is 1.47x th220's,
+  channel by channel, while the pedestal means (245 ADC), the pedestal widths
+  (1.7-2.4 ADC) and the LG->HG anchor slope (k = 0.0925/0.0963/0.0961) are the
+  same across the three threshold sets — so the ADC scale did NOT change with the
+  threshold and the MPV difference is a calibration artifact. Only 39.6% of the
+  th230 channels carry a real per-channel fit (98.5% at th220); 54% take the
+  chip-level fallback (`empv = -3`), on a median of 183 entries per channel.
+  `analysis/mip_threshold_bias.py` measures what that costs: pushing the
+  *simulated* muon sample through a threshold and recovering the MPV the way the
+  calibration does, a bias of x1.47 needs a threshold at 1.35x the MIP MPV, which
+  keeps 40% of the MIP hits.
+- **The data is unselected.** Both runs are read event by event with no beam or
+  quality cut, as the validation does (`kept_frac = 1`).
+
+---
+
+## Fast shaper vs slow shaper
+
+**File:** `analysis/compare_shapers.py`
+
+The two sides record the fast channel differently, so they cannot be overlaid
+directly:
+
+| | fast shaper (trigger) | slow shaper (amplitude) |
+|---|---|---|
+| simulation | peak [MIP] -> `hit_fast`, compared with `Threshold` | sample at `triggerTime + DelayNs` -> `hit_energy` |
+| test beam | `hitbit_high`, one BIT per channel and SCA | `adc_high` -> `hit_energy` |
+
+What is comparable is the **turn-on**: the probability that a cell enters the
+event at all, against the amplitude the slow shaper measured for it. On the data
+side that is `P(hitbit_high = 1 | amplitude)` — and it *is* the data's hit
+selection, because `EventBuilder::bestScaPerChannel` drops every channel whose
+bit never fired. On the simulation side it is obtained by matching the `simple`
+chain (Threshold = 0, so it keeps every cell) against the `real` one, channel by
+channel.
+
+The fast peak reaches the analysis through `SiPadHitsRealDigitizedFast`, a
+parallel `UserDataCollection<float>` written by `RealDigitizer` next to the
+digitised energy and time, which `sim_to_ecal_tree.py` puts in the `hit_fast`
+branch.
+
+### Measured on run 13 (th230) against the 52 GeV sample
+
+| | data | sim |
+|---|---|---|
+| turn-on 50% | 0.80 MIP | 0.53 MIP |
+| turn-on 90% | — (never reached) | 0.63 MIP |
+| plateau efficiency above 2.5 MIP | **0.868** | 1.000 |
+
+**The simulation's trigger is a step at 0.5 MIP that is 100% efficient; the real
+one turns on at 0.80 MIP, takes ~0.5 MIP to get there, and plateaus at 87%.**
+`Threshold` is also a single hardcoded number, so nothing about it changes when
+the sample is meant to match th210 or th220 — the threshold is the one thing in
+the chain that genuinely is per-threshold-set.
+
+What that costs, replaying the measured turn-on over the simulated hits
+(e- 52 GeV, per event):
+
+| scenario | hits | MIP | sim/data |
+|---|---|---|---|
+| sim, current step at 0.5 MIP | 569 | 3579 | 2.01 |
+| sim + measured turn-on | 472 | 3093 | 1.74 |
+| sim + measured turn-on + MPV corrected x1.47 | 425 | 3043 | **1.16** |
+
+(data: 380 hits, 1780 MIP as calibrated today, 2617 MIP if the th230 MPV is
+indeed x1.47 high. The two corrections are not independent — a biased MPV also
+moves the measured turn-on along its own amplitude axis — so they are applied
+together, not multiplied.)
+
+Two independently motivated fixes take the discrepancy from x2.0 to x1.16. The
+shaping itself is not implicated either way: `slow / fast` per hit has a median
+of 0.991 with a 3.5% IQR, and the residual trend with amplitude (1.047 at
+0.5 MIP to 0.988 at 80 MIP) is the time walk of sampling at
+`triggerTime + 160 ns` when the slow peak is at 180 ns.
 
 ---
 
