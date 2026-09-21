@@ -26,11 +26,14 @@
 #                                [--collection SiPadHitsMapped]
 #                                [--masking-collection SiPadHitsMasked]
 #
-#   --collection picks which digitisation chain to analyse.  With
+#   --collection picks which digitisation chain to analyse (default: the
+#   real chain's SiPadHitsRealAdc, what job3 writes by default).  With
 #   DIGI_MODE=both in job3, digitized.edm4hep.root carries both:
+#     SiPadHitsRealAdc     real chain, ADC model (default)
+#     SiPadHitsRealMapped  real chain before the ADC model
 #     SiPadHitsMapped      simple chain (GeV2MIP + BasicDigitizer)
-#     SiPadHitsRealMapped  RealDigitizer cell shaping
-#   The masking collection defaults to the matching one (Mapped -> Masked).
+#   The masking collection defaults to the matching one (SiPadHitsRealMasked
+#   for the real chain's collections, Mapped -> Masked otherwise).
 #
 # Outputs (default: gaudi_jobs/1_mu_beam_pipeline/)
 #   ecal_sim.root           ecal TTree (intermediate, kept for inspection)
@@ -53,7 +56,7 @@ TB2026_ROOT="$(cd "${REPO_ROOT}/../siwecal-tb2026" 2>/dev/null && pwd)" || {
 INPUT_EDM4HEP="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/digitized.edm4hep.root"
 ECAL_TREE="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/ecal_sim.root"
 OUT_DIR="${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline"
-COLLECTION="SiPadHitsMapped"
+COLLECTION="SiPadHitsRealAdc"
 MASKING_COLLECTION=""      # empty => derived from COLLECTION below
 TIME_COLLECTION=""         # empty => converter derives it from COLLECTION
 FORMAT="edm4hep"
@@ -113,7 +116,10 @@ echo "=== Step 1/2: sim → ecal tree ==="
 # must come from the same chain: SiPadHitsMapped/SiPadHitsMasked (default) or
 # SiPadHitsRealMapped/SiPadHitsRealMasked (DIGI_MODE=real|both).
 if [[ -z "${MASKING_COLLECTION}" ]]; then
-    MASKING_COLLECTION="${COLLECTION/Mapped/Masked}"
+    case "${COLLECTION}" in
+        SiPadHitsReal*) MASKING_COLLECTION="SiPadHitsRealMasked" ;;
+        *)              MASKING_COLLECTION="${COLLECTION/Mapped/Masked}" ;;
+    esac
 fi
 
 # hit_time comes from a parallel collection that only the RealDigitizer chain

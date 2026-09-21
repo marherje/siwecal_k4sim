@@ -3,24 +3,35 @@
 Shared by the condor chunk jobs (simulation/run_script/generic_condor_beam_chunk.sh,
 reprocess_chunk.sh) and by the local 1_* pipelines.
 
-CALIB_THRESHOLD (th210 / th220 / th230, default th230) selects the threshold set:
-it picks the masking table AND the trigger model of the real chain, both measured
-from the test beam.  DIGI_MODE selects which digitisation chain(s) run:
+CALIB_THRESHOLD (th210 / th220 / th230, NO default: the job refuses to run
+without it) selects the threshold set: it picks the masking table, the trigger
+model, the gain and the dynamic range, all measured from the test beam of THAT
+set -- so it has to be the set of the data run the sample will be compared with,
+and nothing here may guess it.  DIGI_MODE selects which digitisation chain(s)
+run:
 
-  simple (default)  SiPadHits -> GeV2MIPConversion -> BasicDigitizer
-                              -> DetectorFlipper   -> ChannelMapper
-                              => SiPadHitsMapped + SiPadHitsMasked
-                    This is what production has always run; leaving DIGI_MODE
-                    unset changes nothing.
-
-  real              SiPadHits -> RealDigitizer(mode='real')
+  real (default)    The chain anchored to the test beam (per-slab trigger model,
+                    CR-RC shaping, chip-level hit selection, ADC model with gain,
+                    roll-over and low-gain scatter of the threshold set):
+                    SiPadHits -> RealDigitizer(mode='real')
                               -> DetectorFlipper -> ChannelMapper
                               -> AdcDigitizer (unless ADC_MODEL=0)
                               => SiPadHitsRealAdc + SiPadHitsRealAdcHigh/Low
                                  (+ SiPadHitsRealMapped/Masked, ...Time, ...Fast)
 
+  simple            SiPadHits -> GeV2MIPConversion -> BasicDigitizer
+                              -> DetectorFlipper   -> ChannelMapper
+                              => SiPadHitsMapped + SiPadHitsMasked
+                    The historical production chain: a MIP threshold and nothing
+                    else.  Ask for it explicitly (DIGI_MODE=simple).
+
   both              Both chains on the same input, into the same output file, so
                     the two can be compared hit by hit without re-simulating.
+
+HIT_SELECTION (default chip) is the event builder's rule (HitSelection=adc);
+cell is the old per-cell discriminator.  The defaults changed on 2026-09-21:
+before that DIGI_MODE=simple, HIT_SELECTION=cell and CALIB_THRESHOLD=th230 were
+what an unset environment gave.
 
 The real chain reads SiPadHits in GeV *before* GeV2MIPConversion on purpose:
 GeV2MIPConversion (like BasicDigitizer, DetectorFlipper and ChannelMapper)
@@ -91,10 +102,18 @@ MIP_VALUES = _load_mip_values(MIP_VALUES_FILE)
 # discriminator sits at 16.3 / 19.7 / 25.4 ADC for th210 / th220 / th230 and
 # plateaus at 85-96%.
 # --------------------------------------------------------------------------- #
-CALIB_THRESHOLD = os.environ.get("CALIB_THRESHOLD", "th230")
-
 with open(os.path.join(REPO_ROOT, "mappings", "digi_calibration.yml")) as _cf:
     _CALIB = yaml.safe_load(_cf)["thresholds"]
+# No default on purpose: every number below depends on the threshold set, and a
+# sample digitised with the wrong one is not comparable with anything.  The
+# launchers export it; a one-off run states it on the command line.
+CALIB_THRESHOLD = os.environ.get("CALIB_THRESHOLD", "")
+if not CALIB_THRESHOLD:
+    raise SystemExit(
+        "CALIB_THRESHOLD is not set. Give the threshold set of the data run this "
+        f"sample is meant for ({', '.join(sorted(_CALIB))}), e.g.\n"
+        "  CALIB_THRESHOLD=th230 DIGI_MODE=real INPUT_FILE=... k4run "
+        "gaudi_jobs/pid2026_common/job3_digitize.py")
 if CALIB_THRESHOLD not in _CALIB:
     raise SystemExit(
         f"CALIB_THRESHOLD='{CALIB_THRESHOLD}' has no entry in "
@@ -114,11 +133,11 @@ ADC_MODEL = os.environ.get("ADC_MODEL", "1") not in ("0", "no", "false")
 # absolute scale is TH["adc_per_mip"], fitted against this threshold's own data.
 GAIN_SHAPE_THRESHOLD = os.environ.get("GAIN_SHAPE_THRESHOLD", "th210")
 
-HIT_SELECTION = os.environ.get("HIT_SELECTION", "cell")
+HIT_SELECTION = os.environ.get("HIT_SELECTION", "chip")
 if HIT_SELECTION not in ("cell", "chip"):
     raise SystemExit(f"HIT_SELECTION='{HIT_SELECTION}' is not one of 'cell', 'chip'.")
 ADC_HIT_THRESHOLD = float(os.environ.get("ADC_HIT_THRESHOLD", "30"))
-DIGI_MODE = os.environ.get("DIGI_MODE", "simple")
+DIGI_MODE = os.environ.get("DIGI_MODE", "real")
 if DIGI_MODE not in ("simple", "real", "both"):
     raise SystemExit(
         f"DIGI_MODE='{DIGI_MODE}' is not one of 'simple', 'real', 'both'.")

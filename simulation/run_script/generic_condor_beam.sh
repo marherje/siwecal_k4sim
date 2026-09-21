@@ -23,13 +23,15 @@ sigma_E=$8
 
 # COMPACT_FILE (name inside ../geometry), BEAM_Z_MM and OUTPUT_TAG can be set in
 # the environment: a different geometry gets its own output name and never
-# overwrites the standard samples.  The June 2026 line is
-#   COMPACT_FILE=SND_compact_beamline.xml BEAM_Z_MM=-2650 OUTPUT_TAG=_beamline_real
-# (beam born in air just upstream of the vacuum window, 2.5 m from the box);
-# SND_compact_beamline_hgcal.xml (0.5 X0 reference budget) wants BEAM_Z_MM=-30000.
-BEAM_Z_MM=${BEAM_Z_MM:--2000}
-COMPACT_FILE=${COMPACT_FILE:-SND_compact.xml}
-OUTPUT_TAG=${OUTPUT_TAG:-}
+# overwrites another's samples.  The default (since 2026-09-21) is the June 2026
+# beamline: SND_compact_beamline.xml, the beam born in air just upstream of the
+# vacuum window 2.5 m from the box, samples tagged _beamline_real (the name the
+# existing ones on EOS carry).  The bare detector in 2 m of nothing is
+#   COMPACT_FILE=SND_compact.xml BEAM_Z_MM=-2000 OUTPUT_TAG=
+# and SND_compact_beamline_hgcal.xml (0.5 X0 reference budget) wants BEAM_Z_MM=-30000.
+COMPACT_FILE=${COMPACT_FILE:-SND_compact_beamline.xml}
+BEAM_Z_MM=${BEAM_Z_MM:--2650}
+OUTPUT_TAG=${OUTPUT_TAG-_beamline_real}
 
 local=$PWD
 geometry_folder="${local}/../geometry"

@@ -17,6 +17,16 @@
 set -uo pipefail
 mkdir -p steer log
 
+# Same digitisation contract as generic_condor_beam_chunk.sh: the threshold set
+# is required, the chain (real by default) picks the collections downstream.
+: "${CALIB_THRESHOLD:?set CALIB_THRESHOLD (th210 / th220 / th230): the threshold set of the data run these chunks are for}"
+DIGI_MODE=${DIGI_MODE:-real}
+case "${DIGI_MODE}" in
+    real) TRACK_COLLECTION=SiPadHitsRealDigi; TREE_COLLECTION=SiPadHitsRealAdc; MASK_COLLECTION=SiPadHitsRealMasked ;;
+    simple) TRACK_COLLECTION=SiPadHitsDigi; TREE_COLLECTION=SiPadHitsMapped; MASK_COLLECTION=SiPadHitsMasked ;;
+    *) echo "DIGI_MODE='${DIGI_MODE}' must be real or simple here (both has no single tree)"; exit 1 ;;
+esac
+
 local=$PWD
 repo_root="$(cd "${local}/../.." && pwd)"
 eos_base="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation"
@@ -53,7 +63,8 @@ if [[ ! -s "\${LOCAL_SIM}" ]]; then
     exit 1
 fi
 
-INPUT_FILE="\${PWD}/\${LOCAL_SIM}" k4run ${repo_root}/gaudi_jobs/pid2026_common/job3_digitize.py \\
+CALIB_THRESHOLD=${CALIB_THRESHOLD} DIGI_MODE=${DIGI_MODE} \\
+      INPUT_FILE="\${PWD}/\${LOCAL_SIM}" k4run ${repo_root}/gaudi_jobs/pid2026_common/job3_digitize.py \\
       &> ${log_path}/reproc_${label}.log
 if [[ ! -s digitized.edm4hep.root ]]; then
     echo "ERROR: digitisation produced no output."
@@ -70,7 +81,7 @@ LOCAL_DIGITIZED_TMP="digitized_tracks_tmp.edm4hep.root"
 # Must end in .root (k4FWCore's IOSvc picks its Writer backend off the
 # filename; digitized.edm4hep.root.tracks_tmp made it fail initialisation
 # with "Unknown file type").
-INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="${TRACK_COLLECTION}" \\
       OUTPUT_FILE="\${LOCAL_DIGITIZED_TMP}" SEED_MOMENTUM=${BEAM_ENERGY} \\
       k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
       &>> ${log_path}/reproc_${label}.log
@@ -85,7 +96,7 @@ mv "\${LOCAL_DIGITIZED_TMP}" "\${LOCAL_DIGITIZED}"
 python3 -m analysis.sim_to_ecal_tree \\
       --input  digitized.edm4hep.root \\
       --output "\${LOCAL_TREE}" \\
-      --collection SiPadHitsMapped \\
+      --collection ${TREE_COLLECTION} --masking-collection ${MASK_COLLECTION} \\
       --run ${RUN_NUMBER} &>> ${log_path}/reproc_${label}.log
 if [[ ! -s "\${LOCAL_TREE}" ]]; then
     echo "ERROR: ecal-tree conversion produced no output."

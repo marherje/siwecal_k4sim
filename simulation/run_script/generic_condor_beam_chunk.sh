@@ -43,8 +43,25 @@ sigma_E=$8
 chunk=$9
 seed=${10}
 
-BEAM_Z_MM=-2000
 PHYSLIST="QGSP_BERT"
+
+# Geometry, as in generic_condor_beam.sh: the June 2026 beamline by default, the
+# bare detector with COMPACT_FILE=SND_compact.xml BEAM_Z_MM=-2000 OUTPUT_TAG=.
+# The tag goes into the point label, so chunks of another geometry never mix.
+COMPACT_FILE=${COMPACT_FILE:-SND_compact_beamline.xml}
+BEAM_Z_MM=${BEAM_Z_MM:--2650}
+OUTPUT_TAG=${OUTPUT_TAG-_beamline_real}
+
+# Digitisation: job3 refuses to run without the threshold set of the data the
+# sample is for, and the chain it runs (real by default, simple on request)
+# decides which collections the tracking and the ecal tree read.
+: "${CALIB_THRESHOLD:?set CALIB_THRESHOLD (th210 / th220 / th230): the threshold set of the data run this sample is for}"
+DIGI_MODE=${DIGI_MODE:-real}
+case "${DIGI_MODE}" in
+    real) TRACK_COLLECTION=SiPadHitsRealDigi; TREE_COLLECTION=SiPadHitsRealAdc; MASK_COLLECTION=SiPadHitsRealMasked ;;
+    simple) TRACK_COLLECTION=SiPadHitsDigi; TREE_COLLECTION=SiPadHitsMapped; MASK_COLLECTION=SiPadHitsMasked ;;
+    *) echo "DIGI_MODE='${DIGI_MODE}' must be real or simple here (both has no single tree)"; exit 1 ;;
+esac
 
 local=$PWD
 repo_root="$(cd "${local}/../.." && pwd)"
@@ -56,7 +73,7 @@ steer_path="${local}/steer"
 log_path="${local}/log"
 
 # Point label: identical for every chunk of the same (particle, E, position).
-point=beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}
+point=beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}
 chunk_tag=$(printf "c%03d" "${chunk}")
 label=${point}_${chunk_tag}
 
@@ -125,7 +142,7 @@ try:
 except Exception:
     pass
 
-compact_path = os.path.abspath("${geometry_folder}/SND_compact.xml")
+compact_path = os.path.abspath("${geometry_folder}/${COMPACT_FILE}")
 if not os.path.isfile(compact_path):
     raise RuntimeError("Compact file not found: " + compact_path)
 
@@ -207,7 +224,8 @@ fi
 echo "Raw sim chunk on EOS: ${remote_sim} (\${REMOTE_SIM_SIZE} bytes)"
 
 # ---------- 3. Digitisation (GeV2MIP + digi + flip + channel mapping) ----------
-INPUT_FILE="\${PWD}/\${LOCAL_SIM}" k4run ${repo_root}/gaudi_jobs/pid2026_common/job3_digitize.py \\
+CALIB_THRESHOLD=${CALIB_THRESHOLD} DIGI_MODE=${DIGI_MODE} \\
+      INPUT_FILE="\${PWD}/\${LOCAL_SIM}" k4run ${repo_root}/gaudi_jobs/pid2026_common/job3_digitize.py \\
       &>> ${log_path}/${label}.log
 if [[ ! -s digitized.edm4hep.root ]]; then
     echo "ERROR: digitisation produced no output (raw sim is safe on EOS, rerun the pipeline stage by hand)."
@@ -226,7 +244,7 @@ LOCAL_DIGITIZED_TMP="digitized_tracks_tmp.edm4hep.root"
 # Must end in .root (k4FWCore's IOSvc picks its Writer backend off the
 # filename; digitized.edm4hep.root.tracks_tmp made it fail initialisation
 # with "Unknown file type").
-INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \\
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="${TRACK_COLLECTION}" \\
       OUTPUT_FILE="\${LOCAL_DIGITIZED_TMP}" SEED_MOMENTUM=${energy} \\
       k4run ${repo_root}/gaudi_jobs/pid2026_common/job4_tracking.py \\
       &>> ${log_path}/${label}.log
@@ -240,7 +258,7 @@ mv "\${LOCAL_DIGITIZED_TMP}" "\${LOCAL_DIGITIZED}"
 python3 -m analysis.sim_to_ecal_tree \\
       --input  digitized.edm4hep.root \\
       --output "\${LOCAL_TREE}" \\
-      --collection SiPadHitsMapped \\
+      --collection ${TREE_COLLECTION} --masking-collection ${MASK_COLLECTION} \\
       --run ${run_number} &>> ${log_path}/${label}.log
 if [[ ! -s "\${LOCAL_TREE}" ]]; then
     echo "ERROR: ecal-tree conversion produced no output (raw sim is safe on EOS)."

@@ -22,11 +22,21 @@ echo "=== Input:  ${SIM_FILE} ==="
 echo "=== Label:  ${LABEL} ==="
 echo "=== Output: ${PROCESSED}/ ==="
 
-echo "=== Step 1: digitize + flip + channel mapping (DIGI_MODE=${DIGI_MODE:-simple}) ==="
+# job3 refuses to run without the threshold set; the chain (real by default,
+# DIGI_MODE=simple for the historical one) decides the collections below.
+: "${CALIB_THRESHOLD:?set CALIB_THRESHOLD (th210 / th220 / th230): the threshold set of the muon run this sample is for}"
+DIGI_MODE="${DIGI_MODE:-real}"
+case "${DIGI_MODE}" in
+    real|both) TRACK_COLLECTION=SiPadHitsRealDigi; TREE_COLLECTION=SiPadHitsRealAdc ;;
+    simple)    TRACK_COLLECTION=SiPadHitsDigi;     TREE_COLLECTION=SiPadHitsMapped ;;
+    *) echo "DIGI_MODE='${DIGI_MODE}' is not one of real, simple, both"; exit 1 ;;
+esac
+
+echo "=== Step 1: digitize + flip + channel mapping (DIGI_MODE=${DIGI_MODE}, CALIB_THRESHOLD=${CALIB_THRESHOLD}) ==="
 # Shared config, same as job4 below: this pipeline used to carry a byte-identical
-# copy of it.  DIGI_MODE=both adds the RealDigitizer chain (SiPadHitsReal*)
-# alongside the default one, in the same output file.
-INPUT_FILE="${SIM_FILE}" DIGI_MODE="${DIGI_MODE:-simple}" \
+# copy of it.  DIGI_MODE=both adds the simple chain (SiPadHits*) alongside the
+# real one, in the same output file.
+INPUT_FILE="${SIM_FILE}" DIGI_MODE="${DIGI_MODE}" CALIB_THRESHOLD="${CALIB_THRESHOLD}" \
     k4run ../pid2026_common/job3_digitize.py
 
 echo "=== Step 1b: ACTS tracking ==="
@@ -36,14 +46,14 @@ echo "=== Step 1b: ACTS tracking ==="
 # (keep * carries the digitised collections forward) so ACTSTracks/EMShowers/
 # SiPadMeasurements end up in the ONE edm4hep file that gets staged, instead of
 # a separate tracks.edm4hep.root product.
-INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="SiPadHitsDigi" \
+INPUT_FILE="digitized.edm4hep.root" INPUT_COLLECTION="${TRACK_COLLECTION}" \
     OUTPUT_FILE="digitized_tracks_tmp.edm4hep.root" SEED_MOMENTUM=100.0 \
     k4run ../pid2026_common/job4_tracking.py 2>&1 | grep -v "^TCling::LoadPCM"
 mv digitized_tracks_tmp.edm4hep.root digitized.edm4hep.root
 
 echo "=== Step 2: ecal tree + shower variables ==="
 cd "${REPO_ROOT}"
-bash analysis/run_pid_sim.sh --format both
+bash analysis/run_pid_sim.sh --format both --collection "${TREE_COLLECTION}"
 
 echo "=== Moving outputs to Processed (EOS only) ==="
 mv "${REPO_ROOT}/gaudi_jobs/1_mu_beam_pipeline/digitized.edm4hep.root" \

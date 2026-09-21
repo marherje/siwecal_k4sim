@@ -86,25 +86,42 @@ Splits the merged super-event into 25 ns time windows. Each window becomes one E
 `ChannelMapper.cpp`
 **Config:** `gaudi_jobs/pid2026_common/job3_digitize.py` (shared)
 
-There are two digitisation chains. `DIGI_MODE` picks which one(s) run; leaving it
-unset is the production default and changes nothing.
+There are two digitisation chains. `DIGI_MODE` picks which one(s) run. **Since
+2026-09-21 the default is `real`**, the chain anchored to the test beam; the
+historical `simple` chain has to be asked for. In the same change
+`HIT_SELECTION` defaults to `chip` and `CALIB_THRESHOLD` lost its default:
+job3 refuses to run without it, because every calibrated number depends on the
+threshold set and nothing may guess it (the launchers export it, a one-off run
+states it on the command line).
 
 ```
-DIGI_MODE=simple  (default)
+DIGI_MODE=real    (default)
+SiPadHits → RealDigitizer     → SiPadHitsRealDigi  <-- tracking input (pre-flip)
+                              + SiPadHitsRealDigitizedEnergy [MIP]
+                              + SiPadHitsRealDigitizedTime   [ns]
+                              + SiPadHitsRealDigitizedTrigger (HIT_SELECTION=chip)
+          → DetectorFlipper   → SiPadHitsRealFlipped
+          → ChannelMapper     → SiPadHitsRealMapped + SiPadHitsRealMasked
+          → AdcDigitizer      → SiPadHitsRealAdc + ...AdcHigh/Low/Kept   <-- ecal tree
+
+DIGI_MODE=simple
 SiPadHits → GeV2MIPConversion → SiPadHitsMIP
           → BasicDigitizer    → SiPadHitsDigi      <-- tracking input (pre-flip)
           → DetectorFlipper   → SiPadHitsFlipped
           → ChannelMapper     → SiPadHitsMapped + SiPadHitsMasked
 
-DIGI_MODE=real
-SiPadHits → RealDigitizer     → SiPadHitsRealDigi  <-- tracking input (pre-flip)
-                              + SiPadHitsRealDigitizedEnergy [MIP]
-                              + SiPadHitsRealDigitizedTime   [ns]
-          → DetectorFlipper   → SiPadHitsRealFlipped
-          → ChannelMapper     → SiPadHitsRealMapped + SiPadHitsRealMasked
-
 DIGI_MODE=both    both of the above, same input, same output file
 ```
+
+The launchers follow the mode: `generic_condor_beam_chunk.sh`,
+`reprocess_chunk.sh` and `1_mu_pipeline.sh` track on `SiPadHitsRealDigi` and
+convert `SiPadHitsRealAdc` (with `SiPadHitsRealMasked`) under `real`, and the
+`SiPadHitsDigi` / `SiPadHitsMapped` pair under `simple`; `run_pid_sim.sh`
+defaults to `--collection SiPadHitsRealAdc`. The geometry defaults moved with
+it: `generic_condor_beam.sh` and the chunk launcher simulate
+`SND_compact_beamline.xml` with the beam at `BEAM_Z_MM=-2650` and tag the
+output `_beamline_real`; the bare detector is
+`COMPACT_FILE=SND_compact.xml BEAM_Z_MM=-2000 OUTPUT_TAG=`.
 
 | Algorithm | Role |
 |---|---|
@@ -121,7 +138,7 @@ from the compact XML.
 ### One threshold input — `CALIB_THRESHOLD`
 
 Everything that depends on the trigger threshold is driven by **one** environment
-variable, `CALIB_THRESHOLD` (`th210` / `th220` / `th230`, default `th230`):
+variable, `CALIB_THRESHOLD` (`th210` / `th220` / `th230`, no default — required):
 
 ```bash
 DIGI_MODE=both CALIB_THRESHOLD=th220 INPUT_FILE=... k4run gaudi_jobs/pid2026_common/job3_digitize.py
@@ -393,8 +410,8 @@ this repo the mirror image:
 
 | env (job3) | RealDigitizer | AdcDigitizer | tree |
 |---|---|---|---|
-| `HIT_SELECTION=cell` (default) | one hit per cell whose discriminator fired | every hit kept | — |
-| `HIT_SELECTION=chip` | every sampled cell is written, with `SiPadHitsRealDigitizedTrigger` (1 = fired); a cell that did not fire is sampled at fast peak + delay, where the chip's hold lands | `TriggerCollection` on: a chip counts when a cell fired; on it a cell is a hit if it fired or `hit_hg > AdcHitThreshold`; verdict in `SiPadHitsRealAdcKept` (still 1:1) | `sim_to_ecal_tree` drops the 0s |
+| `HIT_SELECTION=cell` | one hit per cell whose discriminator fired | every hit kept | — |
+| `HIT_SELECTION=chip` (default) | every sampled cell is written, with `SiPadHitsRealDigitizedTrigger` (1 = fired); a cell that did not fire is sampled at fast peak + delay, where the chip's hold lands | `TriggerCollection` on: a chip counts when a cell fired; on it a cell is a hit if it fired or `hit_hg > AdcHitThreshold`; verdict in `SiPadHitsRealAdcKept` (still 1:1) | `sim_to_ecal_tree` drops the 0s |
 
 Redone like for like (data trees rebuilt with `adc`, gains rescanned, roll-overs
 refitted, Gaussian core μ of the event ADC sum):
@@ -441,9 +458,9 @@ way `SiPadHitsMasked` already does. `sim_to_ecal_tree.py` reads it into the
 other chain's times.
 
 ```bash
-# both chains into one file, then analyse the real one
-DIGI_MODE=both bash gaudi_jobs/1_mu_beam_pipeline/1_mu_pipeline.sh
-bash analysis/run_pid_sim.sh --collection SiPadHitsRealMapped --format both
+# both chains into one file, then analyse the simple one against the real one
+CALIB_THRESHOLD=th230 DIGI_MODE=both bash gaudi_jobs/1_mu_beam_pipeline/1_mu_pipeline.sh
+bash analysis/run_pid_sim.sh --collection SiPadHitsMapped --format both
 ```
 
 ### The shaping preserves the amplitude by construction
