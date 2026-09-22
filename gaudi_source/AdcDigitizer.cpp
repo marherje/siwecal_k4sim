@@ -39,13 +39,16 @@
 //
 // So this algorithm does what the detector plus the reconstruction do, in order:
 //
-//   1. MIP -> ADC with `AdcPerMip`, the ADC a channel gives per MIP.  This number
-//      is MEASURED PER THRESHOLD SET, by anchoring the simulation to test-beam
-//      data of that same set at a reference energy (analysis/fit_adc_scale.py),
-//      and it is the only absolute scale in the chain.  It used to be lifted
-//      wholesale from one threshold set's MIP table on the argument that that
-//      table was the least biased -- an inference about which table is wrong,
-//      doing real work in the answer.  Now nothing is inherited between sets.
+//   1. MIP -> ADC with `AdcPerMip`, the ADC a channel gives per MIP: the only
+//      absolute scale in the chain, and ONE number for every threshold set,
+//      because the preamplifier gain does not depend on the trigger DAC.  It is
+//      measured on muons where the discriminator sits below the MIP peak (th210:
+//      spectrum shape, analysis/muon_gain_scan.py, and the tag-and-probe layer
+//      efficiency of muon tracks), 19.5 +- 0.5 ADC/MIP (2026-09-22).  A per-set
+//      muon anchor was tried and is not a measurement above the MIP: the
+//      surviving Landau tail is scale-free, and the scan's chi2 without the
+//      simulation's own variance is its noise floor.  Neither is a shower
+//      anchor: it absorbs whatever the simulation gets wrong about the shower.
 //
 //      Only the channel-to-channel VARIATION comes from a table
 //      (`GainShapeThreshold`), normalised to its own median, because that is the
@@ -439,11 +442,10 @@ private:
       "Threshold set whose MIP table RECONSTRUCTS the hit -- the one the data "
       "run was reconstructed with"};
   Gaudi::Property<double> m_adcPerMip{
-      this, "AdcPerMip", 18.564,
-      "ADC per MIP: the absolute charge scale, fitted per threshold set against "
-      "test-beam data at a reference energy by analysis/fit_adc_scale.py and "
-      "stored in mappings/digi_calibration.yml. The default is only a starting "
-      "point for the first iteration of that fit"};
+      this, "AdcPerMip", 19.5,
+      "ADC per MIP: the absolute charge scale, one value for every threshold set, "
+      "measured on muons where the discriminator sits below the MIP peak "
+      "(analysis/muon_gain_scan.py) and stored in mappings/digi_calibration.yml"};
   Gaudi::Property<std::string> m_gainShapeThreshold{
       this, "GainShapeThreshold", "th210",
       "Threshold set whose MIP table supplies the channel-to-channel VARIATION "

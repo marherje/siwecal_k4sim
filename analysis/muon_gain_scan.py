@@ -11,7 +11,14 @@ gain 20 / 21 / 22 / 23 / 24) and a fixed-point iteration on it lands wherever
 it started.  The shape just above threshold still knows where the MPV is: the
 spectrum falls from the threshold when the MPV is below it and rises first when
 it is above.  A chi2 of the unit-normalised spectra over [lo, hi] ADC against
-the gain has one minimum, and its position is the gain.
+the gain has one minimum, and its position is the gain -- PROVIDED the chi2
+carries the simulation's own Poisson variance.  Without it (data as the only
+expectation) the statistic has a floor of n_bins / N_sim_hits that falls with
+the gain because more simulated events pass MinSlabsHit, and above the MIP
+that floor is the whole curve: at th230 it put a minimum at 22.4 where the
+shape cannot tell 19 from 23 (2026-09-22).  The scan is a measurement only
+where the discriminator sits below the MIP peak (th210); the gain does not
+depend on the trigger DAC, so that one value serves every set.
 
 The data's own event selection is applied to both sides: `EcalEventBuilder`
 keeps an event only if `MinSlabsHit = 10` slabs fired (a Landau selection on a
@@ -97,13 +104,23 @@ def main(argv=None) -> int:
         gain = float(gain)
         s_spec, s_norm, s_events = selected_spectrum(
             path, lo, hi, args.max_hits, args.min_layers)
-        # Pearson chi2 of the unit-normalised spectra, data as the expectation.
-        chi2 = float(np.sum((s_spec[lo:hi] - d_spec[lo:hi]) ** 2
-                            / np.maximum(d_spec[lo:hi], 1e-4)))
+        # chi2 of the unit-normalised spectra with BOTH Poisson variances.  A
+        # Pearson chi2 with the data alone as the expectation has an expected
+        # value of n_bins / N_sim_hits even when the shapes agree, and N_sim_hits
+        # grows with the gain (more simulated events pass MinSlabsHit), so above
+        # the MIP -- where the surviving Landau tail is nearly scale-free -- that
+        # floor alone produced a "minimum" at th230 (2026-09-22).  The floor is
+        # printed next to the chi2 so a scan that only measures it is visible.
+        w = slice(lo, hi)
+        var = s_spec[w] / max(s_norm, 1) + d_spec[w] / max(d_norm, 1)
+        chi2 = float(np.sum((s_spec[w] - d_spec[w]) ** 2 / np.maximum(var, 1e-12)))
+        pearson = float(np.sum((s_spec[w] - d_spec[w]) ** 2 / np.maximum(d_spec[w], 1e-4)))
+        floor = float(np.sum(s_spec[w] / max(s_norm, 1) / np.maximum(d_spec[w], 1e-4))) + (hi - lo) / max(d_norm, 1)
         peak = hit_mip_peak(path, max_hits=args.max_hits, min_layers=args.min_layers)
         rows.append((gain, chi2, peak, s_events, s_norm, s_spec))
-        print(f"[sim ] gain {gain:5.1f}: {s_events:5d} events selected, "
-              f"peak {peak:.1f} ADC, chi2 {chi2 * 1e3:.1f}e-3")
+        print(f"[sim ] gain {gain:5.1f}: {s_events:5d} events selected, {s_norm} hits in window, "
+              f"peak {peak:.1f} ADC, chi2 {chi2:.0f} for {hi - lo} bins "
+              f"(Pearson {pearson * 1e3:.1f}e-3, of which noise floor {floor * 1e3:.1f}e-3)")
     rows.sort()
     gains = np.array([r[0] for r in rows])
     chi2s = np.array([r[1] for r in rows])
@@ -118,10 +135,11 @@ def main(argv=None) -> int:
         if a > 0:
             g0 = -b / (2 * a)
             chi2_min = c - b * b / (4 * a)
-            half = np.sqrt(chi2_min / a) if chi2_min > 0 else float("nan")
+            # +-1 sigma: where the chi2 rises by 1 above its minimum
+            half = np.sqrt(1.0 / a)
             best = (g0, half)
-            print(f"[scan] minimum at adc_per_mip = {g0:.2f} (+-{half:.2f} where "
-                  f"chi2 doubles)")
+            print(f"[scan] minimum at adc_per_mip = {g0:.2f} (+-{half:.2f}, delta chi2 = 1); "
+                  f"chi2 at the minimum {chi2_min:.0f} for {hi - lo} bins")
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.6))
     x = np.arange(0, 150) + 0.5
@@ -141,13 +159,14 @@ def main(argv=None) -> int:
     ax1.legend(fontsize=7.5)
     ax1.grid(alpha=0.3)
 
-    ax2.plot(gains, chi2s * 1e3, "o-", color="tab:blue")
+    ax2.plot(gains, chi2s, "o-", color="tab:blue")
+    ax2.axhline(hi - lo, color="grey", linestyle=":", linewidth=1.0, label=f"n bins = {hi - lo}")
     if best is not None:
         ax2.axvline(best[0], color="tab:red", linestyle="--",
                     label=f"minimum: {best[0]:.2f} ± {best[1]:.2f} ADC/MIP")
         ax2.legend()
     ax2.set_xlabel("adc_per_mip [ADC/MIP]")
-    ax2.set_ylabel("$\\chi^2$ of the normalised spectra ×10³")
+    ax2.set_ylabel("$\\chi^2$ of the normalised spectra (both variances)")
     ax2.set_title("shape $\\chi^2$ against the gain")
     ax2.grid(alpha=0.3)
     fig.tight_layout()
@@ -159,9 +178,9 @@ def main(argv=None) -> int:
         fh.write(f"# {args.threshold}: chi2 window [{lo}, {hi}) ADC, events <= "
                  f"{args.max_hits} hits and >= {args.min_layers} slabs\n")
         fh.write(f"# data peak {d_peak:.1f} ADC, {d_events} events\n")
-        fh.write("gain  chi2x1e3  sim_peak  sim_events\n")
+        fh.write("gain  chi2  sim_peak  sim_events  sim_hits_in_window\n")
         for gain, chi2, peak, s_events, s_norm, _ in rows:
-            fh.write(f"{gain:5.1f} {chi2 * 1e3:9.2f} {peak:9.1f} {s_events:11d}\n")
+            fh.write(f"{gain:5.1f} {chi2:9.1f} {peak:9.1f} {s_events:11d} {s_norm:11d}\n")
         if best is not None:
             fh.write(f"minimum {best[0]:.3f} +- {best[1]:.3f}\n")
     return 0

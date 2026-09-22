@@ -2,9 +2,9 @@ _comment: "Per-threshold digitisation calibration. ONE file, read by gaudi_jobs/
   \ through CALIB_THRESHOLD.\nNothing here is inherited from another threshold set:\
   \ each one is anchored to test-beam data of its own set.\n  threshold_adc / sigma_mip\
   \ / efficiency : the trigger, fitted from hitbit_high by analysis/trigger_turnon.py\n\
-  \  adc_per_mip                            : the absolute ADC scale, the gain: anchored\
-  \ on that set's MUON run (analysis/muon_gain_scan.py, cross-checked by analysis/fit_adc_scale.py\
-  \ --observable hit-peak)\n  adc_high_max / saturation_order        : the dynamic\
+  \  adc_per_mip                            : the absolute ADC scale, the gain: ONE value\
+  \ for all sets (the preamp gain does not depend on the trigger DAC), measured on the set whose\
+  \ discriminator sits below the MIP peak (th210); see adc_per_mip_source\n  adc_high_max / saturation_order        : the dynamic\
   \ range, the roll-over fitted to that set's ELECTRON hit_lg-vs-hit_hg relation (analysis/compare_gains.py\
   \ --write)\nThe trigger threshold RealDigitizer applies is threshold_adc / adc_per_mip.\n\
   Hit selection: the data trees these were fitted against use EcalEventBuilder HitSelection=adc\
@@ -18,14 +18,9 @@ thresholds:
     sigma_mip: 0.1503
     efficiency: 0.9643
     turnon_source_run: TB2026CERN_eudaq_run_000253
-    adc_per_mip: 19.07
-    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
-      spectrum shape of ecal_TB2026CERN_eudaq_run_000151.root (EcalEventBuilder HitSelection=adc)
-      against mu- 10k events at (-21,-19) mm digitised with HIT_SELECTION=chip from
-      the beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from
-      30 m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC,
-      1 ADC/MIP steps; with the hit-bit selection on both sides it was 19.03; standard
-      geometry gave 19.05'
+    adc_per_mip: 19.5
+    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances 19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230 the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220 the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip_per_set_2026_09_18: 19.07
     adc_high_max: 1950.6
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root
       (hit_lg-vs-hit_hg, 784270 hits)
@@ -56,14 +51,9 @@ thresholds:
     sigma_mip: 0.1654
     efficiency: 0.8522
     turnon_source_run: TB2026CERN_run_000072
-    adc_per_mip: 21.33
-    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
-      spectrum shape of ecal_TB2026CERN_run_000085.root (EcalEventBuilder HitSelection=adc)
-      against mu- 10k events at (1,1) mm digitised with HIT_SELECTION=chip from the
-      beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from 30
-      m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC, 1 ADC/MIP
-      steps; with the hit-bit selection on both sides it was 21.53; standard geometry
-      gave 21.56'
+    adc_per_mip: 19.5
+    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances 19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230 the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220 the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip_per_set_2026_09_18: 21.33
     adc_high_max: 1916.8
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg,
       963425 hits)
@@ -89,14 +79,9 @@ thresholds:
     sigma_mip: 0.1408
     efficiency: 0.8624
     turnon_source_run: TB2026CERN_run_000013
-    adc_per_mip: 22.39
-    adc_per_mip_source: 'muon_gain_scan.py: chi2 minimum of the per-hit high-gain
-      spectrum shape of ecal_TB2026CERN_run_000004.root (EcalEventBuilder HitSelection=adc)
-      against mu- 10k events at (1,1) mm digitised with HIT_SELECTION=chip from the
-      beamline geometry (SND_compact_beamline.xml, ~0.5 X0 in front, beam from 30
-      m), events <= 30 hits and >= 10 slabs, window [threshold_adc+1, 80) ADC, 1 ADC/MIP
-      steps; with the hit-bit selection on both sides it was 21.91; standard geometry
-      gave 22.23'
+    adc_per_mip: 19.5
+    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances 19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230 the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220 the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip_per_set_2026_09_18: 22.39
     adc_high_max: 1932.8
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000013.root (hit_lg-vs-hit_hg,
       1018058 hits)

@@ -41,7 +41,7 @@ def load(path, max_events=None):
 
     tree = uproot.open(path)["ecal"]
     branches = ["nhit_chan", "nhit_slab", "sum_hg", "sum_energy", "hit_slab",
-                "hit_energy", "hit_hg", "hit_x", "hit_y", "hit_ismasked", "hit_w_energy"]
+                "hit_energy", "hit_hg", "hit_x", "hit_y", "hit_ismasked", "hit_w_energy", "hit_X0"]
     arr = tree.arrays(branches, entry_stop=max_events, library="np")
     # The W-weighted energy (energy x W[slab]/X0, the sampling-corrected sum the
     # test-beam builder writes as sum_w_energy): the simulated tree only carries
@@ -49,6 +49,59 @@ def load(path, max_events=None):
     # same way, from unmasked hits.
     arr["sum_w_energy"] = np.array([float(w[m == 0].sum())
                                     for w, m in zip(arr["hit_w_energy"], arr["hit_ismasked"])])
+    return arr
+
+
+def apply_mip_cut(arr, mip_cut):
+    """Drop the hits below `mip_cut` [MIP] and rebuild the event sums from the
+    unmasked hits that are left. In place; returns arr."""
+    hit_keys = [k for k in arr if k.startswith("hit_")]
+    for i in range(len(arr["hit_slab"])):
+        keep = arr["hit_energy"][i] > mip_cut
+        for k in hit_keys:
+            arr[k][i] = arr[k][i][keep]
+        m = arr["hit_ismasked"][i] == 0
+        arr["nhit_chan"][i] = int(m.sum())
+        arr["sum_hg"][i] = float(arr["hit_hg"][i][m].sum())
+        arr["sum_energy"][i] = float(arr["hit_energy"][i][m].sum())
+        arr["sum_w_energy"][i] = float(arr["hit_w_energy"][i][m].sum())
+    return arr
+
+
+def load_undigitised(path, mip_table=None, mip_cut=0.0, max_events=None, adc_per_mip=None):
+    """The simple chain: hit_energy [MIP] from GeV with the per-layer MIP values,
+    every cell kept (BasicDigitizer Threshold 0), no trigger, no noise, no ADC.
+    Cells below `mip_cut` are dropped (the detector never sees them) and the
+    event sums are rebuilt from what is left. The ADC-based observables are
+    energy x MPV(slab, chip, channel) from the data's own MIP table, the
+    linearised convention of compare_adc_data_sim, so the sample can sit on the
+    ADC panels next to the data and the digitised simulation."""
+    import uproot
+    from analysis.compare_adc_data_sim import mpv_of
+
+    tree = uproot.open(path)["ecal"]
+    branches = ["nhit_chan", "nhit_slab", "sum_hg", "sum_energy", "hit_slab", "hit_chip", "hit_chan",
+                "hit_energy", "hit_hg", "hit_x", "hit_y", "hit_ismasked", "hit_w_energy", "hit_X0"]
+    arr = tree.arrays(branches, entry_stop=max_events, library="np")
+    hit_keys = [k for k in branches if k.startswith("hit_")]
+    arr["sum_w_energy"] = np.zeros(len(arr["hit_slab"]))
+    for i in range(len(arr["hit_slab"])):
+        keep = arr["hit_energy"][i] > mip_cut
+        for k in hit_keys:
+            arr[k][i] = arr[k][i][keep]
+        if adc_per_mip is not None:
+            # the chip's gain as measured on that set's muons: what an ideal chip
+            # (no trigger, no noise, no roll-over) would have output for this energy
+            arr["hit_hg"][i] = (arr["hit_energy"][i] * adc_per_mip).astype(np.float32)
+        elif mip_table is not None:
+            mpv = mpv_of(mip_table, arr["hit_slab"][i].astype(int), arr["hit_chip"][i].astype(int),
+                         arr["hit_chan"][i].astype(int))
+            arr["hit_hg"][i] = np.where(np.isfinite(mpv), arr["hit_energy"][i] * mpv, 0.0).astype(np.float32)
+        m = arr["hit_ismasked"][i] == 0
+        arr["nhit_chan"][i] = int(m.sum())
+        arr["sum_hg"][i] = float(arr["hit_hg"][i][m].sum())
+        arr["sum_energy"][i] = float(arr["hit_energy"][i][m].sum())
+        arr["sum_w_energy"][i] = float(arr["hit_w_energy"][i][m].sum())
     return arr
 
 
@@ -138,29 +191,25 @@ def shower_shapes(arr):
             np.concatenate(r_all), np.concatenate(e_all))
 
 
-def _hist(ax, d, s, bins, xlabel, log=False, fit=None):
-    """Unit-area histograms of data and sim on one axis, with the core fits."""
-    hd, _ = np.histogram(d, bins=bins)
-    hs, _ = np.histogram(s, bins=bins)
+def _hist(ax, samples, bins, xlabel, log=False):
+    """Unit-area histograms of every sample on one axis, with their core fits.
+    `samples` = list of (values, colour, label, stats-or-None, dashed)."""
     width = bins[1] - bins[0]
-    ax.step(bins[:-1], hd / max(hd.sum(), 1) / width, where="post", color=C_DATA,
-            linewidth=1.6, label=f"data ({len(d)} ev)")
-    ax.step(bins[:-1], hs / max(hs.sum(), 1) / width, where="post", color=C_SIM,
-            linewidth=1.6, label=f"sim (digi) ({len(s)} ev)")
-    if fit is not None:
-        x = np.linspace(bins[0], bins[-1], 400)
-        for stats, colour in ((fit[0], C_DATA), (fit[1], C_SIM)):
-            if np.isfinite(stats["mu"]) and np.isfinite(stats["sigma"]):
-                g = np.exp(-0.5 * ((x - stats["mu"]) / stats["sigma"]) ** 2)
-                g *= 1.0 / (stats["sigma"] * np.sqrt(2 * np.pi))
-                # scale to the fraction of entries inside the core
-                ax.plot(x, g, color=colour, linestyle="--", linewidth=1.0, alpha=0.8,
-                        label=f"core: μ={stats['mu']:.0f}, σ/μ={stats['res']:.3f}")
+    x = np.linspace(bins[0], bins[-1], 400)
+    for values, colour, label, stats, dashed in samples:
+        h, _ = np.histogram(values, bins=bins)
+        ax.step(bins[:-1], h / max(h.sum(), 1) / width, where="post", color=colour,
+                linewidth=1.6, linestyle="--" if dashed else "-", label=f"{label} ({len(values)} ev)")
+        if stats is not None and np.isfinite(stats["mu"]) and np.isfinite(stats["sigma"]):
+            g = np.exp(-0.5 * ((x - stats["mu"]) / stats["sigma"]) ** 2)
+            g *= 1.0 / (stats["sigma"] * np.sqrt(2 * np.pi))
+            ax.plot(x, g, color=colour, linestyle=":", linewidth=1.0, alpha=0.8,
+                    label=f"core: μ={stats['mu']:.0f}, σ/μ={stats['res']:.3f}")
     ax.set_xlabel(xlabel)
     ax.set_ylabel("events (unit area)")
     if log:
         ax.set_yscale("log")
-    ax.legend(fontsize=7.5)
+    ax.legend(fontsize=7)
     ax.grid(alpha=0.3)
 
 
@@ -172,6 +221,23 @@ def main(argv=None) -> int:
     p.add_argument("--energy", type=float, default=None, help="Beam energy [GeV]")
     p.add_argument("--tag", default="cmp")
     p.add_argument("--title", default="")
+    p.add_argument("--x-axis", choices=("layer", "x0"), default="layer",
+                   help="abscissa of the per-layer profiles: layer number, or the cumulative "
+                        "radiation length in front of the layer (hit_X0, from the tree)")
+    p.add_argument("--sim-undigi", default=None,
+                   help="ecal tree of the UNDIGITISED (simple) chain, drawn as a third curve")
+    p.add_argument("--mip-file", default=None,
+                   help="data MIP table (layer chip channel mpv); gives the undigitised sample "
+                        "its ADC as energy x MPV. Without it its ADC panels stay empty")
+    p.add_argument("--undigi-adc-per-mip", type=float, default=None,
+                   help="ADC of the undigitised sample as energy x this gain (the set's muon gain, "
+                        "ADC/MIP) instead of the data's MIP table")
+    p.add_argument("--mip-cut", type=float, default=0.0,
+                   help="drop the hits below this energy [MIP] on EVERY sample (data, digitised, "
+                        "undigitised) and rebuild the event sums from what is left")
+    p.add_argument("--undigi-mip-cut", type=float, default=None,
+                   help="cut for the undigitised chain alone (default: --mip-cut, or 0.5 if that is 0: "
+                        "its Threshold-0 cells are never seen by the detector)")
     p.add_argument("--outdir", default="plots")
     p.add_argument("--max-data-events", type=int, default=20000)
     args = p.parse_args(argv)
@@ -183,29 +249,53 @@ def main(argv=None) -> int:
     os.makedirs(args.outdir, exist_ok=True)
     d = load(args.data, args.max_data_events)
     s = load(args.sim)
+    if args.mip_cut > 0:
+        d = apply_mip_cut(d, args.mip_cut); s = apply_mip_cut(s, args.mip_cut)
+    if args.undigi_mip_cut is None:
+        args.undigi_mip_cut = args.mip_cut if args.mip_cut > 0 else 0.5
+    u = None
+    if args.sim_undigi:
+        table = None
+        if args.mip_file:
+            from analysis.compare_adc_data_sim import load_mip_table
+            table = load_mip_table(args.mip_file)
+        u = load_undigitised(args.sim_undigi, table, args.undigi_mip_cut, adc_per_mip=args.undigi_adc_per_mip)
+    C_UNDIGI = "#17795a"
+    U_LABEL = "sim (no digitisation)"
 
     stats = {}
     for key, label in (("sum_hg", "ADC"), ("sum_energy", "MIP"), ("nhit_chan", "hits"),
                        ("sum_w_energy", "W-weighted")):
-        stats[key] = (summarise(d[key]), summarise(s[key]))
+        stats[key] = (summarise(d[key]), summarise(s[key])) + ((summarise(u[key]),) if u is not None else ())
+
+    def samples(key):
+        out = [(d[key], C_DATA, "data", stats[key][0], False), (s[key], C_SIM, "sim (digi)", stats[key][1], False)]
+        if u is not None and not (key == "sum_hg" and args.mip_file is None and args.undigi_adc_per_mip is None):
+            out.append((u[key], C_UNDIGI, U_LABEL, stats[key][2], True))
+        return out
 
     # ------------------------------------------------------------ figure 1
     # One column per observable, in the order the reconstruction produces them:
     # ADC -> hits -> energy [MIP] -> W-weighted energy (energy x W/X0 per layer).
     fig, axes = plt.subplots(2, 4, figsize=(19, 8.4))
-    lim = lambda k, q=99.5: max(np.percentile(d[k], q), np.percentile(s[k], q)) * 1.05  # noqa: E731
-    _hist(axes[0, 0], d["sum_hg"], s["sum_hg"], np.linspace(0, lim("sum_hg"), 80),
-          "event ADC sum, high gain, pedestal-subtracted", fit=stats["sum_hg"])
-    _hist(axes[0, 1], d["nhit_chan"], s["nhit_chan"], np.linspace(0, lim("nhit_chan"), 80),
-          "hits per event", fit=stats["nhit_chan"])
-    _hist(axes[0, 2], d["sum_energy"], s["sum_energy"], np.linspace(0, lim("sum_energy"), 80),
-          "event energy sum [MIP]", fit=stats["sum_energy"])
-    _hist(axes[0, 3], d["sum_w_energy"], s["sum_w_energy"], np.linspace(0, lim("sum_w_energy"), 80),
-          "event W-weighted energy sum [MIP x W/X0]", fit=stats["sum_w_energy"])
+    lim = lambda k, q=99.5: max([np.percentile(a[k], q) for a in ((d, s) + ((u,) if u is not None else ()))]) * 1.05  # noqa: E731
+    _hist(axes[0, 0], samples("sum_hg"), np.linspace(0, lim("sum_hg"), 80),
+          "event ADC sum, high gain, pedestal-subtracted")
+    _hist(axes[0, 1], samples("nhit_chan"), np.linspace(0, lim("nhit_chan"), 80), "hits per event")
+    _hist(axes[0, 2], samples("sum_energy"), np.linspace(0, lim("sum_energy"), 80), "event energy sum [MIP]")
+    _hist(axes[0, 3], samples("sum_w_energy"), np.linspace(0, lim("sum_w_energy"), 80),
+          "event W-weighted energy sum [MIP x W/X0]")
     # per-layer profiles, one under each event sum, data and sim overlaid; the
     # sim/data total of each is printed in the panel (the per-layer ratio itself
     # is the real_beamline plot's job)
     layers = np.arange(N_LAYERS)
+    if args.x_axis == "x0":
+        # cumulative X0 of each layer, as the tree carries it per hit (the same on both sides)
+        sl_all = np.concatenate(d["hit_slab"][:500]); x0_all = np.concatenate(d["hit_X0"][:500])
+        xs = np.array([np.median(x0_all[sl_all == l]) if np.any(sl_all == l) else np.nan for l in layers])
+        xlabel = "depth [X0]"
+    else:
+        xs, xlabel = layers, "layer"
     for ax, weight_key, ylabel in ((axes[1, 0], "hit_hg", "ADC per layer per event"),
                                    (axes[1, 1], None, "hits per layer per event"),
                                    (axes[1, 2], "hit_energy", "energy per layer per event [MIP]"),
@@ -213,16 +303,40 @@ def main(argv=None) -> int:
         wd = [np.ones(len(x)) for x in d["hit_slab"]] if weight_key is None else d[weight_key]
         ws = [np.ones(len(x)) for x in s["hit_slab"]] if weight_key is None else s[weight_key]
         pd_, ps_ = per_layer(d, wd), per_layer(s, ws)
-        ax.plot(layers, pd_, "o-", color=C_DATA, label="data")
-        ax.plot(layers, ps_, "s-", color=C_SIM, label="sim (digi)")
-        ax.set_xlabel("layer")
-        ax.set_ylabel(ylabel)
+        pu_ = None
+        if u is not None and not (weight_key == "hit_hg" and args.mip_file is None and args.undigi_adc_per_mip is None):
+            wu = [np.ones(len(x)) for x in u["hit_slab"]] if weight_key is None else u[weight_key]
+            pu_ = per_layer(u, wu)
+        if args.x_axis == "x0":
+            # In X0 the sampling cells are not equal (1.2 X0 up to layer 8, 1.6 from
+            # layer 9), so a per-layer value drawn as points steps up where the W
+            # thickens. Every profile is drawn as a variable-width histogram:
+            # height = value / dX0 (a density per X0), AREA of each bin = the
+            # per-layer value, and the totals below are the sums of the areas.
+            dx0 = np.diff(np.r_[0.0, xs]); edges = np.r_[0.0, xs]
+            for prof, colour, name, ls in ((pd_, C_DATA, "data", "-"), (ps_, C_SIM, "sim (digi)", "-"),
+                                           (pu_, C_UNDIGI, "sim (no digi)", "--")):
+                if prof is not None:
+                    ax.stairs(prof / dx0, edges, color=colour, linewidth=1.8, linestyle=ls, label=name)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel.replace("per layer", "per X0"))
+            ax.text(0.97, 0.87, "bin area = per-layer value", transform=ax.transAxes,
+                    ha="right", va="top", fontsize=7.5, color="#4a5461")
+        else:
+            ax.plot(xs, pd_, "o-", color=C_DATA, label="data")
+            ax.plot(xs, ps_, "s-", color=C_SIM, label="sim (digi)")
+            if pu_ is not None:
+                ax.plot(xs, pu_, "^--", color=C_UNDIGI, label="sim (no digi)")
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
         ax.legend(fontsize=8)
         ax.grid(alpha=0.3)
         ratio = ps_.sum() / max(pd_.sum(), 1e-9)
-        ax.text(0.97, 0.95, f"sim/data total = {ratio:.3f}", transform=ax.transAxes,
-                ha="right", va="top", fontsize=8.5)
-    fig.suptitle(f"Event level — {args.title or args.tag}", fontsize=13)
+        txt = f"sim/data total = {ratio:.3f}"
+        if pu_ is not None:
+            txt += f"\nno digi / data = {pu_.sum() / max(pd_.sum(), 1e-9):.3f}"
+        ax.text(0.97, 0.95, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8.5)
+    fig.suptitle(f"Event level — {args.title or args.tag}" + (f" — hits > {args.mip_cut:g} MIP" if args.mip_cut > 0 else ""), fontsize=13)
     fig.tight_layout()
     out1 = os.path.join(args.outdir, f"event_overview_{args.tag}.png")
     fig.savefig(out1, dpi=120)
@@ -260,16 +374,18 @@ def main(argv=None) -> int:
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
     # depth
-    _hist(axes[0, 2], sd[0], ss[0], np.linspace(0, N_LAYERS, 60),
-          "shower depth: energy-weighted mean layer")
+    su = shower_shapes(u) if u is not None else None
+    two = lambda i: [(sd[i], C_DATA, "data", None, False), (ss[i], C_SIM, "sim (digi)", None, False)] + \
+        ([(su[i], C_UNDIGI, "sim (no digi)", None, True)] if su is not None else [])  # noqa: E731
+    _hist(axes[0, 2], two(0), np.linspace(0, N_LAYERS, 60), "shower depth: energy-weighted mean layer")
     # hottest cell
     hmax = max(np.percentile(sd[1], 99.5), np.percentile(ss[1], 99.5)) * 1.05
-    _hist(axes[1, 0], sd[1], ss[1], np.linspace(0, hmax, 60), "hottest cell per event [MIP]")
+    _hist(axes[1, 0], two(1), np.linspace(0, hmax, 60), "hottest cell per event [MIP]")
     # barycentres
     for ax, i, name in ((axes[1, 1], 2, "x"), (axes[1, 2], 3, "y")):
         lo = min(np.percentile(sd[i], 1), np.percentile(ss[i], 1)) - 10
         hi = max(np.percentile(sd[i], 99), np.percentile(ss[i], 99)) + 10
-        _hist(ax, sd[i], ss[i], np.linspace(lo, hi, 60), f"event barycentre {name} [mm]")
+        _hist(ax, two(i), np.linspace(lo, hi, 60), f"event barycentre {name} [mm]")
     fig.suptitle(f"Shower shape — {args.title or args.tag}", fontsize=13)
     fig.tight_layout()
     out2 = os.path.join(args.outdir, f"shower_shape_{args.tag}.png")
@@ -280,24 +396,30 @@ def main(argv=None) -> int:
     lines = [f"# {args.title or args.tag}",
              f"#   data: {args.data} ({len(d['nhit_chan'])} events)",
              f"#   sim : {args.sim} ({len(s['nhit_chan'])} events)",
+             "" if u is None else f"#   undigitised: {args.sim_undigi} ({len(u['nhit_chan'])} events, cells > {args.undigi_mip_cut:g} MIP)",
              "" if args.energy is None else f"#   beam energy: {args.energy:g} GeV",
              "",
              f"{'quantity':<12}{'side':<6}{'mean':>10}{'peak':>10}{'core mu':>10}"
              f"{'core sigma':>12}{'sigma/mu':>10}{'raw s/m':>9}"]
     for key, label in (("sum_hg", "ADC"), ("nhit_chan", "hits"), ("sum_energy", "MIP"),
                        ("sum_w_energy", "W-weighted")):
-        for side, st in (("data", stats[key][0]), ("sim", stats[key][1])):
+        for side, st in (("data", stats[key][0]), ("sim", stats[key][1])) + ((("nodigi", stats[key][2]),) if u is not None else ()):
             lines.append(f"{label:<12}{side:<6}{st['mean']:>10.1f}{st['peak']:>10.1f}"
                          f"{st['mu']:>10.1f}{st['sigma']:>12.1f}{st['res']:>10.4f}"
                          f"{st['raw_res']:>9.3f}")
-        sd_, ss_ = stats[key]
+        sd_, ss_ = stats[key][:2]
         lines.append(f"{'':<12}{'sim/d':<6}{ss_['mean'] / sd_['mean']:>10.3f}"
                      f"{ss_['peak'] / sd_['peak']:>10.3f}{ss_['mu'] / sd_['mu']:>10.3f}"
                      f"{'':>12}{ss_['res'] / sd_['res']:>10.3f}")
+        if u is not None:
+            su_ = stats[key][2]
+            lines.append(f"{'':<12}{'nodg/d':<6}{su_['mean'] / sd_['mean']:>10.3f}"
+                         f"{su_['peak'] / sd_['peak']:>10.3f}{su_['mu'] / sd_['mu']:>10.3f}"
+                         f"{'':>12}{su_['res'] / sd_['res']:>10.3f}")
     if args.energy:
         lines.append("")
         for key, unit in (("sum_energy", "MIP"), ("sum_hg", "ADC")):
-            sd_, ss_ = stats[key]
+            sd_, ss_ = stats[key][:2]
             lines.append(f"response {unit}/GeV (core mu): data {sd_['mu'] / args.energy:.2f}"
                          f"  sim {ss_['mu'] / args.energy:.2f}")
     lines += ["", f"shower depth [layer]: data {sd[0].mean():.2f}  sim {ss[0].mean():.2f}",

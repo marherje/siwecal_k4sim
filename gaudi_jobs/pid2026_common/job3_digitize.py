@@ -5,9 +5,9 @@ reprocess_chunk.sh) and by the local 1_* pipelines.
 
 CALIB_THRESHOLD (th210 / th220 / th230, NO default: the job refuses to run
 without it) selects the threshold set: it picks the masking table, the trigger
-model, the gain and the dynamic range, all measured from the test beam of THAT
-set -- so it has to be the set of the data run the sample will be compared with,
-and nothing here may guess it.  DIGI_MODE selects which digitisation chain(s)
+model and the dynamic range, measured from the test beam of THAT set (the gain
+is one number for every set) -- so it has to be the set of the data run the
+sample will be compared with, and nothing here may guess it.  DIGI_MODE selects which digitisation chain(s)
 run:
 
   real (default)    The chain anchored to the test beam (per-slab trigger model,
@@ -122,15 +122,17 @@ if CALIB_THRESHOLD not in _CALIB:
         f"with analysis/fit_adc_scale.py.")
 TH = _CALIB[CALIB_THRESHOLD]
 
-# The ADC model closes the chain: MIP -> ADC with THIS threshold set's own fitted
-# scale, then back to MIP through the SAME calibration table the data run was
-# reconstructed with.  Without it the simulation divides by its own clean MIP
-# scale while the data divides by a measured (and, at th230, biased) one, so the
-# two energies are not the same quantity.  ADC_MODEL=0 goes back to the raw
-# digitised MIP.
+# The ADC model closes the chain: MIP -> ADC with the gain (adc_per_mip: ONE
+# value for every threshold set -- the preamplifier does not know the trigger
+# DAC -- measured where the discriminator sits below the MIP peak), then back to
+# MIP through the SAME calibration table the data run was reconstructed with.
+# Without it the simulation divides by its own clean MIP scale while the data
+# divides by a measured (and, at th230, biased) one, so the two energies are not
+# the same quantity.  ADC_MODEL=0 goes back to the raw digitised MIP.
 ADC_MODEL = os.environ.get("ADC_MODEL", "1") not in ("0", "no", "false")
 # Only the channel-to-channel VARIATION of the gain comes from a table; the
-# absolute scale is TH["adc_per_mip"], fitted against this threshold's own data.
+# absolute scale is TH["adc_per_mip"] (the same number in every entry since
+# 2026-09-22; see its adc_per_mip_source).
 GAIN_SHAPE_THRESHOLD = os.environ.get("GAIN_SHAPE_THRESHOLD", "th210")
 
 HIT_SELECTION = os.environ.get("HIT_SELECTION", "chip")

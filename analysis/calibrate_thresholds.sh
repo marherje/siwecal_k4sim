@@ -9,8 +9,11 @@
 #   B. VALIDATE   at a DIFFERENT energy (muons for th220, which has only one
 #      electron energy), with every number frozen.
 #
-# Nothing is shared between threshold sets: no ratio of MIP tables, no reference
-# gain borrowed from another set.  Each set is anchored to its own data.
+# The trigger and the dynamic range are per set and come from that set's data.
+# The gain is NOT: since 2026-09-22 adc_per_mip is one number for every set
+# (19.5 ADC/MIP, measured on th210 muons, where the discriminator sits below the
+# MIP peak), and this script's shower fit of it is kept only as a diagnostic --
+# a shower anchor absorbs whatever the simulation gets wrong about the shower.
 #
 # The simulated samples must exist at the beam position each run was taken at --
 # they differ per threshold set (th230 ~(-42,+51), th220 ~(-40,+37), th210

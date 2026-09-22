@@ -220,8 +220,10 @@ Every per-threshold number lives in **`mappings/digi_calibration.yml`** — the
 trigger (`threshold_adc`, `sigma_mip`, `efficiency`), the scale (`adc_per_mip`),
 the ceiling (`adc_high_max`) — each with its provenance, and `CALIB_THRESHOLD`
 picks the entry. The trigger threshold `RealDigitizer` applies is
-`threshold_adc / adc_per_mip`, so it moves with the scale. Nothing is inherited
-between sets: no MIP-table ratio, no reference gain borrowed from another set
+`threshold_adc / adc_per_mip`, so it moves with the scale. The trigger and the
+dynamic range are that set's own; the gain is **one number for the three sets**
+(19.5 ADC/MIP since 22 Sep, see below) — the preamplifier does not know the
+trigger DAC. No MIP-table ratio is inherited between sets
 (`test_every_threshold_set_is_self_contained` fails if one comes back).
 
 ### Calibrating the ADC scale — `analysis/fit_adc_scale.py`
@@ -229,11 +231,14 @@ between sets: no MIP-table ratio, no reference gain borrowed from another set
 Per threshold set, three numbers, each from the data that measures it and none
 inherited from another set:
 
-1. **The gain** (`adc_per_mip`) from a **muon run** of that set: the
-   `adc_per_mip` whose simulated per-hit high-gain spectrum has the data's shape
-   (`analysis/muon_gain_scan.py`), cross-checked by the fixed-point fit of the
-   MIP peak (`fit_adc_scale.py --observable hit-peak`). The MIP is the gain by
-   definition, with no shower physics in between.
+1. **The gain** (`adc_per_mip`) from a **muon run**: the `adc_per_mip` whose
+   simulated per-hit high-gain spectrum has the data's shape
+   (`analysis/muon_gain_scan.py`), cross-checked by the tag-and-probe layer
+   efficiency of muon tracks. The MIP is the gain by definition, with no shower
+   physics in between — **but only where the discriminator sits below the MIP
+   peak** (th210). Above it (th220, th230) the surviving Landau tail is
+   scale-free and the scan measures nothing (see *One gain*, below); the one
+   value measured at th210 serves every set.
 2. **The dynamic range** (`adc_high_max`, `saturation_order`) from an **electron
    run** of that set, `analysis/compare_gains.py --write`: the low gain is linear
    over the whole range, so `(hit_lg − c)/k` is the true charge and `hit_hg`
@@ -317,6 +322,57 @@ Reading:
   occupancy loss already seen in MIP/GeV: 34 → 30 → 23 from 52 to 99 GeV).
 - The simulated hit count is high by 5–13% at 20–52 GeV and 40–45% at 74 GeV,
   the same trend.
+#### One gain for the three sets (22 Sep) — supersedes the per-set gains above
+
+The per-set gains 19.0 / 21.5 / 21.9 (19.07 / 21.33 / 22.39 after the chip
+selection) were not measurements above the MIP. `muon_gain_scan.py` used a
+Pearson χ² with the data as the only expectation; that statistic has an
+expected value of n_bins / N_sim_hits even for identical shapes, and N_sim_hits
+grows with the gain because more simulated events pass `MinSlabsHit ≥ 10`. At
+th230 the "minimum at 22.4" was that floor — the two curves coincide for gains
+19–23 and only ≥ 24 is excluded (`final_v3/plots/gain_scan_floor.png`,
+`gain_scan_check.py`). At th220 the minimum at 21.3 tracks the 0.85 plateau
+measured on showers and applied to muons; with th210's 0.96 it would sit at
+~19. The script now carries both Poisson variances and prints the floor.
+
+Three estimates where the peak is visible: th210 spectrum shape with the
+corrected χ² 18.9–19.1; tag-and-probe layer efficiency of muon tracks (data
+0.867 at th210) 19.7; the th230 table's ×1.47 bias needs a threshold at
+1.35 MPV (`mip_threshold_bias.py`) → 25.36 / 1.35 = 18.8. Adopted
+**19.5 ± 0.5 ADC/MIP** for every set (`adc_per_mip` in
+`digi_calibration.yml`, the per-set values kept as
+`adc_per_mip_per_set_2026_09_18`). The discriminators are then 0.83 / 1.01 /
+1.30 MIP (th210 / th220 / th230), slab 12 at 1.24 / 1.54 / 1.58, and the th230
+table sits ×1.66 above the gain.
+
+Result, same trees otherwise (basic beampipe, per-slab digitizer, chip / adc
+selection), Gaussian core μ of the event ADC sum, hits > 0.5 MIP
+(`Processed/adc_vs_tb/final_v3/`):
+
+| set | point | sim/data ADC, per-set gain | **sim/data ADC, one gain** | hits | depth data / sim |
+|---|---|---|---|---|---|
+| th230 | e⁻ 20 GeV, run 20 | 1.16 | **1.00** | 0.98 | 5.49 / 5.75 |
+| th230 | e⁻ 52 GeV, run 13 | 1.16 | **1.01** | 1.03 | 6.16 / 6.37 |
+| th220 | e⁻ 74 GeV, run 72 | 1.26 | **1.16** | 1.13 | 6.71 / 6.59 |
+| th210 | e⁻ 52 GeV, eudaq 287 | 1.08 | **1.10** | 1.05 | 6.23 / 6.38 |
+| th210 | e⁻ 74 GeV, eudaq 286 | 1.13 | **1.16** | 1.10 | 6.80 / 6.66 |
+
+The two 74 GeV sets now agree (the v2 spread was the two gains), and the
+"excess of hits > 300 ADC in the back layers" is gone: it was 15 % on the ADC
+axis acting on a steeply falling spectrum. What is left is a profile shift —
+sim/data 0.72 at layer 0 rising to 1.0–1.2 at layers 9–14 with the total at
+1.0, the simulated shower 0.25–0.3 layer deeper — which points at ~0.1–0.15 X₀
+more in front of the box (XCET gas?) and/or ~5 % more X₀ per sampling cell, and
+a rise with energy (1.00 → 1.16 at 74 GeV) that is the data-side loss at high
+rate. Physics list (FTFP_BERT_EMZ, QGSP_BERT_EMZ) and a 0.05 mm range cut
+change the total by 1–2 % and the profile not at all. Largest remaining
+inconsistency between sets: 1.01 (th230) against 1.10 (th210) at 52 GeV — the
+plateau, 0.96 in eudaq 253 and 0.82 in eudaq 287 at the same DAC, is measured
+on showers and applied to muons; a tag-and-probe measurement on the muon runs
+per set is the next step.
+
+Earlier per-set reading, kept for the record:
+
 - Muons: after the ≥ 10-slab selection the data carry 1.27 / 1.49 / 1.76 hits
   per fired slab (th210 / th220 / th230) against 1.17 / 1.20 / 1.44 in the
   simulation — extra neighbour or noise hits in the data that grow with the
