@@ -71,8 +71,8 @@ MAX_MIP_ADC = 100.0
 # Palette: the data is ONE entity read two ways (solid / dashed, same hue); each
 # digitisation chain gets its own hue, assigned in fixed order.
 # --------------------------------------------------------------------------- #
-C_DATA = "#2a78d6"
-C_SIM = ["#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+C_DATA = "#14407f"
+C_SIM = ["#b03024", "#e8856b", "#eda100", "#e87ba4"]
 C_GRID = "#d8d8d4"
 C_INK = "#0b0b0b"
 C_INK_SOFT = "#52514e"

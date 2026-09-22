@@ -31,8 +31,8 @@ import sys
 
 import numpy as np
 
-C_DATA = "#2a78d6"
-C_SIM = "#d2551f"
+C_DATA = "#14407f"        # data, adc selection: dark blue, solid
+C_SIM = "#b03024"         # simulation, digitised: dark red, solid
 N_LAYERS = 15
 
 
@@ -224,6 +224,9 @@ def main(argv=None) -> int:
     p.add_argument("--x-axis", choices=("layer", "x0"), default="layer",
                    help="abscissa of the per-layer profiles: layer number, or the cumulative "
                         "radiation length in front of the layer (hit_X0, from the tree)")
+    p.add_argument("--data-hitbit", default=None,
+                   help="ecal tree of the SAME data run built with EcalEventBuilder HitSelection=hitbit "
+                        "(the historical per-channel hit bit), drawn as a fourth curve next to the adc one")
     p.add_argument("--sim-undigi", default=None,
                    help="ecal tree of the UNDIGITISED (simple) chain, drawn as a third curve")
     p.add_argument("--mip-file", default=None,
@@ -253,6 +256,11 @@ def main(argv=None) -> int:
         d = apply_mip_cut(d, args.mip_cut); s = apply_mip_cut(s, args.mip_cut)
     if args.undigi_mip_cut is None:
         args.undigi_mip_cut = args.mip_cut if args.mip_cut > 0 else 0.5
+    h = None
+    if args.data_hitbit:
+        h = load(args.data_hitbit, args.max_data_events)
+        if args.mip_cut > 0:
+            h = apply_mip_cut(h, args.mip_cut)
     u = None
     if args.sim_undigi:
         table = None
@@ -260,16 +268,22 @@ def main(argv=None) -> int:
             from analysis.compare_adc_data_sim import load_mip_table
             table = load_mip_table(args.mip_file)
         u = load_undigitised(args.sim_undigi, table, args.undigi_mip_cut, adc_per_mip=args.undigi_adc_per_mip)
-    C_UNDIGI = "#17795a"
+    C_UNDIGI = "#e8856b"   # simulation, no digitisation: light red, dashed
+    C_HITBIT = "#8fc1ec"   # data, hit-bit selection: light blue, dotted
     U_LABEL = "sim (no digitisation)"
 
     stats = {}
     for key, label in (("sum_hg", "ADC"), ("sum_energy", "MIP"), ("nhit_chan", "hits"),
                        ("sum_w_energy", "W-weighted")):
-        stats[key] = (summarise(d[key]), summarise(s[key])) + ((summarise(u[key]),) if u is not None else ())
+        stats[key] = (summarise(d[key]), summarise(s[key])) + ((summarise(u[key]),) if u is not None else ()) \
+            + ((summarise(h[key]),) if h is not None else ())
 
     def samples(key):
-        out = [(d[key], C_DATA, "data", stats[key][0], False), (s[key], C_SIM, "sim (digi)", stats[key][1], False)]
+        out = []
+        if h is not None:
+            out.append((h[key], C_HITBIT, "data (hit bit)", stats[key][-1], True))
+        out += [(d[key], C_DATA, "data (adc)" if h is not None else "data", stats[key][0], False),
+                (s[key], C_SIM, "sim (digi)", stats[key][1], False)]
         if u is not None and not (key == "sum_hg" and args.mip_file is None and args.undigi_adc_per_mip is None):
             out.append((u[key], C_UNDIGI, U_LABEL, stats[key][2], True))
         return out
@@ -278,7 +292,8 @@ def main(argv=None) -> int:
     # One column per observable, in the order the reconstruction produces them:
     # ADC -> hits -> energy [MIP] -> W-weighted energy (energy x W/X0 per layer).
     fig, axes = plt.subplots(2, 4, figsize=(19, 8.4))
-    lim = lambda k, q=99.5: max([np.percentile(a[k], q) for a in ((d, s) + ((u,) if u is not None else ()))]) * 1.05  # noqa: E731
+    lim = lambda k, q=99.5: max([np.percentile(a[k], q)  # noqa: E731
+                                 for a in ((d, s) + ((u,) if u is not None else ()) + ((h,) if h is not None else ()))]) * 1.05
     _hist(axes[0, 0], samples("sum_hg"), np.linspace(0, lim("sum_hg"), 80),
           "event ADC sum, high gain, pedestal-subtracted")
     _hist(axes[0, 1], samples("nhit_chan"), np.linspace(0, lim("nhit_chan"), 80), "hits per event")
@@ -303,6 +318,10 @@ def main(argv=None) -> int:
         wd = [np.ones(len(x)) for x in d["hit_slab"]] if weight_key is None else d[weight_key]
         ws = [np.ones(len(x)) for x in s["hit_slab"]] if weight_key is None else s[weight_key]
         pd_, ps_ = per_layer(d, wd), per_layer(s, ws)
+        ph_ = None
+        if h is not None:
+            wh = [np.ones(len(x)) for x in h["hit_slab"]] if weight_key is None else h[weight_key]
+            ph_ = per_layer(h, wh)
         pu_ = None
         if u is not None and not (weight_key == "hit_hg" and args.mip_file is None and args.undigi_adc_per_mip is None):
             wu = [np.ones(len(x)) for x in u["hit_slab"]] if weight_key is None else u[weight_key]
@@ -314,16 +333,20 @@ def main(argv=None) -> int:
             # height = value / dX0 (a density per X0), AREA of each bin = the
             # per-layer value, and the totals below are the sums of the areas.
             dx0 = np.diff(np.r_[0.0, xs]); edges = np.r_[0.0, xs]
-            for prof, colour, name, ls in ((pd_, C_DATA, "data", "-"), (ps_, C_SIM, "sim (digi)", "-"),
+            for prof, colour, name, ls in ((ph_, C_HITBIT, "data (hit bit)", "--"),
+                                           (pd_, C_DATA, "data (adc)" if h is not None else "data", "-"),
+                                           (ps_, C_SIM, "sim (digi)", "-"),
                                            (pu_, C_UNDIGI, "sim (no digi)", "--")):
                 if prof is not None:
                     ax.stairs(prof / dx0, edges, color=colour, linewidth=1.8, linestyle=ls, label=name)
             ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel.replace("per layer", "per X0"))
-            ax.text(0.97, 0.87, "bin area = per-layer value", transform=ax.transAxes,
-                    ha="right", va="top", fontsize=7.5, color="#4a5461")
+            ax.text(0.97, 0.02, "bin area = per-layer value", transform=ax.transAxes,
+                    ha="right", va="bottom", fontsize=7.5, color="#4a5461")
         else:
-            ax.plot(xs, pd_, "o-", color=C_DATA, label="data")
+            if ph_ is not None:
+                ax.plot(xs, ph_, "o--", color=C_HITBIT, mfc="none", label="data (hit bit)")
+            ax.plot(xs, pd_, "o-", color=C_DATA, label="data (adc)" if h is not None else "data")
             ax.plot(xs, ps_, "s-", color=C_SIM, label="sim (digi)")
             if pu_ is not None:
                 ax.plot(xs, pu_, "^--", color=C_UNDIGI, label="sim (no digi)")
@@ -333,6 +356,8 @@ def main(argv=None) -> int:
         ax.grid(alpha=0.3)
         ratio = ps_.sum() / max(pd_.sum(), 1e-9)
         txt = f"sim/data total = {ratio:.3f}"
+        if ph_ is not None:
+            txt += f"\nhit bit / adc = {ph_.sum() / max(pd_.sum(), 1e-9):.3f}"
         if pu_ is not None:
             txt += f"\nno digi / data = {pu_.sum() / max(pd_.sum(), 1e-9):.3f}"
         ax.text(0.97, 0.95, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8.5)
@@ -396,6 +421,7 @@ def main(argv=None) -> int:
     lines = [f"# {args.title or args.tag}",
              f"#   data: {args.data} ({len(d['nhit_chan'])} events)",
              f"#   sim : {args.sim} ({len(s['nhit_chan'])} events)",
+             "" if h is None else f"#   data, hit-bit selection: {args.data_hitbit} ({len(h['nhit_chan'])} events)",
              "" if u is None else f"#   undigitised: {args.sim_undigi} ({len(u['nhit_chan'])} events, cells > {args.undigi_mip_cut:g} MIP)",
              "" if args.energy is None else f"#   beam energy: {args.energy:g} GeV",
              "",
@@ -403,7 +429,9 @@ def main(argv=None) -> int:
              f"{'core sigma':>12}{'sigma/mu':>10}{'raw s/m':>9}"]
     for key, label in (("sum_hg", "ADC"), ("nhit_chan", "hits"), ("sum_energy", "MIP"),
                        ("sum_w_energy", "W-weighted")):
-        for side, st in (("data", stats[key][0]), ("sim", stats[key][1])) + ((("nodigi", stats[key][2]),) if u is not None else ()):
+        sides = ((("hitbit", stats[key][-1]),) if h is not None else ()) + (("data", stats[key][0]), ("sim", stats[key][1])) \
+            + ((("nodigi", stats[key][2]),) if u is not None else ())
+        for side, st in sides:
             lines.append(f"{label:<12}{side:<6}{st['mean']:>10.1f}{st['peak']:>10.1f}"
                          f"{st['mu']:>10.1f}{st['sigma']:>12.1f}{st['res']:>10.4f}"
                          f"{st['raw_res']:>9.3f}")
