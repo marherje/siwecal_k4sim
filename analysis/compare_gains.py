@@ -41,8 +41,8 @@ ANCHOR = {
     "th230": {"k": 0.0961, "c": 1.60, "source_run": "run 12"},
 }
 
-C_DATA = "#14407f"
-C_SIM = "#b03024"
+C_DATA = "#29a3dc"
+C_SIM = "#c0392b"
 C_GRID = "#d8d8d4"
 C_INK = "#0b0b0b"
 C_INK_SOFT = "#52514e"

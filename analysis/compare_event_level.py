@@ -31,8 +31,8 @@ import sys
 
 import numpy as np
 
-C_DATA = "#14407f"        # data, adc selection: dark blue, solid
-C_SIM = "#b03024"         # simulation, digitised: dark red, solid
+C_DATA = "#29a3dc"        # data, adc selection: sky blue, solid
+C_SIM = "#c0392b"         # simulation, digitised: red, solid
 N_LAYERS = 15
 
 
@@ -268,8 +268,8 @@ def main(argv=None) -> int:
             from analysis.compare_adc_data_sim import load_mip_table
             table = load_mip_table(args.mip_file)
         u = load_undigitised(args.sim_undigi, table, args.undigi_mip_cut, adc_per_mip=args.undigi_adc_per_mip)
-    C_UNDIGI = "#e8856b"   # simulation, no digitisation: light red, dashed
-    C_HITBIT = "#8fc1ec"   # data, hit-bit selection: light blue, dotted
+    C_UNDIGI = "#ee9578"   # simulation, no digitisation: pale red, dashed
+    C_HITBIT = "#9fd3ef"   # data, hit-bit selection: pale blue, dotted
     U_LABEL = "sim (no digitisation)"
 
     stats = {}
