@@ -139,6 +139,14 @@ HIT_SELECTION = os.environ.get("HIT_SELECTION", "chip")
 if HIT_SELECTION not in ("cell", "chip"):
     raise SystemExit(f"HIT_SELECTION='{HIT_SELECTION}' is not one of 'cell', 'chip'.")
 ADC_HIT_THRESHOLD = float(os.environ.get("ADC_HIT_THRESHOLD", "30"))
+# The MIP table that reconstructs the simulated ADC back into MIP.  Empty (the
+# default) = the set's own, what Reconstruction_adc uses.  th210 = what the
+# Reconstruction_adc_th210 campaign uses for every run (the only table fitted
+# with the discriminator below the MIP peak); a sample compared with those trees
+# must be reconstructed with it too.  Masking and pedestals stay with the set.
+RECO_TABLE_THRESHOLD = os.environ.get("RECO_TABLE_THRESHOLD", "")
+if RECO_TABLE_THRESHOLD and RECO_TABLE_THRESHOLD not in _CALIB:
+    raise SystemExit(f"RECO_TABLE_THRESHOLD='{RECO_TABLE_THRESHOLD}' has no entry in mappings/digi_calibration.yml.")
 DIGI_MODE = os.environ.get("DIGI_MODE", "real")
 if DIGI_MODE not in ("simple", "real", "both"):
     raise SystemExit(
@@ -321,7 +329,8 @@ if DIGI_MODE in ("real", "both"):
         adc.AdcHighCollection = "SiPadHitsRealAdcHigh"
         adc.AdcLowCollection  = "SiPadHitsRealAdcLow"
         adc.CalibDir        = CALIB_DIR
-        adc.CalibThreshold      = CALIB_THRESHOLD        # the table that RECONSTRUCTS
+        adc.CalibThreshold      = CALIB_THRESHOLD        # pedestals (+ the reco table by default)
+        adc.RecoTableThreshold  = RECO_TABLE_THRESHOLD   # the table that RECONSTRUCTS, if not the set's own
         # ADC_PER_MIP_OVERRIDE is how analysis/fit_adc_scale.py turns the scale
         # while it iterates, without rewriting the YAML on every pass.
         adc.AdcPerMip           = float(os.environ.get("ADC_PER_MIP_OVERRIDE",

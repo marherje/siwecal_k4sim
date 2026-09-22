@@ -99,7 +99,9 @@ public:
       info() << "[AdcDigitizer] AdcPerMip=" << m_adcPerMip.value()
              << " ADC/MIP (shape from " << m_gainShapeThreshold.value() << ", "
              << m_gainTable.nCalibrated << " channels), reconstruction table "
-             << m_calibThreshold.value() << " (" << m_recoTable.nCalibrated
+             << (m_recoTableThreshold.value().empty() ? m_calibThreshold.value()
+                                                      : m_recoTableThreshold.value())
+             << " (" << m_recoTable.nCalibrated
              << " channels), pedestals " << m_pedestals.nCalibrated << " entries"
              << endmsg;
       info() << "[AdcDigitizer] AdcHighMax=" << m_adcHighMax.value()
@@ -285,7 +287,14 @@ public:
 private:
   bool loadTables() {
     const std::string gainPath = tablePath("mips", m_gainShapeThreshold.value(), "MIP_");
-    const std::string recoPath = tablePath("mips", m_calibThreshold.value(), "MIP_");
+    // The table that turns the ADC back into MIP: the run's own set by default,
+    // or RecoTableThreshold when the data were reconstructed with another set's
+    // table (the Reconstruction_adc_th210 campaign converts every run with the
+    // th210 table, the only one fitted with the discriminator below the MIP
+    // peak).  Pedestals and, in ChannelMapper, the mask stay with CalibThreshold.
+    const std::string recoTh = m_recoTableThreshold.value().empty() ? m_calibThreshold.value()
+                                                                    : m_recoTableThreshold.value();
+    const std::string recoPath = tablePath("mips", recoTh, "MIP_");
     const std::string pedPath = tablePath("pedestals", m_calibThreshold.value(), "Pedestal_");
     std::string err;
 
@@ -441,6 +450,12 @@ private:
       this, "CalibThreshold", "th230",
       "Threshold set whose MIP table RECONSTRUCTS the hit -- the one the data "
       "run was reconstructed with"};
+  Gaudi::Property<std::string> m_recoTableThreshold{
+      this, "RecoTableThreshold", "",
+      "Threshold set whose MIP table turns the ADC back into MIP, when it is not "
+      "the run's own (empty = CalibThreshold). Must be the table the data were "
+      "reconstructed with: th210 for the Reconstruction_adc_th210 campaign. The "
+      "pedestals stay with CalibThreshold"};
   Gaudi::Property<double> m_adcPerMip{
       this, "AdcPerMip", 19.5,
       "ADC per MIP: the absolute charge scale, one value for every threshold set, "
