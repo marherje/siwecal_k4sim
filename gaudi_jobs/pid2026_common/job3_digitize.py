@@ -135,6 +135,13 @@ ADC_MODEL = os.environ.get("ADC_MODEL", "1") not in ("0", "no", "false")
 # 2026-09-22; see its adc_per_mip_source).
 GAIN_SHAPE_THRESHOLD = os.environ.get("GAIN_SHAPE_THRESHOLD", "th210")
 
+# PED_NOISE=1: the electronic noise is each cell's own pedestal width, from the
+# pedestal table of CALIB_DIR (AdcDigitizer PedestalNoise), and RealDigitizer's
+# scalar SlowNoiseMIP is switched off so the noise is not counted twice.  With the
+# fixed-SCA-pairing tables the noise is 1.37 ADC (th210 median), not the 1/12 MIP
+# (1.6 ADC) of the scalar default, which was tuned on the SCA-mixed tables.
+PED_NOISE = os.environ.get("PED_NOISE", "0") not in ("0", "", "no", "false")
+
 HIT_SELECTION = os.environ.get("HIT_SELECTION", "chip")
 if HIT_SELECTION not in ("cell", "chip"):
     raise SystemExit(f"HIT_SELECTION='{HIT_SELECTION}' is not one of 'cell', 'chip'.")
@@ -313,6 +320,10 @@ if DIGI_MODE in ("real", "both"):
         real.FastNoiseMIPPerLayer = _sig
         real.TriggerEfficiencyPerLayer = _eff
     real.RandomSeed = int(os.environ.get("REAL_RANDOM_SEED", 5489))
+    if PED_NOISE:
+        real.SlowNoiseMIP = 0.0
+    elif "REAL_SLOW_NOISE_MIP" in os.environ:
+        real.SlowNoiseMIP = float(os.environ["REAL_SLOW_NOISE_MIP"])
     real.DebugFrequency = 500
 
     top_alg += [real,
@@ -353,6 +364,10 @@ if DIGI_MODE in ("real", "both"):
         adc.LowGainNoiseAdc     = float(TH.get("lg_noise_adc", 0.0))
         adc.LowGainSpread       = float(TH.get("lg_gain_spread", 0.0))
         adc.CalibGain           = "highgain"
+        adc.PedestalNoise       = PED_NOISE
+        # GAIN_SHRINK=1 (default with PED_NOISE): the gain shape's channel spread without the MPV fit error.
+        adc.GainShapeShrink     = os.environ.get("GAIN_SHRINK", "1" if PED_NOISE else "0") not in ("0", "", "no", "false")
+        adc.PedestalNoiseFallback = float(TH.get("pedestal_noise_adc", 1.37))
         # per-slab: a slab's table offset (slab 12's truncated MIP fit, layer 14's
         # thicker sensor that the geometry already carries) is not gain.
         adc.GainShapeNormalisation = os.environ.get("GAIN_SHAPE_NORM", "per-slab")

@@ -103,7 +103,7 @@ public:
                                                       : m_recoTableThreshold.value())
              << " (" << m_recoTable.nCalibrated
              << " channels), pedestals " << m_pedestals.nCalibrated << " entries"
-             << endmsg;
+             << (m_pedestalNoise.value() ? ", per-cell pedestal noise ON" : "") << endmsg;
       info() << "[AdcDigitizer] AdcHighMax=" << m_adcHighMax.value()
              << "  SaturationOrder=" << m_saturationOrder.value()
              << "  SaturationAdc=" << m_saturationAdc.value()
@@ -191,7 +191,26 @@ public:
           //    are fitted per set from the electron data's own hit_lg-vs-hit_hg
           //    relation (analysis/compare_gains.py), where the linear low gain
           //    gives the true charge and the high gain shows what it did with it.
-          const double high = rollOver(idealPedsub);
+          double high = rollOver(idealPedsub);
+          // Electronic noise of the cell, from the pedestal table's own fitted width
+          // (per channel and SCA), after the roll-over: it is the readout's, not the
+          // charge's.  The pedestal widths of the fixed-SCA-pairing tables (median
+          // 1.37 ADC at th210) are the measured noise; a scalar SlowNoiseMIP in
+          // RealDigitizer stands in for it when this is off.
+          if (m_pedestalNoise.value()) {
+            // Per (channel, SCA) when the SCA is real, else the channel's mean over its SCAs.
+            double w = m_pedestalNoisePerSca.value() ? m_pedestals.widthAt(slab, chip, channel, sca)
+                                                     : m_pedestals.meanWidth(slab, chip, channel);
+            if (std::isnan(w)) w = m_pedestalNoiseFallback.value();
+            if (w > 0.0) {
+              const auto seed = static_cast<std::uint64_t>(m_randomSeed.value()) * 31ULL
+                  + 0xbf58476d1ce4e5b9ULL * static_cast<std::uint64_t>(evtNum + 1)
+                  + static_cast<std::uint64_t>(hitIndex);
+              std::mt19937_64 rng(seed);
+              std::normal_distribution<double> gauss(0.0, 1.0);
+              high += w * gauss(rng);
+            }
+          }
           // The low gain is not a line in the data: around the anchor there is
           // a 3.4-3.9 LG-ADC pedestal width of its own, and a ~5 % dispersion
           // of the gain ratio from channel to channel (analysis/compare_gains.py
@@ -392,11 +411,58 @@ private:
         if (std::isfinite(m_gainTable.mpv[i])) vals.push_back(m_gainTable.mpv[i]);
       }
       const double median = vals.empty() ? global : medianOf(vals);
-      for (std::size_t i = first; i < last; ++i) m_gainTable.mpv[i] /= median;
+      for (std::size_t i = first; i < last; ++i) {
+        m_gainTable.mpv[i] /= median;
+        m_gainTable.err[i] /= median;
+      }
       info() << " " << slab << ":" << std::fixed << std::setprecision(2) << median / global;
     }
     info() << endmsg;
+    if (m_gainShapeShrink.value()) shrinkGainShape();
     return true;
+  }
+
+  // The table's channel-to-channel spread is the true gain spread PLUS each MPV's
+  // fit error (th210, fixed decoding: 4.6 % measured per slab, 2.5 % median fit
+  // error, so ~3.9 % true).  Used as it is, the simulation gets more smearing than
+  // the detector has.  Per slab, the true variance is estimated as the robust
+  // measured variance minus the mean squared fit error, and every channel is pulled
+  // toward the slab's median by its own reliability,
+  //   r -> 1 + (r - 1) * s_true^2 / (s_true^2 + e_r^2)
+  // (the linear shrinkage estimator of the true r given its measurement), which
+  // leaves channels with precise fits where they are and does not invent
+  // variation for the poorly measured ones.  Channels without an error keep r.
+  void shrinkGainShape() {
+    info() << "[AdcDigitizer] gain shape shrinkage per slab (measured -> true spread):";
+    for (int slab = 0; slab < siwecal::kSlabs; ++slab) {
+      const std::size_t first = static_cast<std::size_t>(slab) * siwecal::kChips * siwecal::kChannels;
+      const std::size_t last = first + siwecal::kChips * siwecal::kChannels;
+      std::vector<double> r, e2;
+      for (std::size_t i = first; i < last; ++i) {
+        if (std::isfinite(m_gainTable.mpv[i]) && std::isfinite(m_gainTable.err[i])) {
+          r.push_back(m_gainTable.mpv[i]);
+          e2.push_back(m_gainTable.err[i] * m_gainTable.err[i]);
+        }
+      }
+      if (r.size() < 20) continue;
+      std::vector<double> sorted = r;
+      std::sort(sorted.begin(), sorted.end());
+      const double q16 = sorted[static_cast<std::size_t>(0.16 * (sorted.size() - 1))];
+      const double q84 = sorted[static_cast<std::size_t>(0.84 * (sorted.size() - 1))];
+      const double varMeas = std::pow(0.5 * (q84 - q16), 2);
+      std::vector<double> e2s = e2;
+      const double e2Typ = medianOf(e2s);
+      const double varTrue = std::max(varMeas - e2Typ, 0.0);
+      for (std::size_t i = first; i < last; ++i) {
+        if (!std::isfinite(m_gainTable.mpv[i]) || !std::isfinite(m_gainTable.err[i])) continue;
+        const double ei2 = m_gainTable.err[i] * m_gainTable.err[i];
+        const double k = (varTrue + ei2) > 0.0 ? varTrue / (varTrue + ei2) : 0.0;
+        m_gainTable.mpv[i] = 1.0 + (m_gainTable.mpv[i] - 1.0) * k;
+      }
+      info() << " " << slab << ":" << std::fixed << std::setprecision(3) << std::sqrt(varMeas) << "->"
+             << std::sqrt(varTrue);
+    }
+    info() << endmsg;
   }
 
   /// <CalibDir>/<kind>/<threshold>/<prefix>*_<gain>.txt, resolved by globbing the
@@ -466,6 +532,10 @@ private:
       "Threshold set whose MIP table supplies the channel-to-channel VARIATION "
       "of the gain (normalised to its own median). Only the shape is taken from "
       "it, never the scale -- that is AdcPerMip"};
+  Gaudi::Property<bool> m_gainShapeShrink{
+      this, "GainShapeShrink", false,
+      "Remove the MPV fit error from the gain shape's channel-to-channel spread "
+      "(per-slab linear shrinkage toward the slab median, see shrinkGainShape)"};
   Gaudi::Property<std::string> m_gainShapeNormalisation{
       this, "GainShapeNormalisation", "global",
       "'global': the gain-shape table is divided by the detector median; 'per-slab': each "
@@ -502,6 +572,19 @@ private:
       "amplitude, i.e. the channel-to-channel dispersion of the gain ratio"};
   Gaudi::Property<unsigned long long> m_randomSeed{
       this, "RandomSeed", 7919ULL, "Base seed; each hit draws from seed+event+index"};
+  Gaudi::Property<bool> m_pedestalNoise{
+      this, "PedestalNoise", false,
+      "Add each cell's electronic noise to the high gain: a Gaussian of the pedestal "
+      "table's fitted width at (slab, chip, channel, sca). Use with RealDigitizer "
+      "SlowNoiseMIP = 0, which otherwise adds a scalar noise before the ADC"};
+  Gaudi::Property<bool> m_pedestalNoisePerSca{
+      this, "PedestalNoisePerSca", false,
+      "Take the noise of the hit's own SCA; false (default, the simulation's sca is always 0) "
+      "averages the channel's widths over its fitted SCAs"};
+  Gaudi::Property<double> m_pedestalNoiseFallback{
+      this, "PedestalNoiseFallback", 1.37,
+      "Noise [ADC] where the pedestal table has no width (median th210 width, fixed "
+      "SCA pairing)"};
   Gaudi::Property<double> m_pedestalFallback{
       this, "PedestalFallback", 245.0,
       "Pedestal used where the table has none [ADC]"};
