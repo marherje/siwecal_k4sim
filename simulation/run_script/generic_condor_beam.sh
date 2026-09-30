@@ -53,6 +53,9 @@ for physlist in ${physl[@]}; do
     [ -n "${RANGE_CUT_MM}" ] && rctag="_rc${RANGE_CUT_MM}"
     phystag=""
     [ "${physlist}" != "QGSP_BERT" ] && phystag="_${physlist}"
+    # PHYSTAG (even empty) replaces that suffix, for a series whose name already
+    # carries its physics list in OUTPUT_TAG (e.g. _beamline_real_w1924_mat_emz).
+    [ -n "${PHYSTAG+x}" ] && phystag="${PHYSTAG}"
     label=${physlist}_SiWECAL_beam_${particle}_${energy}GeV_xy_${pos_x}_${pos_y}_sigx${sigma_x}_sigy${sigma_y}_sigE${sigma_E}${OUTPUT_TAG}${rctag}
 
     gpsmac=gps_${label}.mac

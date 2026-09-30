@@ -167,7 +167,10 @@ with open(os.path.join(REPO_ROOT, "mappings", "slab_z_positions.yml")) as _zf:
     SLAB_Z = [float(_z) for _z in yaml.safe_load(_zf)["slab_z_mm"]]
 
 COMPACT_FILE = os.path.join(REPO_ROOT, "simulation", "geometry", "SND_compact.xml")
-CALIB_DIR    = os.path.join(REPO_ROOT, "masking_info/calibration/MuonCalib_gaudi")
+# DIGI_CALIB_DIR points the whole table lookup (masking, gain shape, reco table) at
+# another MuonCalib_gaudi-style tree, e.g. masking_info/calibration/MuonCalib_gaudi_fixed
+# (the th210 table re-derived on the fixed-SCA-pairing chunks, in every threshold slot; see its README).
+CALIB_DIR    = os.environ.get("DIGI_CALIB_DIR") or os.path.join(REPO_ROOT, "masking_info/calibration/MuonCalib_gaudi")
 
 # The per-slab hardware description (technology, sensor thickness, pad map,
 # threshold DAC) -- the same YAML the test-beam repo carries.  Which slab is the

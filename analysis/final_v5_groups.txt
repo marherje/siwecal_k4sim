@@ -1,0 +1,64 @@
+# Groups of the final TB2026 shower panels (analysis/final_panels.py) and of the final_v5 simulation
+# (analysis/run_sim_chain.sh). One line per (threshold set, beam energy [GeV], beam position):
+#   <set> <E> <x_y> <runs>
+# <x_y>: beam centre of the simulated sample [mm] = median shower barycentre (bar_x, bar_y) of the group in
+#        Reconstructed_final (analysis/verify_final_campaign.py -> Reconstructed_final/verify_final.txt), rounded
+#        to 1 mm; earlier samples reused where within 2 mm.
+# <runs>: comma-separated, 'e' prefix = eudaq run. Normal incidence, e+/e- only. Energies and positions are the
+#        MEASURED ones: runs 68-71 are 74 GeV (not 20), run 58 (99 GeV) sits at (-40, 40), runs 56 and 65 at
+#        (-3, -1), whatever the run summary says.
+#
+# th210 energy scan (eudaq 285-293)
+th210 7.5 17_-50 e293
+th210 10  19_-51 e292
+th210 20  24_-51 e291
+th210 34  26_-51 e288
+th210 52  24_-51 e287
+th210 74  22_-49 e286
+th210 99  22_-48 e285
+# th210 99 GeV at four positions
+th210 99  1_-31  e166
+th210 99  28_-30 e167
+th210 99  -39_-30 e168
+th210 99  -40_52 e169
+# th230, E1
+th230 7.5 -47_48 22
+th230 10  -42_49 21
+th230 20  -39_51 20
+th230 34  -37_51 15
+th230 52  -42_51 13
+th230 74  -42_53 12
+# th230, E2
+th230 7.5 -44_-35 24
+th230 10  -44_-36 25
+th230 20  -41_-35 26
+th230 34  -40_-35 27
+th230 52  -43_-34 28
+th230 74  -43_-33 29
+# th230, E3
+th230 7.5 36_-34 40
+th230 10  40_-35 36
+th230 20  45_-34 35
+th230 34  47_-35 32
+th230 52  46_-34 31
+th230 74  45_-33 30
+# th230, E4
+th230 7.5 -8_-34 41
+th230 10  -5_-35 42
+th230 20  2_-34  43
+th230 34  3_-34  44
+th230 52  0_-33  45
+th230 74  0_-32  46
+# th230, E5
+th230 7.5 -8_7   57
+th230 10  -3_-1  56
+th230 20  2_6    55
+th230 34  4_7    51
+th230 52  1_9    50
+th230 74  0_9    47
+th230 99  -1_10  48
+th230 99  -40_40 58
+# th220, U1
+th220 20  -40_34 67
+th220 74  -40_37 66,68,69,70,71,72
+th220 74  -3_-1  65
