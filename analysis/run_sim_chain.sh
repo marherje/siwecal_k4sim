@@ -3,6 +3,7 @@
 # and undigitised (simple) ecal trees -> ECalPid edm4hep (hit MIP cut 0.5).
 #
 #   bash analysis/run_sim_chain.sh <E_GeV> <x_mm> <y_mm> <set: th210|th220|th230> [<out_base>]
+#   (also writes the valtree next to each PID file; condor: analysis/submit_sim_chain.sh)
 #
 # Input : Simulation/Generated/output_beam_e-_<E>GeV_xy_<x>_<y>_sigx13.75_sigy8.25_sigE0.02_beamline_real_w1924_mat_emz.edm4hep.root
 # Output: <out_base>/trees/ecal_<set>_e<E>_<x>_<y>{,_simple}.root
@@ -62,6 +63,10 @@ for mode in real simple; do
       > "$W/pid_$mode.log" 2>&1) || { echo "pid FAILED $tag $mode"; tail -5 "$W/pid_$mode.log"; exit 1; }
     cp "$W/pid_$mode"/*.edm4hep.root "$pid"/
   fi
+  # valtree next to the PID file (gaudi_jobs/pid_to_valtree.py skips an existing one)
+  (cd "$T" && source "$T/setup.sh" >/dev/null 2>&1 && \
+    python3 gaudi_jobs/pid_to_valtree.py "$pid"/*.edm4hep.root > "$W/valtree_$mode.log" 2>&1) \
+    || { echo "valtree FAILED $tag $mode"; tail -5 "$W/valtree_$mode.log"; exit 1; }
 done
 rm -rf "$W"
 echo "DONE $tag"
