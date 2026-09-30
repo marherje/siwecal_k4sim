@@ -1,21 +1,15 @@
-_comment: "Per-threshold digitisation calibration. ONE file, read by gaudi_jobs/pid2026_common/job3_digitize.py\
-  \ through CALIB_THRESHOLD.\nNothing here is inherited from another threshold set:\
-  \ each one is anchored to test-beam data of its own set.\n  threshold_adc / sigma_mip\
-  \ / efficiency : the trigger, fitted from hitbit_high by analysis/trigger_turnon.py\n\
-  \  adc_per_mip                            : the absolute ADC scale, the gain: ONE\
-  \ value for all sets (the preamp gain does not depend on the trigger DAC), measured\
-  \ on the set whose discriminator sits below the MIP peak (th210); see adc_per_mip_source\n\
-  \  adc_high_max / saturation_order        : the dynamic range, the roll-over fitted\
-  \ to that set's ELECTRON hit_lg-vs-hit_hg relation (analysis/compare_gains.py --write)\n\
-  The trigger threshold RealDigitizer applies is threshold_adc / adc_per_mip.\nHit\
-  \ selection: the data trees these were fitted against use EcalEventBuilder HitSelection=adc\
-  \ (hit bit OR adc-ped > 30, largest SCA) and the simulation HIT_SELECTION=chip,\
-  \ the same rule.\nslab_overrides: slabs that ran at a discriminator of their own\
-  \ (slab 12, the FEV11 chip-on-board, at DAC 243), measured per slab from hitbit_high;\
-  \ RealDigitizer gets them as ThresholdPerLayer / FastNoiseMIPPerLayer / TriggerEfficiencyPerLayer.\n\
-  2026-09-30: trigger model re-measured on the fixed-SCA-pairing chunks; electronic\
-  \ noise per cell from the fixed pedestal tables (PED_NOISE=1 in job3_digitize.py)\
-  \ instead of RealDigitizer SlowNoiseMIP."
+_comment: "Per-threshold digitisation calibration. ONE file, read by gaudi_jobs/pid2026_common/job3_digitize.py through CALIB_THRESHOLD.\n\
+  Nothing here is inherited from another threshold set: each one is anchored to test-beam data of its own set.\n  threshold_adc\
+  \ / sigma_mip / efficiency : the trigger, fitted from hitbit_high by analysis/trigger_turnon.py\n  adc_per_mip         \
+  \                   : the absolute ADC scale, the gain: ONE value for all sets (the preamp gain does not depend on the trigger\
+  \ DAC), measured on the set whose discriminator sits below the MIP peak (th210); see adc_per_mip_source\n  adc_high_max\
+  \ / saturation_order        : the dynamic range, the roll-over fitted to that set's ELECTRON hit_lg-vs-hit_hg relation (analysis/compare_gains.py\
+  \ --write)\nThe trigger threshold RealDigitizer applies is threshold_adc / adc_per_mip.\nHit selection: the data trees these\
+  \ were fitted against use EcalEventBuilder HitSelection=adc (hit bit OR adc-ped > 30, largest SCA) and the simulation HIT_SELECTION=chip,\
+  \ the same rule.\nslab_overrides: slabs that ran at a discriminator of their own (slab 12, the FEV11 chip-on-board, at DAC\
+  \ 243), measured per slab from hitbit_high; RealDigitizer gets them as ThresholdPerLayer / FastNoiseMIPPerLayer / TriggerEfficiencyPerLayer.\n\
+  2026-09-30: trigger model re-measured on the fixed-SCA-pairing chunks; electronic noise per cell from the fixed pedestal\
+  \ tables (PED_NOISE=1 in job3_digitize.py) instead of RealDigitizer SlowNoiseMIP."
 thresholds:
   th210:
     threshold_adc: 16.11
@@ -23,18 +17,15 @@ thresholds:
     efficiency: 0.9901
     turnon_source_run: TB2026CERN_eudaq_run_000253
     adc_per_mip: 18.75
-    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know
-      the trigger DAC), re-measured 2026-09-30 on th210 muons (eudaq 151, Reconstructed_final_muons_adc:
-      fixed SCA pairing, fixed th210 pedestals) against a 150 GeV muon sample with
-      the run-151 beam profile, digitised with per-cell pedestal noise and the measured
-      3.2 % gain spread: Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54
-      (486/63 bins), tag-and-probe layer efficiency 19.63 (depends on the trigger
-      model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose
-      muon peak was wider than any simulation.'
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 19.07
     adc_high_max: 1947.6
-    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root
-      (hit_lg-vs-hit_hg, 697184 hits)
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root (hit_lg-vs-hit_hg, 697184 hits)
     saturation_adc: 1500.0
     saturation_order: 5.12
     gain_ratio: 0.0924
@@ -45,13 +36,12 @@ thresholds:
         sigma_adc: 4.85
         efficiency: 0.9997
         turnon_source_run: TB2026CERN_eudaq_run_000253
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
-      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
-      in ADC, turned into MIP with this set''s adc_per_mip'
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
+      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
     lg_noise_adc: 1.36
     lg_gain_spread: 0.0551
-    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
-      ecal_TB2026CERN_eudaq_run_000286.root (5709551 hits, 30-1400 ADC)
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_eudaq_run_000286.root
+      (5709551 hits, 30-1400 ADC)
     trigger_legacy_decoding:
       threshold_adc: 16.26
       sigma_mip: 0.1503
@@ -67,45 +57,38 @@ thresholds:
           sigma_adc: 3.89
           efficiency: 0.9966
           turnon_source_run: TB2026CERN_eudaq_run_000253
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed),
-      MIP axis on MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in
-      ADC / adc_per_mip (RealDigitizer works in true MIP). Previous values under trigger_legacy_decoding.
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+      MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
+      Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.367
-    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of
-      this set; the digitiser takes each channel's own width from the table (AdcDigitizer
-      PedestalNoise, PED_NOISE=1)
+    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
+      own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
     gain_true_spread: 0.032
-    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab,
-      median over slabs of sqrt(cov) of the th210 and th220 fixed MIP tables (independent
-      muon runs; the fit errors do not correlate): 0.032. The table alone has 0.046;
-      subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate
-      the fit scatter.'
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
     gain_anchor_legacy_decoding:
       gain_ratio: 0.0925
       gain_intercept: 2.24
-    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing
-      chunks of TB2026CERN_eudaq_run_000166 with the fixed th210 pedestals (siwecal-tb2026
-      calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
-      this set with
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_eudaq_run_000166
+      with the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final
+      reconstructs this set with
   th220:
     threshold_adc: 20.23
     sigma_mip: 0.1836
     efficiency: 0.8753
     turnon_source_run: TB2026CERN_run_000072
     adc_per_mip: 18.75
-    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know
-      the trigger DAC), re-measured 2026-09-30 on th210 muons (eudaq 151, Reconstructed_final_muons_adc:
-      fixed SCA pairing, fixed th210 pedestals) against a 150 GeV muon sample with
-      the run-151 beam profile, digitised with per-cell pedestal noise and the measured
-      3.2 % gain spread: Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54
-      (486/63 bins), tag-and-probe layer efficiency 19.63 (depends on the trigger
-      model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose
-      muon peak was wider than any simulation.'
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 21.33
     adc_high_max: 1916.5
-    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg,
-      837807 hits)
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg, 837807 hits)
     saturation_adc: 1500.0
     saturation_order: 6.42
     gain_ratio: 0.0964
@@ -116,13 +99,12 @@ thresholds:
         sigma_adc: 5.16
         efficiency: 0.9987
         turnon_source_run: TB2026CERN_run_000072
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
-      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
-      in ADC, turned into MIP with this set''s adc_per_mip'
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
+      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
     lg_noise_adc: 1.83
     lg_gain_spread: 0.0557
-    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
-      ecal_TB2026CERN_run_000072.root (6992814 hits, 30-1400 ADC)
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_run_000072.root (6992814
+      hits, 30-1400 ADC)
     trigger_legacy_decoding:
       threshold_adc: 19.67
       sigma_mip: 0.1654
@@ -133,26 +115,22 @@ thresholds:
           sigma_adc: 4.94
           efficiency: 0.9295
           turnon_source_run: TB2026CERN_run_000072
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed),
-      MIP axis on MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in
-      ADC / adc_per_mip (RealDigitizer works in true MIP). Previous values under trigger_legacy_decoding.
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+      MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
+      Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.415
-    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of
-      this set; the digitiser takes each channel's own width from the table (AdcDigitizer
-      PedestalNoise, PED_NOISE=1)
+    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
+      own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
     gain_true_spread: 0.032
-    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab,
-      median over slabs of sqrt(cov) of the th210 and th220 fixed MIP tables (independent
-      muon runs; the fit errors do not correlate): 0.032. The table alone has 0.046;
-      subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate
-      the fit scatter.'
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
     gain_anchor_legacy_decoding:
       gain_ratio: 0.0963
       gain_intercept: 1.29
-    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing
-      chunks of TB2026CERN_run_000072 with the fixed th210 pedestals (siwecal-tb2026
-      calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000072 with
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
       this set with
   th230:
     threshold_adc: 26.07
@@ -160,28 +138,20 @@ thresholds:
     efficiency: 0.8783
     turnon_source_run: TB2026CERN_run_000013
     adc_per_mip: 18.75
-    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know
-      the trigger DAC), re-measured 2026-09-30 on th210 muons (eudaq 151, Reconstructed_final_muons_adc:
-      fixed SCA pairing, fixed th210 pedestals) against a 150 GeV muon sample with
-      the run-151 beam profile, digitised with per-cell pedestal noise and the measured
-      3.2 % gain spread: Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54
-      (486/63 bins), tag-and-probe layer efficiency 19.63 (depends on the trigger
-      model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose
-      muon peak was wider than any simulation.'
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 22.39
     adc_high_max: 1915.3
-    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000012.root (hit_lg-vs-hit_hg,
-      1012600 hits)
+    adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000012.root (hit_lg-vs-hit_hg, 1012600 hits)
     saturation_adc: 1500.0
     saturation_order: 6.45
     gain_ratio: 0.0958
     gain_intercept: 1.62
     slab_overrides:
-      0:
-        threshold_adc: 23.83
-        sigma_adc: 1.58
-        efficiency: 0.6725
-        turnon_source_run: TB2026CERN_run_000013
       12:
         threshold_adc: 31.56
         sigma_adc: 3.32
@@ -192,13 +162,12 @@ thresholds:
         sigma_adc: 3.86
         efficiency: 0.9983
         turnon_source_run: TB2026CERN_run_000013
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator
-      level sits > 3 sigma (of the per-slab scatter) from the all-slab fit; threshold/sigma
-      in ADC, turned into MIP with this set''s adc_per_mip'
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
+      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
     lg_noise_adc: 1.61
     lg_gain_spread: 0.0557
-    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg,
-      ecal_TB2026CERN_run_000012.root (8025687 hits, 30-1400 ADC)
+    lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_run_000012.root (8025687
+      hits, 30-1400 ADC)
     trigger_legacy_decoding:
       threshold_adc: 25.36
       sigma_mip: 0.1408
@@ -214,24 +183,28 @@ thresholds:
           sigma_adc: 5.52
           efficiency: 0.9923
           turnon_source_run: TB2026CERN_run_000013
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed),
-      MIP axis on MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in
-      ADC / adc_per_mip (RealDigitizer works in true MIP). Previous values under trigger_legacy_decoding.
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+      MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
+      Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.445
-    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of
-      this set; the digitiser takes each channel's own width from the table (AdcDigitizer
-      PedestalNoise, PED_NOISE=1)
+    pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
+      own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
     gain_true_spread: 0.032
-    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab,
-      median over slabs of sqrt(cov) of the th210 and th220 fixed MIP tables (independent
-      muon runs; the fit errors do not correlate): 0.032. The table alone has 0.046;
-      subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate
-      the fit scatter.'
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
     gain_anchor_legacy_decoding:
       gain_ratio: 0.0961
       gain_intercept: 1.6
-    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing
-      chunks of TB2026CERN_run_000012 with the fixed th210 pedestals (siwecal-tb2026
-      calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000012 with
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
       this set with
+    slab_overrides_dropped:
+      0:
+        threshold_adc: 23.83
+        sigma_adc: 1.58
+        efficiency: 0.6725
+        turnon_source_run: TB2026CERN_run_000013
+        reason: 'plateau 0.67 with a 1.6 ADC wide turn-on: the slab-0 S-curve is distorted by its dead chips; with it the
+          simulated layer-0 profile falls from 0.75 to 0.66 of the data (analysis/perslab_effect.py, th230 52 GeV)'
