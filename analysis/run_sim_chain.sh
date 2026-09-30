@@ -14,6 +14,7 @@
 #   DIGI_CALIB_DIR   MuonCalib_gaudi-style table tree for the digitiser (default: masking_info/calibration/MuonCalib_gaudi_fixed)
 #   RECO_TABLE       table that reconstructs the simulated ADC (default th210, like Reconstructed_final)
 #   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry fractal_dimension)
+#   DDSIM_SUFFIX     suffix of a ddsim variant after _w1924_mat_emz (e.g. _chipair, _rc0.1); use with <out_base>
 #   WORK             scratch dir (default ${TMPDIR:-/tmp}/sim_chain_$USER)
 #   PED_NOISE        1 (default): per-cell noise and true gain spread in the digitiser; 0 = the scalar noise
 #   FORCE=1          redo steps whose output exists; FORCE_DIGI=1 redoes only the digitised (real) branch
@@ -27,7 +28,7 @@ export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-$R/masking_info/calibration/MuonCalib_ga
 RECO_TABLE=${RECO_TABLE:-th210}
 # per-cell electronic noise from the fixed pedestal tables + gain spread without fit error (job3_digitize.py)
 export PED_NOISE=${PED_NOISE:-1}
-in=$B/Generated/output_beam_e-_${E}GeV_xy_${X}_${Y}_sigx13.75_sigy8.25_sigE0.02_beamline_real_w1924_mat_emz.edm4hep.root
+in=$B/Generated/output_beam_e-_${E}GeV_xy_${X}_${Y}_sigx13.75_sigy8.25_sigE0.02_beamline_real_w1924_mat_emz${DDSIM_SUFFIX:-}.edm4hep.root
 tag=${SET}_e${E}_${X}_${Y}
 W=${WORK:-${TMPDIR:-/tmp}/sim_chain_$USER}/$tag
 
