@@ -452,11 +452,19 @@ private:
       const double varMeas = std::pow(0.5 * (q84 - q16), 2);
       std::vector<double> e2s = e2;
       const double e2Typ = medianOf(e2s);
-      const double varTrue = std::max(varMeas - e2Typ, 0.0);
+      const double target = m_gainShapeTrueSpread.value();
+      const double varTrue = target > 0.0 ? target * target : std::max(varMeas - e2Typ, 0.0);
       for (std::size_t i = first; i < last; ++i) {
-        if (!std::isfinite(m_gainTable.mpv[i]) || !std::isfinite(m_gainTable.err[i])) continue;
-        const double ei2 = m_gainTable.err[i] * m_gainTable.err[i];
-        const double k = (varTrue + ei2) > 0.0 ? varTrue / (varTrue + ei2) : 0.0;
+        if (!std::isfinite(m_gainTable.mpv[i])) continue;
+        double k;
+        if (target > 0.0) {
+          // measured true spread given: scale every deviation so the slab's spread is exactly it
+          k = varMeas > 0.0 ? std::min(1.0, std::sqrt(varTrue / varMeas)) : 1.0;
+        } else {
+          if (!std::isfinite(m_gainTable.err[i])) continue;
+          const double ei2 = m_gainTable.err[i] * m_gainTable.err[i];
+          k = (varTrue + ei2) > 0.0 ? varTrue / (varTrue + ei2) : 0.0;
+        }
         m_gainTable.mpv[i] = 1.0 + (m_gainTable.mpv[i] - 1.0) * k;
       }
       info() << " " << slab << ":" << std::fixed << std::setprecision(3) << std::sqrt(varMeas) << "->"
@@ -536,6 +544,11 @@ private:
       this, "GainShapeShrink", false,
       "Remove the MPV fit error from the gain shape's channel-to-channel spread "
       "(per-slab linear shrinkage toward the slab median, see shrinkGainShape)"};
+  Gaudi::Property<double> m_gainShapeTrueSpread{
+      this, "GainShapeTrueSpread", 0.0,
+      "With GainShapeShrink: the true relative channel-to-channel gain spread per slab. > 0 scales each "
+      "slab's deviations to exactly this spread (measured as sqrt(cov) of two independent MIP tables, "
+      "th210 x th220 fixed: 0.032); 0 estimates it from the table's own MPV errors"};
   Gaudi::Property<std::string> m_gainShapeNormalisation{
       this, "GainShapeNormalisation", "global",
       "'global': the gain-shape table is divided by the detector median; 'per-slab': each "

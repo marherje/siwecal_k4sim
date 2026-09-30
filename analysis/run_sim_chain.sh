@@ -16,7 +16,7 @@
 #   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry fractal_dimension)
 #   WORK             scratch dir (default ${TMPDIR:-/tmp}/sim_chain_$USER)
 #   PED_NOISE        1 (default): per-cell noise and true gain spread in the digitiser; 0 = the scalar noise
-#   FORCE=1          redo steps whose output exists
+#   FORCE=1          redo steps whose output exists; FORCE_DIGI=1 redoes only the digitised (real) branch
 # Rewritten from final_v3's chain_pos.sh + digi_recoth210.sh.
 E=${1:?energy}; X=${2:?x}; Y=${3:?y}; SET=${4:?set}
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -52,7 +52,8 @@ for mode in real simple; do
     out=$O/trees/ecal_${tag}.root; pid=$O/pid/${tag}_digi; reco=$RECO_TABLE
     coll=(-c SiPadHitsRealAdc --masking-collection "")
   fi
-  if [ "${FORCE:-0}" = 1 ] || [ ! -s "$out" ]; then
+  redo=${FORCE:-0}; [ $mode = real ] && [ "${FORCE_DIGI:-0}" = 1 ] && redo=1
+  if [ "$redo" = 1 ] || [ ! -s "$out" ]; then
     (cd "$W" && CALIB_THRESHOLD=$SET DIGI_MODE=$mode RECO_TABLE_THRESHOLD=$reco INPUT_FILE=$in \
       k4run "$R/gaudi_jobs/pid2026_common/job3_digitize.py" > "$W/job3_$mode.log" 2>&1) \
       || { echo "job3 FAILED $tag $mode"; tail -5 "$W/job3_$mode.log"; exit 1; }
@@ -60,15 +61,16 @@ for mode in real simple; do
       > "$W/conv_$mode.log" 2>&1 || { echo "conv FAILED $tag $mode"; tail -5 "$W/conv_$mode.log"; exit 1; }
     cp "$W/ecal.root" "$out" && rm -f "$W/digitized.edm4hep.root" "$W/ecal.root"
   fi
-  if [ "${FORCE:-0}" = 1 ] || ! ls "$pid"/*.edm4hep.root >/dev/null 2>&1; then
+  if [ "$redo" = 1 ] || ! ls "$pid"/*.edm4hep.root >/dev/null 2>&1; then
     (cd "$T" && source "$T/setup.sh" >/dev/null 2>&1 && \
       python3 gaudi_jobs/run_pid_batch.py --file "$out" --outdir "$W/pid_$mode" --format edm4hep --hit-mip-cut 0.5 \
       > "$W/pid_$mode.log" 2>&1) || { echo "pid FAILED $tag $mode"; tail -5 "$W/pid_$mode.log"; exit 1; }
     cp "$W/pid_$mode"/*.edm4hep.root "$pid"/
   fi
   # valtree next to the PID file (gaudi_jobs/pid_to_valtree.py skips an existing one)
+  vforce=""; [ "$redo" = 1 ] && vforce=--force
   (cd "$T" && source "$T/setup.sh" >/dev/null 2>&1 && \
-    python3 gaudi_jobs/pid_to_valtree.py "$pid"/*.edm4hep.root > "$W/valtree_$mode.log" 2>&1) \
+    python3 gaudi_jobs/pid_to_valtree.py $vforce "$pid"/*.edm4hep.root > "$W/valtree_$mode.log" 2>&1) \
     || { echo "valtree FAILED $tag $mode"; tail -5 "$W/valtree_$mode.log"; exit 1; }
 done
 rm -rf "$W"

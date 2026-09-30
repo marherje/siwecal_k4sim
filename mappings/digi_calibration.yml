@@ -16,13 +16,13 @@ thresholds:
     sigma_mip: 0.1708
     efficiency: 0.9901
     turnon_source_run: TB2026CERN_eudaq_run_000253
-    adc_per_mip: 19.5
-    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured
-      where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances
-      19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV
-      = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230
-      the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220
-      the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip: 18.75
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 19.07
     adc_high_max: 1950.6
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root (hit_lg-vs-hit_hg, 784270 hits)
@@ -63,18 +63,23 @@ thresholds:
     pedestal_noise_adc: 1.367
     pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
       own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
+    gain_true_spread: 0.032
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
+    adc_per_mip_legacy_decoding: 19.5
   th220:
     threshold_adc: 20.23
     sigma_mip: 0.1836
     efficiency: 0.8753
     turnon_source_run: TB2026CERN_run_000072
-    adc_per_mip: 19.5
-    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured
-      where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances
-      19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV
-      = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230
-      the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220
-      the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip: 18.75
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 21.33
     adc_high_max: 1916.8
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg, 963425 hits)
@@ -110,18 +115,23 @@ thresholds:
     pedestal_noise_adc: 1.415
     pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
       own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
+    gain_true_spread: 0.032
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
+    adc_per_mip_legacy_decoding: 19.5
   th230:
     threshold_adc: 26.07
     sigma_mip: 0.1918
     efficiency: 0.8783
     turnon_source_run: TB2026CERN_run_000013
-    adc_per_mip: 19.5
-    adc_per_mip_source: 'ONE gain for the three sets, 19.5 ADC/MIP: the preamplifier does not know the trigger DAC. Measured
-      where the discriminator sits below the MIP peak (th210, eudaq 151): spectrum-shape chi2 with both Poisson variances
-      19.1, tag-and-probe layer efficiency of muon tracks 19.7, and the th230 table bias x1.47 needs a threshold at 1.35 MPV
-      = 18.8 ADC/MIP. The per-set scans (19.07 / 21.33 / 22.39, 2026-09-18) were not measurements above the MIP: at th230
-      the Pearson chi2 of muon_gain_scan.py equalled the simulation''s own Poisson noise floor for gains 19-23, and at th220
-      the value tracked the 0.85 plateau measured on showers. 2026-09-22'
+    adc_per_mip: 18.75
+    adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
+      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
+      Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
+      on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
+      any simulation.'
     adc_per_mip_per_set_2026_09_18: 22.39
     adc_high_max: 1932.8
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000013.root (hit_lg-vs-hit_hg, 1018058 hits)
@@ -172,3 +182,8 @@ thresholds:
     pedestal_noise_adc: 1.445
     pedestal_noise_source: median pedestal width of the fixed-SCA-pairing table of this set; the digitiser takes each channel's
       own width from the table (AdcDigitizer PedestalNoise, PED_NOISE=1)
+    gain_true_spread: 0.032
+    gain_true_spread_source: 'true relative channel-to-channel gain spread per slab, median over slabs of sqrt(cov) of the
+      th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
+      0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
+    adc_per_mip_legacy_decoding: 19.5

@@ -367,6 +367,7 @@ if DIGI_MODE in ("real", "both"):
         adc.PedestalNoise       = PED_NOISE
         # GAIN_SHRINK=1 (default with PED_NOISE): the gain shape's channel spread without the MPV fit error.
         adc.GainShapeShrink     = os.environ.get("GAIN_SHRINK", "1" if PED_NOISE else "0") not in ("0", "", "no", "false")
+        adc.GainShapeTrueSpread = float(os.environ.get("GAIN_TRUE_SPREAD", TH.get("gain_true_spread", 0.0)))
         adc.PedestalNoiseFallback = float(TH.get("pedestal_noise_adc", 1.37))
         # per-slab: a slab's table offset (slab 12's truncated MIP fit, layer 14's
         # thicker sensor that the geometry already carries) is not gain.

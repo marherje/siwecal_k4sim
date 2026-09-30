@@ -5,6 +5,7 @@
 #   bash analysis/submit_sim_chain.sh [<out_dir for the .sub/logs>]
 #
 # Re-run it after more ddsim samples land: groups already complete are skipped.
+# ALL=1 FORCE_DIGI=1 bash analysis/submit_sim_chain.sh : every group, digitised branch redone (after a digitiser change).
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 D=${1:-$R/analysis/condor_sim_chain}
 G=/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated
@@ -19,7 +20,7 @@ grep -v '^#' "$R/analysis/final_v5_groups.txt" | awk 'NF>=4{print $1, $2, $3}' |
   for k in digi nodigi; do
     ls "$O/pid/${tag}_$k/"*.valtree.root >/dev/null 2>&1 || done_=0
   done
-  [ $done_ = 1 ] || echo "$E $x $y $th" >> "$list"
+  [ $done_ = 1 ] && [ "${ALL:-0}" != 1 ] || echo "$E $x $y $th" >> "$list"
 done
 n=$(wc -l < "$list")
 [ "$n" -gt 0 ] || { echo "nothing to submit"; exit 0; }
@@ -35,6 +36,7 @@ request_memory          = 4000
 request_disk            = 8000M
 should_transfer_files   = NO
 getenv                  = False
+environment             = "FORCE_DIGI=${FORCE_DIGI:-0}"
 max_retries             = 2
 +JobFlavour             = "longlunch"
 queue E, X, Y, TH from $list
