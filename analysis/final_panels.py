@@ -13,11 +13,11 @@ Writes <outdir>/panel_<group>.png, final_panels_summary.txt, resolution_vs_energ
 Inputs (environment overrides, for tests on other campaigns):
     FINAL_RECO   data campaign        (default TB2026-06/Reconstructed_final)
     FINAL_SIM    simulation folder    (default .../adc_vs_tb/final_v5; trees/ and pid/ inside)
-The simulation of group <set>_e<E>_<pos> is trees/ecal_<set>_e<E>_<pos>{,_simple}.root and
-pid/<set>_e<E>_<pos>_{digi,nodigi}/*.edm4hep.root.
+The simulation of group <set>_e<E>_<pos> is pid/<set>_e<E>_<pos>_{digi,nodigi}/*.valtree.root; the data
+<run>/ecal_<run>.valtree.root.
 
-Selection: shower-like events, nhit > 0.5 x p90 of the sample, applied separately to the ecal tree (energy block)
-and to the PID file (shape block), as in th210all_figs.py. Calibrated energy: straight line sum_w [MIP] = a E + b
+Inputs are the valtrees (gaudi_jobs/pid_to_valtree.py) of data and simulation: the PID stage's 0.5 MIP hit cut applies to
+every variable, identically in both. Selection: shower-like events, nhit > 0.5 x p90 of the sample. Calibrated energy: straight line sum_w [MIP] = a E + b
 per sample kind, fitted on the Gaussian-core means of the th210 scan at 7.5-74 GeV (99 GeV is left out: hadron
 contamination), applied to every group.
 """
@@ -86,36 +86,26 @@ def showerlike(n):
     return n > 0.5 * np.percentile(n, 90)
 
 
-def sim_paths(g, kind):
-    tree = f"{SIM}/trees/ecal_{g['name']}{'_simple' if kind == 'nodigi' else ''}.root"
-    pid = glob.glob(f"{SIM}/pid/{g['name']}_{kind}/*.edm4hep.root")
-    return tree, (pid[0] if pid else None)
+def sim_valtree(g, kind):
+    v = glob.glob(f"{SIM}/pid/{g['name']}_{kind}/*.valtree.root")
+    return v[0] if v else None
 
 
-def load_ecal(paths, data):
-    br = ["nhit_chan", "sum_hg", "sum_energy"] + (["sum_w_energy"] if data else ["hit_w_energy"])
-    cols = {b: [] for b in ENERGY_VARS}
+VT_BRANCHES = ["nhit_chan", "sum_hg", "sum_energy", "weighte"] + SHAPE_VARS
+
+
+def load_valtrees(paths):
+    """Every variable from the valtrees (pid_to_valtree.py): the PID stage's hit cut (0.5 MIP) applies to all of
+    them, identically in data and simulation. sum_w = weighte (tungsten-weighted energy)."""
+    cols = {b: [] for b in VT_BRANCHES}
     for p in paths:
-        for a in uproot.iterate(f"{p}:ecal", br, step_size="300 MB", library="np"):
-            cols["nhit_chan"].append(a["nhit_chan"]); cols["sum_hg"].append(a["sum_hg"])
-            cols["sum_energy"].append(a["sum_energy"])
-            cols["sum_w"].append(a["sum_w_energy"] if data else np.array([h.sum() for h in a["hit_w_energy"]]))
+        for a in uproot.iterate(f"{p}:ecal", VT_BRANCHES, step_size="400 MB", library="np"):
+            for b in VT_BRANCHES:
+                cols[b].append(a[b])
     c = {b: np.concatenate(v).astype(float) for b, v in cols.items()}
+    c["sum_w"] = c.pop("weighte")
     k = showerlike(c["nhit_chan"])
     return {b: v[k] for b, v in c.items()}
-
-
-def load_pid(paths):
-    from siwecal_common.edm4hep_pid import PidFileReader
-    parts = []
-    for p in paths:
-        r = PidFileReader(p)
-        cols = r.scalar_columns()
-        parts.append({v: np.asarray(cols[v], float) if v in cols else np.full(len(cols["nhit"]), np.nan)
-                      for v in ["nhit"] + SHAPE_VARS})
-    c = {v: np.concatenate([p[v] for p in parts]) for v in parts[0]}
-    k = showerlike(c["nhit"])
-    return {v: x[k] for v, x in c.items()}
 
 
 def group_samples(g, outdir, use_cache=True):
@@ -124,17 +114,12 @@ def group_samples(g, outdir, use_cache=True):
     if use_cache and os.path.exists(cache):
         z = np.load(cache)
         return {k: {v: z[f"{k}__{v}"] for v in keys} for k in KINDS}
-    s = {}
-    runs = [r for r in g["runs"] if os.path.exists(f"{RECO}/{r}/ecal_{r}.root")]
+    runs = [r for r in g["runs"] if os.path.exists(f"{RECO}/{r}/ecal_{r}.valtree.root")]
     if len(runs) != len(g["runs"]):
         print(f"[{g['name']}] WARNING: missing runs {sorted(set(g['runs']) - set(runs))}")
-    s["data"] = {**load_ecal([f"{RECO}/{r}/ecal_{r}.root" for r in runs], True),
-                 **load_pid([f"{RECO}/{r}/ecal_{r}.edm4hep.root" for r in runs])}
+    s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in runs])}
     for kind in ("nodigi", "digi"):
-        tree, pid = sim_paths(g, kind)
-        s[kind] = {**load_ecal([tree], False), **load_pid([pid])}
-    for kind in KINDS:
-        s[kind].pop("nhit", None)
+        s[kind] = load_valtrees([sim_valtree(g, kind)])
     os.makedirs(os.path.dirname(cache), exist_ok=True)
     np.savez(cache, **{f"{k}__{v}": s[k][v] for k in KINDS for v in keys})
     return s
