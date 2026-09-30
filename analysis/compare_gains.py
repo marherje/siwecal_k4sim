@@ -36,9 +36,11 @@ import numpy as np
 # The LG<->HG anchor measured per threshold set, from
 # siwecal-tb2026/calibration/MuonCalib_gaudi/anchor/<th>/gain_anchor_<th>.txt.
 ANCHOR = {
-    "th210": {"k": 0.0925, "c": 2.24, "source_run": "eudaq 166"},
-    "th220": {"k": 0.0963, "c": 1.29, "source_run": "run 72"},
-    "th230": {"k": 0.0961, "c": 1.60, "source_run": "run 12"},
+    # refitted 2026-09-30 on the fixed-SCA-pairing chunks with the fixed th210 pedestals
+    # (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the lines Reconstructed_final uses
+    "th210": {"k": 0.0924, "c": 2.35, "source_run": "eudaq 166"},
+    "th220": {"k": 0.0964, "c": 1.81, "source_run": "run 72"},
+    "th230": {"k": 0.0958, "c": 1.62, "source_run": "run 12"},
 }
 
 C_DATA = "#29a3dc"
