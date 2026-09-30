@@ -28,8 +28,8 @@ thresholds:
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_eudaq_run_000286.root (hit_lg-vs-hit_hg, 784270 hits)
     saturation_adc: 1500.0
     saturation_order: 4.77
-    gain_ratio: 0.0925
-    gain_intercept: 2.24
+    gain_ratio: 0.0924
+    gain_intercept: 2.35
     slab_overrides:
       12:
         threshold_adc: 22.94
@@ -68,6 +68,12 @@ thresholds:
       th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
       0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
+    gain_anchor_legacy_decoding:
+      gain_ratio: 0.0925
+      gain_intercept: 2.24
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_eudaq_run_000166
+      with the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final
+      reconstructs this set with
   th220:
     threshold_adc: 20.23
     sigma_mip: 0.1836
@@ -85,8 +91,8 @@ thresholds:
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000072.root (hit_lg-vs-hit_hg, 963425 hits)
     saturation_adc: 1500.0
     saturation_order: 6.0
-    gain_ratio: 0.0963
-    gain_intercept: 1.29
+    gain_ratio: 0.0964
+    gain_intercept: 1.81
     slab_overrides:
       12:
         threshold_adc: 31.51
@@ -120,6 +126,12 @@ thresholds:
       th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
       0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
+    gain_anchor_legacy_decoding:
+      gain_ratio: 0.0963
+      gain_intercept: 1.29
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000072 with
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+      this set with
   th230:
     threshold_adc: 26.07
     sigma_mip: 0.1918
@@ -137,8 +149,8 @@ thresholds:
     adc_high_max_source: roll-over fitted to ecal_TB2026CERN_run_000013.root (hit_lg-vs-hit_hg, 1018058 hits)
     saturation_adc: 1500.0
     saturation_order: 5.66
-    gain_ratio: 0.0961
-    gain_intercept: 1.6
+    gain_ratio: 0.0958
+    gain_intercept: 1.62
     slab_overrides:
       0:
         threshold_adc: 23.83
@@ -187,3 +199,9 @@ thresholds:
       th210 and th220 fixed MIP tables (independent muon runs; the fit errors do not correlate): 0.032. The table alone has
       0.046; subtracting its own quoted MPV errors leaves 0.039, so those errors underestimate the fit scatter.'
     adc_per_mip_legacy_decoding: 19.5
+    gain_anchor_legacy_decoding:
+      gain_ratio: 0.0961
+      gain_intercept: 1.6
+    gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000012 with
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+      this set with
