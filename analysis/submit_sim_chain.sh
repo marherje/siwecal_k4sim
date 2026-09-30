@@ -6,6 +6,7 @@
 #
 # Re-run it after more ddsim samples land: groups already complete are skipped.
 # ALL=1 FORCE_DIGI=1 bash analysis/submit_sim_chain.sh : every group, digitised branch redone (after a digitiser change).
+# ONLY_SET=th230 restricts to one threshold set.
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 D=${1:-$R/analysis/condor_sim_chain}
 G=/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated
@@ -20,6 +21,7 @@ grep -v '^#' "$R/analysis/final_v5_groups.txt" | awk 'NF>=4{print $1, $2, $3}' |
   for k in digi nodigi; do
     ls "$O/pid/${tag}_$k/"*.valtree.root >/dev/null 2>&1 || done_=0
   done
+  [ -n "${ONLY_SET:-}" ] && [ "$th" != "$ONLY_SET" ] && continue
   [ $done_ = 1 ] && [ "${ALL:-0}" != 1 ] || echo "$E $x $y $th" >> "$list"
 done
 n=$(wc -l < "$list")
