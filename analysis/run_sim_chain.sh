@@ -15,6 +15,7 @@
 #   RECO_TABLE       table that reconstructs the simulated ADC (default th210, like Reconstructed_final)
 #   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry fractal_dimension)
 #   WORK             scratch dir (default ${TMPDIR:-/tmp}/sim_chain_$USER)
+#   PED_NOISE        1 (default): per-cell noise and true gain spread in the digitiser; 0 = the scalar noise
 #   FORCE=1          redo steps whose output exists
 # Rewritten from final_v3's chain_pos.sh + digi_recoth210.sh.
 E=${1:?energy}; X=${2:?x}; Y=${3:?y}; SET=${4:?set}
@@ -24,6 +25,8 @@ B=/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation
 O=${5:-$B/Processed/adc_vs_tb/final_v5}
 export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-$R/masking_info/calibration/MuonCalib_gaudi_fixed}
 RECO_TABLE=${RECO_TABLE:-th210}
+# per-cell electronic noise from the fixed pedestal tables + gain spread without fit error (job3_digitize.py)
+export PED_NOISE=${PED_NOISE:-1}
 in=$B/Generated/output_beam_e-_${E}GeV_xy_${X}_${Y}_sigx13.75_sigy8.25_sigE0.02_beamline_real_w1924_mat_emz.edm4hep.root
 tag=${SET}_e${E}_${X}_${Y}
 W=${WORK:-${TMPDIR:-/tmp}/sim_chain_$USER}/$tag
