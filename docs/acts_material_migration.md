@@ -445,7 +445,7 @@ work.
   `MTCDetector.xml` layer order: Iron(50mm) → Iron(3mm) → Si-U → Air(1mm) → Si-V → Iron(3mm) → Scint.
   Iron(53mm total) attaches to U plane only; V plane gets scintillator only.
 - **SiPad tungsten thickness.** ✅ Confirmed 3.5mm from `SND_compact.xml:43`
-  (`Ecal_WThickness = 3.5*mm`). Material name: `TungstenDens1910`.
+  (`Ecal_WThickness = 3.5*mm`). Material name: `TungstenDens1924`.
 - **`MaterialSlab::averageLayers` availability.** ✅ Does not exist in 44.3.
   Use `Acts::MaterialSlab::combineLayers(slabA, slabB)` — confirmed in header.
 - **MTC SciFi material name.** ✅ The compact XML uses `material="Silicon"` for the

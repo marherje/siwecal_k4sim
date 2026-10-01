@@ -53,6 +53,14 @@ masking_info/calibration/**/anchor/
 
 # Working notes for the tracking rework — never commit
 instructions_opus.md
+ordenes_opus.txt
 
 # Personal notes with hardcoded EOS example paths — never commit
 docs/ejemplos_tracking.md
+
+# Condor job lists and logs of analysis/submit_sim_chain.sh
+analysis/condor_sim_chain/
+
+# Core dumps and Kerberos credential caches -- never commit
+/core.*
+/*.cc

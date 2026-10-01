@@ -109,6 +109,8 @@
 
     <constant name="Ecal_CFThickness"        value="1.5*mm"/>
     <constant name="Ecal_KaptonThickness"    value="0.1*mm"/>
+    <!-- HV side: of the Ecal_KaptonThickness film, this much is the copper metallisation (the rest is Kapton) -->
+    <constant name="Ecal_HVCuThickness"      value="0.02*mm"/>
     <constant name="Ecal_GlueThickness_kap"  value="0.1*mm"/>
     <constant name="Ecal_GlueThickness_pcb"  value="0.1*mm"/>
     <constant name="Ecal_PcbThickness"       value="1.7*mm"/>

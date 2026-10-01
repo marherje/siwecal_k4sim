@@ -33,9 +33,42 @@
     <fraction n="0.067109" ref="Br"/>
   </material>
 
-  <!-- TungstenDens1910 — ECAL absorber: >=99.95% W, density 19.10 g/cm3 -->
-  <material name="TungstenDens1910">
-    <D value="19.10" unit="g/cm3"/>
+  <!-- PCBCu — ECAL readout board with its copper planes, homogenised over the board thickness (26 Sep 2026).
+       FR4 at 1.85 g/cm3 plus 0.14 mm Cu equivalent (8 planes x 35 um x 50 % coverage: typical values, to be
+       replaced by the ASU stack-up). Replaces PCB + the separate 0.1 mm Cu slice on the PCB side. -->
+  <material name="PCBCu" state="solid">
+    <D unit="g/cm3" value="2.4355"/>
+    <fraction n="0.126006" ref="Si"/>
+    <fraction n="0.282740" ref="O"/>
+    <fraction n="0.193805" ref="C"/>
+    <fraction n="0.047707" ref="H"/>
+    <fraction n="0.046777" ref="Br"/>
+    <fraction n="0.302966" ref="Cu"/>
+  </material>
+
+  <!-- ChipEMC — the populated face of the ASU (SKIROC packages) as epoxy mould compound: 80 % SiO2 filler +
+       20 % epoxy resin by mass, 1.95 g/cm3. Over the whole 1.2 mm chip layer this is full coverage, i.e. the
+       upper bound until the layout / mass of the populated face is known (26 Sep 2026). -->
+  <material name="ChipEMC" state="solid">
+    <D unit="g/cm3" value="1.95"/>
+    <fraction n="0.374" ref="Si"/>
+    <fraction n="0.460" ref="O"/>
+    <fraction n="0.152" ref="C"/>
+    <fraction n="0.014" ref="H"/>
+  </material>
+
+  <!-- Kapton (polyimide, C22H10N2O5, NIST) — HV film on the sensor back side -->
+  <material name="Kapton" state="solid">
+    <D unit="g/cm3" value="1.42"/>
+    <fraction n="0.691133" ref="C"/>
+    <fraction n="0.026362" ref="H"/>
+    <fraction n="0.073270" ref="N"/>
+    <fraction n="0.209235" ref="O"/>
+  </material>
+
+  <!-- TungstenDens1924 — ECAL absorber: >=99.95% W, density 19.24 g/cm3 -->
+  <material name="TungstenDens1924">
+    <D value="19.24" unit="g/cm3"/>
     <fraction n="1.0" ref="W"/>
   </material>
 

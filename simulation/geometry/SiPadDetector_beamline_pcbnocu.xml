@@ -63,7 +63,7 @@
   <slice material = "Air"         thickness = "2.8*mm"   vis="Invisible"/>
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -78,7 +78,7 @@
   <layer repeat="7" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -93,7 +93,7 @@
 <layer repeat="2" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -107,7 +107,7 @@
   <layer repeat="1" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -123,7 +123,7 @@
   <layer repeat="1" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -137,7 +137,7 @@
   <layer repeat="1" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap_L12"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness_L12"     vis="SiVis" sensitive = "yes" />
@@ -151,7 +151,7 @@
   <layer repeat="1" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap500"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness500"     vis="SiVis" sensitive = "yes" />
@@ -165,7 +165,7 @@
   <layer repeat="1" vis="EcalVis">
   <slice material = "Air"         thickness = "Ecal_w_slab_gap650"        vis="AirVis"/>
   <slice material = "ChipEMC"     thickness = "Ecal_ChipThickness"       vis="PCBVis" />
-  <slice material = "PCBCu"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
+  <slice material = "PCB"       thickness = "Ecal_PcbThickness"       vis="PCBVis" />
   <slice material = "Air"         thickness = "Ecal_KaptonThickness"    vis="AirVis" />
   <slice material = "Air"         thickness = "Ecal_GlueThickness_pcb"  vis="AirVis"/>
   <slice material = "Si"          thickness = "Ecal_WaferThickness650"     vis="SiVis" sensitive = "yes" />

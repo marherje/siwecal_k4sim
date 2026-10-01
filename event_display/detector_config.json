@@ -22,7 +22,7 @@
       "color": [0.5, 0.35, 0.55],
       "transparency": 65,
       "voxel": {"x": 9.0, "y": 9.0, "z": 0.28},
-      "geo_extract": {"path_contains": "SiPad", "slice_material": "TungstenDens1910", "use_geometry_placement": true}
+      "geo_extract": {"path_contains": "SiPad", "slice_material": "TungstenDens1924", "use_geometry_placement": true}
     },
     {
       "name": "Al boxes",
