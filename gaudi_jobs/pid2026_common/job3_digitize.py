@@ -40,7 +40,7 @@ needs them.  RealDigitizer normalises to MIP itself via MIPValues, so
 GeV2MIPConversion would be redundant on that branch anyway.
 
 ECAL_TREE_OUTPUT (optional) also writes the test beam's "ecal" tree, in this same job
-(EcalTreeWriter), for the reconstruction (EcalToEDM4hep + EcalPidTransformer of
+(EcalTreeWriter), for the reconstruction (EcalToEDM4hep + EcalShowerVariables of
 siwecal-tb2026) and for the comparisons: from SiPadHitsRealAdc with its ADC, trigger
 time, fast peak and hit selection on the real chain, from SiPadHitsMapped with its
 masking flags on the simple chain.  With DIGI_MODE=both the real chain goes to

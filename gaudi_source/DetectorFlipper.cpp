@@ -7,7 +7,7 @@
  * In the real TB2026 setup the detector is physically flipped with respect to
  * the simulation convention: slab 0 faces the back instead of the front.
  * Raw reconstructed hits therefore carry z values that are reversed relative
- * to what the shower-variable code (EcalPidTransformer) and the event viewer
+ * to what the shower-variable code (EcalShowerVariables) and the event viewer
  * expect.  This algorithm provides a single place to correct that: read the
  * layer index from the CellID, look it up in ZPositions, and overwrite z.
  * The result is a new hit collection in which z always increases from the

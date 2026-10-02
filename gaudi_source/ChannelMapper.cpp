@@ -7,7 +7,7 @@
  * The simulation encodes hits with a Cartesian grid CellID
  * ("system:8,layer:8,slice:5,x:9,y:9"), while the real test-beam data uses a
  * per-readout-chip encoding ("system:8,slab:8,chip:16,channel:8,sca:8").
- * Downstream tools (EcalPidTransformer, event viewer, ecal TTree converter)
+ * Downstream tools (EcalShowerVariables, event viewer, ecal TTree converter)
  * expect the TB encoding so they can cross-check simulation and data directly.
  *
  * This algorithm does two things per hit:
@@ -27,7 +27,7 @@
  *
  * The masking flag flows into analysis/sim_to_ecal_tree.py which writes it as
  * the hit_ismasked branch in the ecal TTree consumed by EcalToEDM4hep /
- * EcalPidTransformer.
+ * EcalShowerVariables.
  *
  * Pad map format  (fev10_rotate_chip_channel_x_y_mapping.txt)
  * -----------------------------------------------------------
