@@ -48,18 +48,15 @@ mkdir -p "$W"
 for mode in real simple; do
   if [ $mode = simple ]; then
     out=$O/trees/ecal_${tag}_simple.root; pid=$O/pid/${tag}_nodigi; reco=""
-    coll=(-c SiPadHitsMapped --masking-collection SiPadHitsMasked)
   else
     out=$O/trees/ecal_${tag}.root; pid=$O/pid/${tag}_digi; reco=$RECO_TABLE
-    coll=(-c SiPadHitsRealAdc --masking-collection "")
   fi
   redo=${FORCE:-0}; [ $mode = real ] && [ "${FORCE_DIGI:-0}" = 1 ] && redo=1
   if [ "$redo" = 1 ] || [ ! -s "$out" ]; then
+    # the ecal tree is written by EcalTreeWriter in the same k4run (ECAL_TREE_OUTPUT)
     (cd "$W" && CALIB_THRESHOLD=$SET DIGI_MODE=$mode RECO_TABLE_THRESHOLD=$reco INPUT_FILE=$in \
-      k4run "$R/gaudi_jobs/pid2026_common/job3_digitize.py" > "$W/job3_$mode.log" 2>&1) \
+      ECAL_TREE_OUTPUT=ecal.root k4run "$R/gaudi_jobs/pid2026_common/job3_digitize.py" > "$W/job3_$mode.log" 2>&1) \
       || { echo "job3 FAILED $tag $mode"; tail -5 "$W/job3_$mode.log"; exit 1; }
-    python3 "$R/analysis/sim_to_ecal_tree.py" -i "$W/digitized.edm4hep.root" -o "$W/ecal.root" "${coll[@]}" \
-      > "$W/conv_$mode.log" 2>&1 || { echo "conv FAILED $tag $mode"; tail -5 "$W/conv_$mode.log"; exit 1; }
     cp "$W/ecal.root" "$out" && rm -f "$W/digitized.edm4hep.root" "$W/ecal.root"
   fi
   if [ "$redo" = 1 ] || ! ls "$pid"/*.edm4hep.root >/dev/null 2>&1; then

@@ -5,7 +5,7 @@ find_package(DD4hep REQUIRED COMPONENTS DDCore DDG4)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore REQUIRED)
 find_package(EDM4HEP REQUIRED)
-find_package(ROOT REQUIRED COMPONENTS ROOTNTuple Hist)
+find_package(ROOT REQUIRED COMPONENTS ROOTNTuple Hist Tree)
 find_package(Acts 44.3.0 REQUIRED COMPONENTS Core PluginDD4hep)
 find_package(k4ActsTracking REQUIRED)
 
@@ -29,6 +29,7 @@ gaudi_add_module(SND_reco
     gaudi_source/ChannelMapper.cpp
     gaudi_source/AdcDigitizer.cpp
     gaudi_source/ShowerTagger.cpp
+    gaudi_source/EcalTreeWriter.cpp
   LINK
     Gaudi::GaudiKernel
     k4FWCore::k4FWCore
@@ -38,6 +39,7 @@ gaudi_add_module(SND_reco
     DD4hep::DDRec
     ROOT::ROOTNTuple
     ROOT::Hist
+    ROOT::Tree
     Acts::Core
     Acts::PluginDD4hep
     k4ActsTracking::k4ActsTracking

@@ -38,11 +38,19 @@ GeV2MIPConversion (like BasicDigitizer, DetectorFlipper and ChannelMapper)
 creates fresh hits without copying CaloHitContributions, and the cell shaping
 needs them.  RealDigitizer normalises to MIP itself via MIPValues, so
 GeV2MIPConversion would be redundant on that branch anyway.
+
+ECAL_TREE_OUTPUT (optional) also writes the test beam's "ecal" tree, in this same job
+(EcalTreeWriter), for the reconstruction (EcalToEDM4hep + EcalPidTransformer of
+siwecal-tb2026) and for the comparisons: from SiPadHitsRealAdc with its ADC, trigger
+time, fast peak and hit selection on the real chain, from SiPadHitsMapped with its
+masking flags on the simple chain.  With DIGI_MODE=both the real chain goes to
+ECAL_TREE_OUTPUT and the simple one to the same name with a _simple suffix.  It
+replaces analysis/sim_to_ecal_tree.py, which writes the same tree from the output file.
 """
 
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import (GeV2MIPConversion, BasicDigitizer, DetectorFlipper,
-                           ChannelMapper, RealDigitizer, AdcDigitizer)
+                           ChannelMapper, RealDigitizer, AdcDigitizer, EcalTreeWriter)
 import os
 import sys
 import yaml
@@ -379,6 +387,36 @@ if DIGI_MODE in ("real", "both"):
         adc.BitField        = SIPAD_BITFIELD_TB
         adc.DebugFrequency  = 500
         top_alg += [adc]
+
+ECAL_TREE_OUTPUT = os.environ.get("ECAL_TREE_OUTPUT", "")
+if ECAL_TREE_OUTPUT:
+    def make_tree_writer(name, output, **collections):
+        w = EcalTreeWriter(name)
+        w.OutputFile = output
+        w.BitField = SIPAD_BITFIELD_TB
+        for prop, coll in collections.items():
+            setattr(w, prop, coll)
+        return w
+
+    if DIGI_MODE in ("real", "both"):
+        if ADC_MODEL:
+            real_tree = make_tree_writer(
+                "EcalTreeWriter_Real", ECAL_TREE_OUTPUT,
+                InputCollection="SiPadHitsRealAdc",
+                AdcHighCollection="SiPadHitsRealAdcHigh", AdcLowCollection="SiPadHitsRealAdcLow",
+                KeptCollection="SiPadHitsRealAdcKept",
+                TimeCollection="SiPadHitsRealDigitizedTime", FastCollection="SiPadHitsRealDigitizedFast")
+        else:
+            real_tree = make_tree_writer(
+                "EcalTreeWriter_Real", ECAL_TREE_OUTPUT,
+                InputCollection="SiPadHitsRealMapped", MaskingCollection="SiPadHitsRealMasked",
+                TimeCollection="SiPadHitsRealDigitizedTime", FastCollection="SiPadHitsRealDigitizedFast")
+        top_alg += [real_tree]
+    if DIGI_MODE in ("simple", "both"):
+        simple_out = (ECAL_TREE_OUTPUT if DIGI_MODE == "simple"
+                      else os.path.splitext(ECAL_TREE_OUTPUT)[0] + "_simple.root")
+        top_alg += [make_tree_writer("EcalTreeWriter_Simple", simple_out,
+                                     InputCollection="SiPadHitsMapped", MaskingCollection="SiPadHitsMasked")]
 
 ApplicationMgr(
     EvtSel  = "NONE",
