@@ -107,6 +107,32 @@ def fit_turn_on(centres, num, den, min_entries=30):
         return (mu0, 0.15 * mu0, plateau0), (np.nan,) * 3
 
 
+def fit_turn_on_ml(centres, num, den):
+    """Binomial maximum-likelihood fit of P(x): every bin with entries counts with
+    its own weight, so a slab with little statistics still sees its plateau (the
+    chi2 fit drops bins under 30 entries, which for a sparse slab are exactly the
+    plateau bins, and can then settle on a low plateau with a narrow turn-on)."""
+    from scipy.optimize import minimize
+
+    ok = den > 0
+    if ok.sum() < 6:
+        return (np.nan,) * 3
+    x, k, n = centres[ok], num[ok], den[ok]
+    (mu0, sig0, pl0), _ = fit_turn_on(centres, num, den)
+    if not np.all(np.isfinite([mu0, sig0, pl0])):
+        mu0, sig0, pl0 = float(np.median(x)), 3.0, 0.95
+
+    def nll(par):
+        p = np.clip(turn_on_model(x, *par), 1e-9, 1 - 1e-9)
+        return -float(np.sum(k * np.log(p) + (n - k) * np.log(1 - p)))
+
+    starts = [(mu0, sig0, pl0), (mu0, max(sig0, 3.0), 0.99)]
+    best = min((minimize(nll, s0, method="L-BFGS-B",
+                         bounds=[(0.0, None), (0.3, None), (0.0, 1.0)]) for s0 in starts),
+               key=lambda r: r.fun)
+    return tuple(float(v) for v in best.x)
+
+
 def _style(ax, xlabel, ylabel, title=None):
     ax.set_xlabel(xlabel, color=C_INK)
     ax.set_ylabel(ylabel, color=C_INK)
@@ -125,10 +151,10 @@ def per_slab_fits(centres, num_den, all_fit, override_sigma):
     """Fit the ADC-axis turn-on of every slab; flag the outliers.
 
     Returns ``{"fits": {slab: (mu, sigma, plateau)}, "outliers": [slab, ...]}``.
-    A slab is an outlier when its discriminator level sits further from the
-    all-slab value than ``override_sigma`` times the scatter of the other slabs
-    -- slab 12 of the 2026 stack, at DAC 243 against 215-230, is the case this
-    exists for.
+    Every fitted slab is written to the config (each slab gets its own turn-on);
+    the outliers are only reported: slabs whose discriminator level sits further
+    from the median of the slabs than ``override_sigma`` times their robust
+    scatter (MAD) -- slab 12 of the 2026 stack, at DAC 243 against 215-230.
     """
     num, den = num_den
     fits = {}
@@ -136,8 +162,10 @@ def per_slab_fits(centres, num_den, all_fit, override_sigma):
         if den[slab].sum() < 2000:
             continue
         try:
-            par, _ = fit_turn_on(centres, num[slab], den[slab])
+            par = fit_turn_on_ml(centres, num[slab], den[slab])
         except Exception:   # noqa: BLE001 -- an unfittable slab is reported, not fatal
+            continue
+        if not np.all(np.isfinite(par)):
             continue
         fits[slab] = tuple(float(v) for v in par)
     if not fits:
@@ -205,7 +233,7 @@ def main(argv=None) -> int:
     p.add_argument("--chunks", type=int, default=2,
                    help="Chunks read per run (default: 2)")
     p.add_argument("--calib-dir",
-                   default="../siwecal-tb2026/calibration/MuonCalib_gaudi")
+                   default="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib")
     p.add_argument("--outdir", default="plots")
     p.add_argument("--tag", default="allth")
     p.add_argument("--sim", action="append", default=[], metavar="TH=REAL[,SIMPLE]",
@@ -227,8 +255,9 @@ def main(argv=None) -> int:
                         "a slab that ran at a discriminator of its own")
     p.add_argument("--override-sigma", type=float, default=3.0,
                    help="--per-slab: slabs whose discriminator level is further than "
-                        "this many sigma (of the per-slab scatter) from the "
-                        "all-slab fit are written as slab_overrides (default: 3)")
+                        "this many sigma (robust per-slab scatter) from the median of "
+                        "the slabs are flagged in the printout (default: 3); every "
+                        "fitted slab is written as slab_overrides either way")
     p.add_argument("--write-config", default="",
                    help="Write the fitted parameters as YAML for job3")
     args = p.parse_args(argv)
@@ -474,18 +503,18 @@ def main(argv=None) -> int:
                      "source_run": r["source"]}
                 for th, r in results.items()},
         }
-        # Slabs at a discriminator of their own, in ADC (their gain is normal, so
-        # job3 turns them into MIP with the SET's adc_per_mip).
+        # Every slab's own turn-on, in ADC (job3 turns it into MIP with the SET's
+        # adc_per_mip). A slab with too few entries to fit keeps the all-slab values.
         for th, r in results.items():
             ps = r.get("per_slab")
-            if not ps or not ps["outliers"]:
+            if not ps or not ps["fits"]:
                 continue
             config["thresholds"][th]["slab_overrides"] = {
                 int(slab): {"threshold_adc": round(ps["fits"][slab][0], 2),
                             "sigma_adc": round(ps["fits"][slab][1], 2),
                             "efficiency": round(ps["fits"][slab][2], 4),
                             "turnon_source_run": r["source"]}
-                for slab in ps["outliers"]}
+                for slab in sorted(ps["fits"])}
         os.makedirs(os.path.dirname(os.path.abspath(args.write_config)), exist_ok=True)
         with open(args.write_config, "w") as fh:
             yaml.safe_dump(config, fh, sort_keys=False)

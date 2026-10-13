@@ -1,0 +1,12 @@
+nhit_chan data mu=277.5 res=0.0826 N=36293
+nhit_chan nodigi mu=310.7 res=0.0553 N=1000
+nhit_chan digi mu=285.2 res=0.0571 N=1000
+gev data mu=20.28 res=0.0727 N=36293
+gev nodigi mu=20.04 res=0.0566 N=1000
+gev digi mu=20.06 res=0.0568 N=1000
+moliere data median=27.76 N=36293
+moliere nodigi median=28.74 N=1000
+moliere digi median=28.16 N=1000
+zbary data median=5.446 N=36293
+zbary nodigi median=5.703 N=1000
+zbary digi median=5.647 N=1000

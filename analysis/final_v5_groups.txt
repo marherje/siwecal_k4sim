@@ -2,7 +2,7 @@
 # (analysis/run_sim_chain.sh). One line per (threshold set, beam energy [GeV], beam position):
 #   <set> <E> <x_y> <runs>
 # <x_y>: beam centre of the simulated sample [mm] = median shower barycentre (bar_x, bar_y) of the group in
-#        Reconstructed_final (analysis/verify_final_campaign.py -> Reconstructed_final/verify_final.txt), rounded
+#        Reconstruction (analysis/verify_final_campaign.py -> Reconstruction/verify_final.txt), rounded
 #        to 1 mm; earlier samples reused where within 2 mm.
 # <runs>: comma-separated, 'e' prefix = eudaq run. Normal incidence, e+/e- only. Energies and positions are the
 #        MEASURED ones: runs 68-71 are 74 GeV (not 20), run 58 (99 GeV) sits at (-40, 40), runs 56 and 65 at

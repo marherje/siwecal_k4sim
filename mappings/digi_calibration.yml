@@ -6,10 +6,10 @@ _comment: "Per-threshold digitisation calibration. ONE file, read by gaudi_jobs/
   \ / saturation_order        : the dynamic range, the roll-over fitted to that set's ELECTRON hit_lg-vs-hit_hg relation (analysis/compare_gains.py\
   \ --write)\nThe trigger threshold RealDigitizer applies is threshold_adc / adc_per_mip.\nHit selection: the data trees these\
   \ were fitted against use EcalEventBuilder HitSelection=adc (hit bit OR adc-ped > 30, largest SCA) and the simulation HIT_SELECTION=chip,\
-  \ the same rule.\nslab_overrides: slabs that ran at a discriminator of their own (slab 12, the FEV11 chip-on-board, at DAC\
-  \ 243), measured per slab from hitbit_high; RealDigitizer gets them as ThresholdPerLayer / FastNoiseMIPPerLayer / TriggerEfficiencyPerLayer.\n\
-  2026-09-30: trigger model re-measured on the fixed-SCA-pairing chunks; electronic noise per cell from the fixed pedestal\
-  \ tables (PED_NOISE=1 in job3_digitize.py) instead of RealDigitizer SlowNoiseMIP."
+  \ the same rule.\nslab_overrides: the turn-on of EVERY slab (since 2026-10-07; before, only slabs > 3 sigma from the others,\
+  \ e.g. slab 12 the FEV11 chip-on-board at DAC 243), measured per slab from hitbit_high; RealDigitizer gets them as ThresholdPerLayer\
+  \ / FastNoiseMIPPerLayer / TriggerEfficiencyPerLayer.\n2026-09-30: trigger model re-measured on the fixed-SCA-pairing chunks;\
+  \ electronic noise per cell from the fixed pedestal tables (PED_NOISE=1 in job3_digitize.py) instead of RealDigitizer SlowNoiseMIP."
 thresholds:
   th210:
     threshold_adc: 16.11
@@ -18,7 +18,7 @@ thresholds:
     turnon_source_run: TB2026CERN_eudaq_run_000253
     adc_per_mip: 18.75
     adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
-      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      on th210 muons (eudaq 151, adc hit selection, fixed SCA pairing, fixed th210 pedestals; that tree was deleted 2026-10-13, the hit-bit one is Reconstruction/TB2026CERN_eudaq_run_000151) against a 150 GeV
       muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
       Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
       on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
@@ -31,13 +31,85 @@ thresholds:
     gain_ratio: 0.0924
     gain_intercept: 2.35
     slab_overrides:
-      12:
-        threshold_adc: 22.94
-        sigma_adc: 4.85
-        efficiency: 0.9997
+      0:
+        threshold_adc: 14.89
+        sigma_adc: 3.63
+        efficiency: 0.9929
         turnon_source_run: TB2026CERN_eudaq_run_000253
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
-      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
+      1:
+        threshold_adc: 14.2
+        sigma_adc: 3.25
+        efficiency: 0.9894
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      2:
+        threshold_adc: 14.0
+        sigma_adc: 3.7
+        efficiency: 0.9876
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      3:
+        threshold_adc: 15.3
+        sigma_adc: 3.41
+        efficiency: 0.9851
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      4:
+        threshold_adc: 14.8
+        sigma_adc: 3.27
+        efficiency: 0.9852
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      5:
+        threshold_adc: 14.91
+        sigma_adc: 3.09
+        efficiency: 0.9731
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      6:
+        threshold_adc: 14.79
+        sigma_adc: 2.88
+        efficiency: 0.9834
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      7:
+        threshold_adc: 14.42
+        sigma_adc: 3.6
+        efficiency: 0.9842
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      8:
+        threshold_adc: 15.43
+        sigma_adc: 3.61
+        efficiency: 0.9814
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      9:
+        threshold_adc: 15.4
+        sigma_adc: 3.23
+        efficiency: 0.9814
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      10:
+        threshold_adc: 15.4
+        sigma_adc: 3.29
+        efficiency: 0.9846
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      11:
+        threshold_adc: 14.63
+        sigma_adc: 3.4
+        efficiency: 0.9852
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      12:
+        threshold_adc: 24.85
+        sigma_adc: 2.9
+        efficiency: 0.98
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      13:
+        threshold_adc: 15.75
+        sigma_adc: 3.76
+        efficiency: 0.987
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+      14:
+        threshold_adc: 17.39
+        sigma_adc: 4.46
+        efficiency: 0.9875
+        turnon_source_run: TB2026CERN_eudaq_run_000253
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab --events 200 --chunks 4, 2026-10-07: EVERY slab carries
+      its own turn-on, binomial maximum-likelihood fit over all bins (the chi2 fit dropped sparse plateau bins: slab 0 th230
+      came out at plateau 0.67, direct plateau 0.98); threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip;
+      only calibrated cells (finite MPV in the set''s MuonCalib_gaudi_fixed table) enter'
     lg_noise_adc: 1.36
     lg_gain_spread: 0.0551
     lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_eudaq_run_000286.root
@@ -57,7 +129,7 @@ thresholds:
           sigma_adc: 3.89
           efficiency: 0.9966
           turnon_source_run: TB2026CERN_eudaq_run_000253
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_gaudi, then named rundata_converted_fixed), MIP axis on
       MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
       Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.367
@@ -72,7 +144,7 @@ thresholds:
       gain_ratio: 0.0925
       gain_intercept: 2.24
     gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_eudaq_run_000166
-      with the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final
+      with the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstruction
       reconstructs this set with
   th220:
     threshold_adc: 20.23
@@ -81,7 +153,7 @@ thresholds:
     turnon_source_run: TB2026CERN_run_000072
     adc_per_mip: 18.75
     adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
-      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      on th210 muons (eudaq 151, adc hit selection, fixed SCA pairing, fixed th210 pedestals; that tree was deleted 2026-10-13, the hit-bit one is Reconstruction/TB2026CERN_eudaq_run_000151) against a 150 GeV
       muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
       Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
       on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
@@ -94,13 +166,85 @@ thresholds:
     gain_ratio: 0.0964
     gain_intercept: 1.81
     slab_overrides:
-      12:
-        threshold_adc: 31.51
-        sigma_adc: 5.16
-        efficiency: 0.9987
+      0:
+        threshold_adc: 17.66
+        sigma_adc: 2.68
+        efficiency: 0.9747
         turnon_source_run: TB2026CERN_run_000072
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
-      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
+      1:
+        threshold_adc: 20.35
+        sigma_adc: 4.95
+        efficiency: 0.9311
+        turnon_source_run: TB2026CERN_run_000072
+      2:
+        threshold_adc: 18.28
+        sigma_adc: 3.3
+        efficiency: 0.9037
+        turnon_source_run: TB2026CERN_run_000072
+      3:
+        threshold_adc: 19.78
+        sigma_adc: 2.74
+        efficiency: 0.8511
+        turnon_source_run: TB2026CERN_run_000072
+      4:
+        threshold_adc: 18.13
+        sigma_adc: 3.8
+        efficiency: 0.8729
+        turnon_source_run: TB2026CERN_run_000072
+      5:
+        threshold_adc: 19.28
+        sigma_adc: 2.74
+        efficiency: 0.8416
+        turnon_source_run: TB2026CERN_run_000072
+      6:
+        threshold_adc: 19.73
+        sigma_adc: 2.95
+        efficiency: 0.8424
+        turnon_source_run: TB2026CERN_run_000072
+      7:
+        threshold_adc: 19.0
+        sigma_adc: 2.71
+        efficiency: 0.8333
+        turnon_source_run: TB2026CERN_run_000072
+      8:
+        threshold_adc: 19.62
+        sigma_adc: 2.89
+        efficiency: 0.8818
+        turnon_source_run: TB2026CERN_run_000072
+      9:
+        threshold_adc: 19.53
+        sigma_adc: 2.63
+        efficiency: 0.8496
+        turnon_source_run: TB2026CERN_run_000072
+      10:
+        threshold_adc: 19.09
+        sigma_adc: 3.13
+        efficiency: 0.8793
+        turnon_source_run: TB2026CERN_run_000072
+      11:
+        threshold_adc: 18.85
+        sigma_adc: 3.34
+        efficiency: 0.8992
+        turnon_source_run: TB2026CERN_run_000072
+      12:
+        threshold_adc: 30.77
+        sigma_adc: 4.89
+        efficiency: 0.9342
+        turnon_source_run: TB2026CERN_run_000072
+      13:
+        threshold_adc: 19.97
+        sigma_adc: 3.07
+        efficiency: 0.9153
+        turnon_source_run: TB2026CERN_run_000072
+      14:
+        threshold_adc: 21.47
+        sigma_adc: 4.05
+        efficiency: 0.9157
+        turnon_source_run: TB2026CERN_run_000072
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab --events 200 --chunks 4, 2026-10-07: EVERY slab carries
+      its own turn-on, binomial maximum-likelihood fit over all bins (the chi2 fit dropped sparse plateau bins: slab 0 th230
+      came out at plateau 0.67, direct plateau 0.98); threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip;
+      only calibrated cells (finite MPV in the set''s MuonCalib_gaudi_fixed table) enter'
     lg_noise_adc: 1.83
     lg_gain_spread: 0.0557
     lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_run_000072.root (6992814
@@ -115,7 +259,7 @@ thresholds:
           sigma_adc: 4.94
           efficiency: 0.9295
           turnon_source_run: TB2026CERN_run_000072
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_gaudi, then named rundata_converted_fixed), MIP axis on
       MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
       Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.415
@@ -130,7 +274,7 @@ thresholds:
       gain_ratio: 0.0963
       gain_intercept: 1.29
     gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000072 with
-      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstruction reconstructs
       this set with
   th230:
     threshold_adc: 26.07
@@ -139,7 +283,7 @@ thresholds:
     turnon_source_run: TB2026CERN_run_000013
     adc_per_mip: 18.75
     adc_per_mip_source: 'ONE gain for the three sets (the preamplifier does not know the trigger DAC), re-measured 2026-09-30
-      on th210 muons (eudaq 151, Reconstructed_final_muons_adc: fixed SCA pairing, fixed th210 pedestals) against a 150 GeV
+      on th210 muons (eudaq 151, adc hit selection, fixed SCA pairing, fixed th210 pedestals; that tree was deleted 2026-10-13, the hit-bit one is Reconstruction/TB2026CERN_eudaq_run_000151) against a 150 GeV
       muon sample with the run-151 beam profile, digitised with per-cell pedestal noise and the measured 3.2 % gain spread:
       Landau-MPV match 18.75, spectrum-shape chi2 minimum 18.54 (486/63 bins), tag-and-probe layer efficiency 19.63 (depends
       on the trigger model: open systematic). The previous 19.5 was set on the SCA-mixed data, whose muon peak was wider than
@@ -152,18 +296,85 @@ thresholds:
     gain_ratio: 0.0958
     gain_intercept: 1.62
     slab_overrides:
+      0:
+        threshold_adc: 24.75
+        sigma_adc: 4.89
+        efficiency: 0.9717
+        turnon_source_run: TB2026CERN_run_000013
+      1:
+        threshold_adc: 25.67
+        sigma_adc: 4.75
+        efficiency: 0.9265
+        turnon_source_run: TB2026CERN_run_000013
+      2:
+        threshold_adc: 25.63
+        sigma_adc: 7.48
+        efficiency: 0.9152
+        turnon_source_run: TB2026CERN_run_000013
+      3:
+        threshold_adc: 26.87
+        sigma_adc: 5.39
+        efficiency: 0.8499
+        turnon_source_run: TB2026CERN_run_000013
+      4:
+        threshold_adc: 24.29
+        sigma_adc: 6.01
+        efficiency: 0.8541
+        turnon_source_run: TB2026CERN_run_000013
+      5:
+        threshold_adc: 26.46
+        sigma_adc: 5.57
+        efficiency: 0.835
+        turnon_source_run: TB2026CERN_run_000013
+      6:
+        threshold_adc: 25.95
+        sigma_adc: 4.48
+        efficiency: 0.8283
+        turnon_source_run: TB2026CERN_run_000013
+      7:
+        threshold_adc: 25.65
+        sigma_adc: 5.28
+        efficiency: 0.8063
+        turnon_source_run: TB2026CERN_run_000013
+      8:
+        threshold_adc: 25.86
+        sigma_adc: 4.83
+        efficiency: 0.8751
+        turnon_source_run: TB2026CERN_run_000013
+      9:
+        threshold_adc: 25.59
+        sigma_adc: 3.52
+        efficiency: 0.8657
+        turnon_source_run: TB2026CERN_run_000013
+      10:
+        threshold_adc: 25.05
+        sigma_adc: 3.93
+        efficiency: 0.8863
+        turnon_source_run: TB2026CERN_run_000013
+      11:
+        threshold_adc: 24.57
+        sigma_adc: 2.99
+        efficiency: 0.9217
+        turnon_source_run: TB2026CERN_run_000013
       12:
-        threshold_adc: 31.56
-        sigma_adc: 3.32
-        efficiency: 0.9991
+        threshold_adc: 30.89
+        sigma_adc: 3.23
+        efficiency: 0.9433
+        turnon_source_run: TB2026CERN_run_000013
+      13:
+        threshold_adc: 26.18
+        sigma_adc: 4.81
+        efficiency: 0.9565
         turnon_source_run: TB2026CERN_run_000013
       14:
-        threshold_adc: 28.29
-        sigma_adc: 3.86
-        efficiency: 0.9983
+        threshold_adc: 27.45
+        sigma_adc: 4.11
+        efficiency: 0.9456
         turnon_source_run: TB2026CERN_run_000013
-    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab: slabs whose discriminator level sits > 3 sigma (of the
-      per-slab scatter) from the all-slab fit; threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip'
+    slab_overrides_source: 'analysis/trigger_turnon.py --per-slab --events 200 --chunks 4, 2026-10-07: EVERY slab carries
+      its own turn-on, binomial maximum-likelihood fit over all bins (the chi2 fit dropped sparse plateau bins: slab 0 th230
+      came out at plateau 0.67, direct plateau 0.98); threshold/sigma in ADC, turned into MIP with this set''s adc_per_mip;
+      only calibrated cells (finite MPV in the set''s MuonCalib_gaudi_fixed table) enter'
     lg_noise_adc: 1.61
     lg_gain_spread: 0.0557
     lg_scatter_source: robust width of hit_lg about the anchor line in bins of hit_hg, ecal_TB2026CERN_run_000012.root (8025687
@@ -183,7 +394,7 @@ thresholds:
           sigma_adc: 5.52
           efficiency: 0.9923
           turnon_source_run: TB2026CERN_run_000013
-    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_fixed), MIP axis on
+    turnon_source: analysis/trigger_turnon.py on the fixed-SCA-pairing chunks (Data/rundata_converted_gaudi, then named rundata_converted_fixed), MIP axis on
       MuonCalib_gaudi_fixed, 2026-09-30. sigma_mip = turn-on width in ADC / adc_per_mip (RealDigitizer works in true MIP).
       Previous values under trigger_legacy_decoding.
     pedestal_noise_adc: 1.445
@@ -198,13 +409,5 @@ thresholds:
       gain_ratio: 0.0961
       gain_intercept: 1.6
     gain_anchor_source: LG->HG anchor line refitted 2026-09-30 on the fixed-SCA-pairing chunks of TB2026CERN_run_000012 with
-      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstructed_final reconstructs
+      the fixed th210 pedestals (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the line Reconstruction reconstructs
       this set with
-    slab_overrides_dropped:
-      0:
-        threshold_adc: 23.83
-        sigma_adc: 1.58
-        efficiency: 0.6725
-        turnon_source_run: TB2026CERN_run_000013
-        reason: 'plateau 0.67 with a 1.6 ADC wide turn-on: the slab-0 S-curve is distorted by its dead chips; with it the
-          simulated layer-0 profile falls from 0.75 to 0.66 of the data (analysis/perslab_effect.py, th230 52 GeV)'

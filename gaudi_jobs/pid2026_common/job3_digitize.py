@@ -40,7 +40,7 @@ needs them.  RealDigitizer normalises to MIP itself via MIPValues, so
 GeV2MIPConversion would be redundant on that branch anyway.
 
 ECAL_TREE_OUTPUT (optional) also writes the test beam's "ecal" tree, in this same job
-(EcalTreeWriter), for the reconstruction (EcalToEDM4hep + EcalPidTransformer of
+(EcalTreeWriter), for the reconstruction (EcalToEDM4hep + EcalShowerVariables of
 siwecal-tb2026) and for the comparisons: from SiPadHitsRealAdc with its ADC, trigger
 time, fast peak and hit selection on the real chain, from SiPadHitsMapped with its
 masking flags on the simple chain.  With DIGI_MODE=both the real chain goes to
@@ -51,6 +51,7 @@ replaces analysis/sim_to_ecal_tree.py, which writes the same tree from the outpu
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import (GeV2MIPConversion, BasicDigitizer, DetectorFlipper,
                            ChannelMapper, RealDigitizer, AdcDigitizer, EcalTreeWriter)
+import glob
 import os
 import sys
 import yaml
@@ -110,7 +111,8 @@ MIP_VALUES = _load_mip_values(MIP_VALUES_FILE)
 # discriminator sits at 16.3 / 19.7 / 25.4 ADC for th210 / th220 / th230 and
 # plateaus at 85-96%.
 # --------------------------------------------------------------------------- #
-with open(os.path.join(REPO_ROOT, "mappings", "digi_calibration.yml")) as _cf:
+# DIGI_CALIBRATION_YML: another copy of the file (e.g. an older trigger model for a comparison).
+with open(os.environ.get("DIGI_CALIBRATION_YML") or os.path.join(REPO_ROOT, "mappings", "digi_calibration.yml")) as _cf:
     _CALIB = yaml.safe_load(_cf)["thresholds"]
 # No default on purpose: every number below depends on the threshold set, and a
 # sample digitised with the wrong one is not comparable with anything.  The
@@ -148,7 +150,8 @@ GAIN_SHAPE_THRESHOLD = os.environ.get("GAIN_SHAPE_THRESHOLD", "th210")
 # scalar SlowNoiseMIP is switched off so the noise is not counted twice.  With the
 # fixed-SCA-pairing tables the noise is 1.37 ADC (th210 median), not the 1/12 MIP
 # (1.6 ADC) of the scalar default, which was tuned on the SCA-mixed tables.
-PED_NOISE = os.environ.get("PED_NOISE", "0") not in ("0", "", "no", "false")
+# ON by default since 2026-10-13 (as final_v5/v6 and run_sim_chain*.sh); PED_NOISE=0 goes back to the scalar.
+PED_NOISE = os.environ.get("PED_NOISE", "1") not in ("0", "", "no", "false")
 
 HIT_SELECTION = os.environ.get("HIT_SELECTION", "chip")
 if HIT_SELECTION not in ("cell", "chip"):
@@ -182,10 +185,17 @@ with open(os.path.join(REPO_ROOT, "mappings", "slab_z_positions.yml")) as _zf:
     SLAB_Z = [float(_z) for _z in yaml.safe_load(_zf)["slab_z_mm"]]
 
 COMPACT_FILE = os.path.join(REPO_ROOT, "simulation", "geometry", "SND_compact.xml")
-# DIGI_CALIB_DIR points the whole table lookup (masking, gain shape, reco table) at
-# another MuonCalib_gaudi-style tree, e.g. masking_info/calibration/MuonCalib_gaudi_fixed
-# (the th210 table re-derived on the fixed-SCA-pairing chunks, in every threshold slot; see its README).
-CALIB_DIR    = os.environ.get("DIGI_CALIB_DIR") or os.path.join(REPO_ROOT, "masking_info/calibration/MuonCalib_gaudi")
+# DIGI_CALIB_DIR: the table tree for masking, pedestals, gain shape, reco table and per-cell trigger.
+# Default: the official tables on EOS (siwecal-tb2026 settings calib_dir()/MuonCalib, re-derived on the
+# fixed-SCA-pairing chunks, {pedestals,mips,anchor,trigger}/th<N>/).
+CALIB_DIR    = os.environ.get("DIGI_CALIB_DIR") or "/eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib"
+# TABLE_THRESHOLD: the threshold folder whose mask, pedestals and (unless RECO_TABLE_THRESHOLD) reco table
+# the digitiser uses. th210 by default because the data campaign (Reconstruction) calibrates AND masks
+# every run with th210 (--ped-th 210 --mip-th 210); th230 fits only 3452 channels and as a mask would switch
+# off half the detector. The trigger model (per-slab YAML, trigger/<set>/ tables) stays with CALIB_THRESHOLD.
+TABLE_THRESHOLD = os.environ.get("TABLE_THRESHOLD", "th210")
+if TABLE_THRESHOLD not in _CALIB:
+    raise SystemExit(f"TABLE_THRESHOLD='{TABLE_THRESHOLD}' has no entry in mappings/digi_calibration.yml.")
 
 # The per-slab hardware description (technology, sensor thickness, pad map,
 # threshold DAC) -- the same YAML the test-beam repo carries.  Which slab is the
@@ -220,8 +230,8 @@ def make_mapper(name, in_coll, out_coll, masked_coll):
 
     Masking comes from the muon calibration tree: mips/<threshold>/MIP_*_<gain>.txt.
     th230 masks ~3.5% of the channels (four dead chips in slab 0, one each in slabs
-    6 and 13, the rest scattered).  Switch CalibThreshold to th210/th220 for another
-    trigger threshold, or set MIPCalibFile to bypass the tree with an explicit file
+    6 and 13, the rest scattered).  The folder is TABLE_THRESHOLD (th210 by default, as the data),
+    not the set's trigger threshold; or set MIPCalibFile to bypass the tree with an explicit file
     (e.g. masking_info/calibration/dummy_mip_map_15_highgain.txt, which masks
     nothing).
     """
@@ -232,7 +242,7 @@ def make_mapper(name, in_coll, out_coll, masked_coll):
     cmap.PadMapFile        = PAD_MAP
     cmap.PadMapSlabOverrides = PAD_MAP_OVERRIDES
     cmap.CalibDir          = CALIB_DIR
-    cmap.CalibThreshold    = CALIB_THRESHOLD
+    cmap.CalibThreshold    = TABLE_THRESHOLD
     cmap.CalibGain         = "highgain"
     cmap.MaxMIPValue       = 100.0
     cmap.PositionTolerance = 4.0
@@ -327,6 +337,38 @@ if DIGI_MODE in ("real", "both"):
         real.ThresholdPerLayer = _thr
         real.FastNoiseMIPPerLayer = _sig
         real.TriggerEfficiencyPerLayer = _eff
+    # Per-chip / per-channel trigger turn-on from the muon calibration
+    # (siwecal-tb2026 PedestalMipCalibrator Mode=FitTrigger), copied under
+    # <CALIB_DIR>/trigger/<set>/.  A cell takes its channel's row, else its chip's,
+    # else the per-slab values above.  OFF by default (TRIGGER_TABLES=1 turns it on):
+    # the muon-run thresholds sit 2-4 ADC below the e+/45-degree-run ones the per-slab
+    # model was measured on, and which absolute level the beam data need is still open.
+    _trig_dir = os.path.join(CALIB_DIR, "trigger", CALIB_THRESHOLD)
+    _trig_chip = os.path.join(_trig_dir, "Trigger_chip_highgain.txt")
+    _trig_chan = os.path.join(_trig_dir, "Trigger_channel_highgain.txt")
+    if os.environ.get("TRIGGER_TABLES", "0") == "1" and "REAL_THRESHOLD_MIP" not in os.environ:
+        if os.path.isfile(_trig_chip) and os.path.isfile(_trig_chan):
+            real.TriggerChipTable = _trig_chip
+            real.TriggerChannelTable = _trig_chan
+            real.TriggerAdcPerMip = _adc_per_mip
+            # Each cell's ADC threshold in MIP with its own gain: the gain shape
+            # AdcDigitizer gives the cell's charge (same table, normalisation and
+            # shrinkage, set below with the AdcDigitizer).  TRIGGER_CELL_GAIN=0 = one
+            # AdcPerMip for every cell.
+            if os.environ.get("TRIGGER_CELL_GAIN", "1") != "0":
+                _gain_table = glob.glob(os.path.join(CALIB_DIR, "mips", GAIN_SHAPE_THRESHOLD, "MIP_*_highgain.txt"))
+                if len(_gain_table) != 1:
+                    raise SystemExit(f"TRIGGER_CELL_GAIN: expected one MIP_*_highgain.txt under "
+                                     f"{CALIB_DIR}/mips/{GAIN_SHAPE_THRESHOLD}, found {_gain_table}")
+                real.TriggerGainShapeTable = _gain_table[0]
+                real.GainShapeNormalisation = os.environ.get("GAIN_SHAPE_NORM", "per-slab")
+                real.GainShapeShrink = os.environ.get("GAIN_SHRINK", "1" if PED_NOISE else "0") not in ("0", "", "no", "false")
+                real.GainShapeTrueSpread = float(os.environ.get("GAIN_TRUE_SPREAD", TH.get("gain_true_spread", 0.0)))
+            real.PadMapFile = PAD_MAP
+            real.PadMapSlabOverrides = PAD_MAP_OVERRIDES
+            real.PositionTolerance = 4.0
+        else:
+            print(f"[job3] WARNING: no per-cell trigger tables under {_trig_dir}: per-slab trigger model only")
     real.RandomSeed = int(os.environ.get("REAL_RANDOM_SEED", 5489))
     if PED_NOISE:
         real.SlowNoiseMIP = 0.0
@@ -351,7 +393,7 @@ if DIGI_MODE in ("real", "both"):
         adc.AdcHighCollection = "SiPadHitsRealAdcHigh"
         adc.AdcLowCollection  = "SiPadHitsRealAdcLow"
         adc.CalibDir        = CALIB_DIR
-        adc.CalibThreshold      = CALIB_THRESHOLD        # pedestals (+ the reco table by default)
+        adc.CalibThreshold      = TABLE_THRESHOLD        # pedestals (+ the reco table by default)
         adc.RecoTableThreshold  = RECO_TABLE_THRESHOLD   # the table that RECONSTRUCTS, if not the set's own
         # ADC_PER_MIP_OVERRIDE is how analysis/fit_adc_scale.py turns the scale
         # while it iterates, without rewriting the YAML on every pass.

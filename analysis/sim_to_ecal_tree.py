@@ -82,7 +82,7 @@ _REAL_KEPT_COLLECTION = "SiPadHitsRealAdcKept"
 # Radiation-length geometry
 # --------------------------------------------------------------------------- #
 # W absorber thickness (mm) in front of each silicon layer (layers 0-14).
-# Matches EcalPidTransformer.WThicknesses in k4SiWEcalReco.
+# Matches EcalShowerVariables.WThicknesses in k4SiWEcalReco.
 _W_THICKNESS_MM = [2.8, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2,
                    4.2, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6]
 _X0_W_MM = 3.5  # radiation length of tungsten [mm]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Per-run checks of a reconstructed campaign (default Reconstructed_final) and the beam centroid of each run.
+Per-run checks of a reconstructed campaign (default Reconstruction) and the beam centroid of each run.
 
     python analysis/verify_final_campaign.py [--reco DIR] [--out table.txt] [--runs r1,r2,...]
 
@@ -55,7 +55,7 @@ def run_stats(rdir, run):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--reco", default=f"{B}/Reconstructed_final")
+    ap.add_argument("--reco", default=f"{B}/Reconstruction")
     ap.add_argument("--runs", default=None)
     ap.add_argument("--out", default=None)
     a = ap.parse_args(argv)

@@ -1,0 +1,9 @@
+bar_x v5 N=1000 median=21.60 width=13.74
+bar_x v6 N=49999 median=21.54 width=10.56
+bar_x data N=12460 median=22.43 width=11.78
+bar_y v5 N=1000 median=-47.86 width=7.65
+bar_y v6 N=49999 median=-47.77 width=5.74
+bar_y data N=12460 median=-49.53 width=5.43
+bar_r v5 N=1000 median=53.32 width=9.08
+bar_r v6 N=49999 median=53.35 width=6.67
+bar_r data N=12460 median=55.10 width=6.81

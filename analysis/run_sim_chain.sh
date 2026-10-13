@@ -11,8 +11,8 @@
 # out_base defaults to Simulation/Processed/adc_vs_tb/final_v5.
 #
 # Environment:
-#   DIGI_CALIB_DIR   MuonCalib_gaudi-style table tree for the digitiser (default: masking_info/calibration/MuonCalib_gaudi_fixed)
-#   RECO_TABLE       table that reconstructs the simulated ADC (default th210, like Reconstructed_final)
+#   DIGI_CALIB_DIR   MuonCalib-style table tree for the digitiser (default: the official EOS Calib/MuonCalib)
+#   RECO_TABLE       table that reconstructs the simulated ADC (default th210, like Reconstruction)
 #   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry fractal_dimension)
 #   DDSIM_SUFFIX     suffix of a ddsim variant after _w1924_mat_emz (e.g. _chipair, _rc0.1); use with <out_base>
 #   WORK             scratch dir (default ${TMPDIR:-/tmp}/sim_chain_$USER)
@@ -24,7 +24,7 @@ R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 T=${TB_REPO:-$(cd "$R/../siwecal-tb2026" && pwd)}
 B=/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation
 O=${5:-$B/Processed/adc_vs_tb/final_v5}
-export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-$R/masking_info/calibration/MuonCalib_gaudi_fixed}
+export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-/eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib}
 RECO_TABLE=${RECO_TABLE:-th210}
 # per-cell electronic noise from the fixed pedestal tables + gain spread without fit error (job3_digitize.py)
 export PED_NOISE=${PED_NOISE:-1}

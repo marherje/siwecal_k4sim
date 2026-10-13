@@ -1,0 +1,18 @@
+nhit_chan data mu=277.5 res=0.0826 N=36293
+nhit_chan nodigi mu=309.7 res=0.0683 N=49804
+nhit_chan digi mu=287.1 res=0.0689 N=49807
+gev data mu=20.28 res=0.0727 N=36293
+gev nodigi mu=19.88 res=0.0618 N=49804
+gev digi mu=19.96 res=0.0656 N=49807
+e_over_nhit data median=4.868 N=36293
+e_over_nhit nodigi median=4.537 N=49804
+e_over_nhit digi median=4.842 N=49807
+moliere data median=27.76 N=36293
+moliere nodigi median=28.55 N=49804
+moliere digi median=27.85 N=49807
+zbary data median=5.446 N=36293
+zbary nodigi median=5.661 N=49804
+zbary digi median=5.596 N=49807
+mip_likeness data median=0.1385 N=36293
+mip_likeness nodigi median=0.1255 N=49804
+mip_likeness digi median=0.1391 N=49807

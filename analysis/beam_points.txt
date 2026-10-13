@@ -1,0 +1,58 @@
+# Beam points of the simulation campaign final_v7 (analysis/make_sim_dag.py): one line per data group.
+# Source: analysis/final_v6_groups.txt (groups, runs, beam centres = median shower barycentre in Reconstruction) and
+# the 'per energy' block of analysis/beam_spread.txt (beam sigma = sqrt(sim_beam^2 + data_w^2 - sim_w^2), median over
+# the groups of one energy, rounded to 0.1 mm), as in final_v6.
+#
+# name : <set>_<label>_e<E> with <label> the position of TB2026-Run_Summary.xlsx (E1..E5 energy scan, U1 uniformity);
+#        runs without a label there (th210 scan eudaq 285-293: "Not specified"; eudaq 166-169: only table coordinates)
+#        keep the beam name <set>_e<E>_<x>_<y>. Runs 58 (E5, 99 GeV) and 65 (U1, 74 GeV) carry the label of the table
+#        but their showers sit elsewhere (final_v5_groups.txt), so their name also gets _<x>_<y>.
+# x y  : beam centre [mm];  sx sy : beam sigma [mm];  runs : 'e' prefix = eudaq run.
+#
+# name                          set    label  E     x     y     sx     sy     runs
+th210_e7.5_17_-50               th210  -      7.5     17   -50   24.2   23.0  e293
+th210_e10_19_-51                th210  -      10      19   -51   22.2   20.1  e292
+th210_e20_26_-52                th210  -      20      26   -52   17.6   13.0  e291
+th210_e34_27_-53                th210  -      34      27   -53   13.7    9.5  e288
+th210_e52_24_-51                th210  -      52      24   -51   11.1    6.4  e287
+th210_e74_22_-49                th210  -      74      22   -49   10.7    5.9  e286
+th210_e99_22_-48                th210  -      99      22   -48   12.1    6.1  e285
+th210_e99_1_-31                 th210  -      99       1   -31   12.1    6.1  e166
+th210_e99_28_-30                th210  -      99      28   -30   12.1    6.1  e167
+th210_e99_-39_-30               th210  -      99     -39   -30   12.1    6.1  e168
+th210_e99_-40_52                th210  -      99     -40    52   12.1    6.1  e169
+th230_E1_e7.5                   th230  E1     7.5    -47    48   24.2   23.0  22
+th230_E1_e10                    th230  E1     10     -42    49   22.2   20.1  21
+th230_E1_e20                    th230  E1     20     -42    52   17.6   13.0  20
+th230_E1_e34                    th230  E1     34     -37    51   13.7    9.5  15
+th230_E1_e52                    th230  E1     52     -42    53   11.1    6.4  13
+th230_E1_e74                    th230  E1     74     -42    53   10.7    5.9  12
+th230_E2_e7.5                   th230  E2     7.5    -44   -35   24.2   23.0  24
+th230_E2_e10                    th230  E2     10     -44   -36   22.2   20.1  25
+th230_E2_e20                    th230  E2     20     -41   -35   17.6   13.0  26
+th230_E2_e34                    th230  E2     34     -40   -35   13.7    9.5  27
+th230_E2_e52                    th230  E2     52     -43   -34   11.1    6.4  28
+th230_E2_e74                    th230  E2     74     -43   -33   10.7    5.9  29
+th230_E3_e7.5                   th230  E3     7.5     36   -34   24.2   23.0  40
+th230_E3_e10                    th230  E3     10      40   -35   22.2   20.1  36
+th230_E3_e20                    th230  E3     20      45   -34   17.6   13.0  35
+th230_E3_e34                    th230  E3     34      47   -35   13.7    9.5  32
+th230_E3_e52                    th230  E3     52      46   -34   11.1    6.4  31
+th230_E3_e74                    th230  E3     74      45   -33   10.7    5.9  30
+th230_E4_e7.5                   th230  E4     7.5     -8   -34   24.2   23.0  41
+th230_E4_e10                    th230  E4     10      -5   -35   22.2   20.1  42
+th230_E4_e20                    th230  E4     20       2   -34   17.6   13.0  43
+th230_E4_e34                    th230  E4     34       3   -34   13.7    9.5  44
+th230_E4_e52                    th230  E4     52       0   -33   11.1    6.4  45
+th230_E4_e74                    th230  E4     74       0   -32   10.7    5.9  46
+th230_E5_e7.5                   th230  E5     7.5     -8     7   24.2   23.0  57
+th230_E5_e10                    th230  E5     10      -3    -1   22.2   20.1  56
+th230_E5_e20                    th230  E5     20       2     6   17.6   13.0  55
+th230_E5_e34                    th230  E5     34       4     7   13.7    9.5  51
+th230_E5_e52                    th230  E5     52       1     9   11.1    6.4  50
+th230_E5_e74                    th230  E5     74       0     9   10.7    5.9  47
+th230_E5_e99                    th230  E5     99      -1    10   12.1    6.1  48
+th230_E5_e99_-40_40             th230  E5     99     -40    40   12.1    6.1  58
+th220_U1_e20                    th220  U1     20     -40    34   17.6   13.0  67
+th220_U1_e74                    th220  U1     74     -40    37   10.7    5.9  66,68,69,70,71,72
+th220_U1_e74_-3_-1              th220  U1     74      -3    -1   10.7    5.9  65

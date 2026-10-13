@@ -16,7 +16,7 @@
 
 // Writes the digitised simulation as the test beam's "ecal" tree, in the same
 // k4run as the digitisation, so the simulation reaches the reconstruction
-// (EcalToEDM4hep + EcalPidTransformer) through the very tree format the data
+// (EcalToEDM4hep + EcalShowerVariables) through the very tree format the data
 // do, and the tree stays available for the comparisons.  Replaces the
 // stand-alone analysis/sim_to_ecal_tree.py and writes the same branches, filled
 // the same way (that script is kept as the reference it was validated against).
@@ -57,7 +57,7 @@ public:
       }
 
       // Cumulative X0 in front of each layer, and the layer's own sampling
-      // weight (its absorber / X0_W): the same tables as EcalPidTransformer's
+      // weight (its absorber / X0_W): the same tables as EcalShowerVariables's
       // WThicknesses and event_viewer/_metrics.py:hit_weights().
       const auto& w = m_wThicknesses.value();
       double cumulative = 0.;
@@ -277,7 +277,7 @@ private:
                                           "Test-beam CellID bitfield"};
   Gaudi::Property<std::vector<double>> m_wThicknesses{
       this, "WThicknesses", {2.8, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6},
-      "W absorber thickness [mm] in front of each layer (EcalPidTransformer.WThicknesses)"};
+      "W absorber thickness [mm] in front of each layer (EcalShowerVariables.WThicknesses)"};
   Gaudi::Property<double> m_x0W{this, "X0W", 3.5, "Radiation length of tungsten [mm]"};
 
   std::unique_ptr<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>> m_hitsHandle;

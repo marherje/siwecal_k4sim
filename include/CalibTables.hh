@@ -14,7 +14,9 @@
 // channel is not calibrated" and reproduce whatever the data reconstruction does
 // with it -- which, in EventBuilder::buildHit, is an energy of exactly 0.
 
+#include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -148,6 +150,103 @@ inline bool readPedestalTable(const std::string& path, PedestalTable& table,
       ++table.nCalibrated;
     }
   }
+  return true;
+}
+
+inline double medianOf(std::vector<double> values) {
+  const std::size_t mid = values.size() / 2;
+  std::nth_element(values.begin(), values.begin() + mid, values.end());
+  return values[mid];
+}
+
+/// Turn a MIP table into the GAIN SHAPE the digitisation uses: channel-to-channel
+/// variation only (the absolute scale is AdcPerMip).  "global" divides every
+/// channel by the detector median; "per-slab" divides each slab by its own median
+/// (a slab whose table MPV is off for a reason that is not gain -- slab 12's
+/// truncated MIP fit at DAC 243, layer 14's thicker sensor the geometry already
+/// carries -- never enters as gain).  With `shrink` (per-slab only), each slab's
+/// spread is reduced to the true gain spread: to `trueSpread` when > 0, else to
+/// the measured spread minus the typical MPV fit error, every channel pulled
+/// toward 1 as r -> 1 + (r - 1) k.  Shared by AdcDigitizer (the ADC of a cell)
+/// and RealDigitizer (the cell's trigger threshold in MIP), so both see the same
+/// gain.  `log` receives the per-slab summary the caller prints.
+inline bool normaliseGainShape(MipTable& table, const std::string& mode, bool shrink, double trueSpread,
+                               std::string& error, std::string& log) {
+  std::vector<double> all;
+  for (double v : table.mpv) {
+    if (std::isfinite(v)) all.push_back(v);
+  }
+  if (all.empty()) {
+    error = "gain-shape table has no calibrated channel";
+    return false;
+  }
+  const double global = medianOf(all);
+  if (!(global > 0.0)) {
+    error = "gain-shape median is not positive";
+    return false;
+  }
+  std::ostringstream out;
+  if (mode == "global") {
+    for (double& v : table.mpv) v /= global;
+    out << "gain shape normalised by its median " << global << " ADC/MIP";
+    log = out.str();
+    return true;
+  }
+  if (mode != "per-slab") {
+    error = "GainShapeNormalisation must be 'global' or 'per-slab', got '" + mode + "'";
+    return false;
+  }
+  out << "gain shape normalised per slab (detector median " << global << " ADC/MIP); slab medians / global:";
+  const std::size_t perSlab = static_cast<std::size_t>(kChips) * kChannels;
+  for (int slab = 0; slab < kSlabs; ++slab) {
+    const std::size_t first = static_cast<std::size_t>(slab) * perSlab, last = first + perSlab;
+    std::vector<double> vals;
+    for (std::size_t i = first; i < last; ++i) {
+      if (std::isfinite(table.mpv[i])) vals.push_back(table.mpv[i]);
+    }
+    const double median = vals.empty() ? global : medianOf(vals);
+    for (std::size_t i = first; i < last; ++i) {
+      table.mpv[i] /= median;
+      table.err[i] /= median;
+    }
+    out << " " << slab << ":" << std::fixed << std::setprecision(2) << median / global;
+  }
+  if (shrink) {
+    out << "\ngain shape shrinkage per slab (measured -> true spread):";
+    for (int slab = 0; slab < kSlabs; ++slab) {
+      const std::size_t first = static_cast<std::size_t>(slab) * perSlab, last = first + perSlab;
+      std::vector<double> r, e2;
+      for (std::size_t i = first; i < last; ++i) {
+        if (std::isfinite(table.mpv[i]) && std::isfinite(table.err[i])) {
+          r.push_back(table.mpv[i]);
+          e2.push_back(table.err[i] * table.err[i]);
+        }
+      }
+      if (r.size() < 20) continue;
+      std::vector<double> sorted = r;
+      std::sort(sorted.begin(), sorted.end());
+      const double q16 = sorted[static_cast<std::size_t>(0.16 * (sorted.size() - 1))];
+      const double q84 = sorted[static_cast<std::size_t>(0.84 * (sorted.size() - 1))];
+      const double varMeas = std::pow(0.5 * (q84 - q16), 2);
+      const double e2Typ = medianOf(e2);
+      const double varTrue = trueSpread > 0.0 ? trueSpread * trueSpread : std::max(varMeas - e2Typ, 0.0);
+      for (std::size_t i = first; i < last; ++i) {
+        if (!std::isfinite(table.mpv[i])) continue;
+        double k;
+        if (trueSpread > 0.0) {
+          k = varMeas > 0.0 ? std::min(1.0, std::sqrt(varTrue / varMeas)) : 1.0;
+        } else {
+          if (!std::isfinite(table.err[i])) continue;
+          const double ei2 = table.err[i] * table.err[i];
+          k = (varTrue + ei2) > 0.0 ? varTrue / (varTrue + ei2) : 0.0;
+        }
+        table.mpv[i] = 1.0 + (table.mpv[i] - 1.0) * k;
+      }
+      out << " " << slab << ":" << std::fixed << std::setprecision(3) << std::sqrt(varMeas) << "->"
+          << std::sqrt(varTrue);
+    }
+  }
+  log = out.str();
   return true;
 }
 

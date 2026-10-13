@@ -2,9 +2,9 @@
 """
 Closing checks of the final sample (from the valtrees):
 
-  positions   per group: median shower barycentre (bar_x, bar_y) of the data (Reconstructed_final, pooled runs) and of
+  positions   per group: median shower barycentre (bar_x, bar_y) of the data (Reconstruction, pooled runs) and of
               the digitised simulation, against the nominal beam centre of the sim sample -> positions.txt
-  hitsel      per run: hit-bit (Reconstructed_final) against adc (Reconstructed_final_adc) selection, shower-like
+  hitsel      per run: hit-bit (Reconstruction) against adc (Reconstructed_final_adc) selection, shower-like
               events: Gaussian-core energy [MIP], sigma/mu, median nhit -> hitsel.txt, hitsel.png
 
     python analysis/final_checks.py <outdir> [positions] [hitsel]
@@ -25,7 +25,7 @@ from analysis.compare_event_level import gauss_core  # noqa: E402
 from analysis.final_panels import load_groups, sim_valtree  # noqa: E402
 
 B = "/eos/experiment/drdcalo/siw-ecal/TB2026-06"
-RECO, RECO_ADC = f"{B}/Reconstructed_final", f"{B}/Reconstructed_final_adc"
+RECO, RECO_ADC = f"{B}/Reconstruction", f"{B}/Reconstructed_final_adc"
 
 
 def read(paths, branches):
@@ -92,7 +92,7 @@ def hitsel(out):
     for a_ in ax:
         a_.set_xscale("log"); a_.set_xticks([7.5, 10, 20, 34, 52, 74, 99]); a_.set_xticklabels(["7.5", "10", "20", "34", "52", "74", "99"])
         a_.set_xlabel("Beam energy [GeV]"); a_.grid(alpha=0.25, which="both")
-    fig.suptitle("Reconstructed_final (hit bit) vs Reconstructed_final_adc (hit bit or ADC − pedestal > 30), every run, shower-like events",
+    fig.suptitle("Reconstruction (hit bit) vs Reconstructed_final_adc (hit bit or ADC − pedestal > 30), every run, shower-like events",
                  fontsize=11.5)
     fig.tight_layout(rect=[0, 0, 1, 0.93]); fig.savefig(f"{out}/hitsel.png", dpi=110)
 

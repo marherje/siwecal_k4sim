@@ -4,7 +4,7 @@
 #   bash analysis/run_muon_gain_scan.sh <muon ddsim edm4hep> <set: th210|th220|th230> <outdir> <gain> [<gain> ...]
 #
 # Each gain -> <outdir>/<set>_mu_g<gain>.root (ecal tree of SiPadHitsRealAdc). Same digitiser configuration as the
-# final_v5 samples: DIGI_CALIB_DIR (default masking_info/calibration/MuonCalib_gaudi_fixed), per-cell pedestal
+# final_v5 samples: DIGI_CALIB_DIR (default EOS Calib/MuonCalib), per-cell pedestal
 # noise (PED_NOISE=1), reconstruction with the th210 table, only ADC_PER_MIP_OVERRIDE changing.
 IN=${1:?muon ddsim file}; SET=${2:?set}; OUT=${3:?outdir}; shift 3
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,7 +13,7 @@ command -v k4run >/dev/null || { echo "k4run not on PATH" >&2; exit 1; }
 set -o pipefail
 export LD_LIBRARY_PATH=$R/install/lib64:$R/install/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$R/install/lib64:$R/install/lib:$R/install/python:$PYTHONPATH
-export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-$R/masking_info/calibration/MuonCalib_gaudi_fixed}
+export DIGI_CALIB_DIR=${DIGI_CALIB_DIR:-/eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib}
 export PED_NOISE=${PED_NOISE:-1}
 [ -d "$OUT" ] || mkdir "$OUT"
 for g in "$@"; do

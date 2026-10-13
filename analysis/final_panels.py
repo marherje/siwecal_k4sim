@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Shower characterisation panels for the final TB2026 sample: data (Reconstructed_final, fixed SCA pairing, th210
+Shower characterisation panels for the final TB2026 sample: data (Reconstruction, fixed SCA pairing, th210
 pedestals + MIP table for every run) against the simulation without and with digitisation (final_v5).
 
 One 3 x 5 panel per group (threshold set, beam energy, beam position); runs of the same group are pooled.
@@ -11,7 +11,7 @@ Writes <outdir>/panel_<group>.png, final_panels_summary.txt, resolution_vs_energ
 (<outdir>/cache/<group>.npz) so re-plotting does not re-read EOS.
 
 Inputs (environment overrides, for tests on other campaigns):
-    FINAL_RECO   data campaign        (default TB2026-06/Reconstructed_final)
+    FINAL_RECO   data campaign        (default TB2026-06/Reconstruction)
     FINAL_SIM    simulation folder    (default .../adc_vs_tb/final_v5; trees/ and pid/ inside)
 The simulation of group <set>_e<E>_<pos> is pid/<set>_e<E>_<pos>_{digi,nodigi}/*.valtree.root; the data
 <run>/ecal_<run>.valtree.root.
@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(_HERE)), "siweca
 from analysis.compare_event_level import gauss_core  # noqa: E402
 
 B = "/eos/experiment/drdcalo/siw-ecal/TB2026-06"
-RECO = os.environ.get("FINAL_RECO", f"{B}/Reconstructed_final")
+RECO = os.environ.get("FINAL_RECO", f"{B}/Reconstruction")
 SIM = os.environ.get("FINAL_SIM", f"{B}/Simulation/Processed/adc_vs_tb/final_v5")
 
 
@@ -47,20 +47,26 @@ def _run(r):
 
 
 # (set, energy, position label, pooled runs). The position label is the sim sample's (x_y) beam centre in mm,
-# the median shower barycentre of the group in Reconstructed_final (final_v5/README.txt).
-GROUPS_FILE = os.path.join(_HERE, "final_v5_groups.txt")
+# the median shower barycentre of the group in Reconstruction (final_v5/README.txt).
+GROUPS_FILE = os.environ.get("FINAL_GROUPS", os.path.join(_HERE, "final_v5_groups.txt"))
 
 
 def load_groups(path=GROUPS_FILE):
-    """final_v5_groups.txt: '<set> <E> <pos> <runs,comma-separated>' per line ('e' prefix = eudaq run)."""
+    """final_v5_groups.txt: '<set> <E> <x_y> <runs,comma-separated>' per line ('e' prefix = eudaq run), group
+    <set>_e<E>_<x_y>; final_v6_groups.txt: '<set> <label> <E> <x_y> <runs>', group <set>_<label>_e<E>."""
     out = []
     for line in open(path):
         line = line.split("#")[0].split()
         if len(line) < 4:
             continue
-        th, E, pos, runs = line[:4]
-        out.append({"set": th, "E": E, "pos": pos, "runs": [_run(r) for r in runs.split(",")],
-                    "name": f"{th}_e{E}_{pos}"})
+        if len(line) >= 5:
+            th, label, E, pos, runs = line[:5]
+            name = f"{th}_{label}_e{E}"
+        else:
+            th, E, pos, runs = line[:4]
+            label, name = None, f"{th}_e{E}_{pos}"
+        out.append({"set": th, "E": E, "pos": pos, "label": label, "runs": [_run(r) for r in runs.split(",")],
+                    "name": name})
     return out
 
 
@@ -137,15 +143,27 @@ def core_curve(x, bins, mu, sg):
 
 
 def draw_hist(ax, x, bins, kind, label):
+    """Simulations as histograms (dotted / hatched) with their statistical error bars, data as solid points with
+    Poisson error bars and a horizontal bar across the bin; all unit area over the drawn range."""
+    counts, edges = np.histogram(x, bins=bins)
+    norm = max(counts.sum(), 1) * np.diff(edges)
+    ctr = 0.5 * (edges[1:] + edges[:-1])
+    nz = counts > 0
     if kind == "data":
-        ax.hist(x, bins=bins, density=True, histtype="stepfilled", color=COLOR[kind], alpha=0.22, lw=0)
-        ax.hist(x, bins=bins, density=True, histtype="step", color=COLOR[kind], lw=2.0, label=label)
-    elif kind == "nodigi":
+        ax.errorbar(ctr[nz], (counts / norm)[nz], yerr=(np.sqrt(counts) / norm)[nz],
+                    xerr=(0.5 * np.diff(edges))[nz], fmt="o", color=COLOR[kind],
+                    ms=6.5, mew=0, elinewidth=1.4, capsize=0, label=label, zorder=5)
+        return
+    if kind == "nodigi":
         ax.hist(x, bins=bins, density=True, histtype="step", color=COLOR[kind], lw=2.0, ls=":", label=label)
     else:
         ax.hist(x, bins=bins, density=True, histtype="stepfilled", facecolor="none", edgecolor=COLOR[kind],
                 hatch="//", lw=0, alpha=0.8)
         ax.hist(x, bins=bins, density=True, histtype="step", color=COLOR[kind], lw=1.6, label=label)
+    # statistical error per bin, the two simulations side by side so the bars do not overlap
+    xs = ctr + (-0.15 if kind == "nodigi" else 0.15) * np.diff(edges)
+    ax.errorbar(xs[nz], (counts / norm)[nz], yerr=(np.sqrt(counts) / norm)[nz], fmt="none", ecolor=COLOR[kind],
+                elinewidth=1.1, capsize=2, zorder=4)
 
 
 def panel(g, s, outpath):
@@ -210,7 +228,7 @@ def main(argv=None):
     S = {g["name"]: group_samples(g, args.outdir, not args.no_cache) for g in groups}
 
     # MIP -> GeV per sample kind on the th210 scan
-    scan = {g["E"]: g["name"] for g in groups if g["set"] == "th210" and g["pos"] == SCAN_POS(groups)}
+    scan = th210_scan(groups)
     cal = {}
     for k in KINDS:
         Es = np.array([float(E) for E in CAL_E if E in scan])
@@ -249,13 +267,51 @@ def main(argv=None):
         RES.append((g, {k: st[("gev", k)] for k in KINDS}))
     txt.close()
     resolution_plot(RES, f"{args.outdir}/resolution_vs_energy.png")
+    calibration_plot(S, groups, scan, cal, f"{args.outdir}/calibration_th210.png")
 
 
-def SCAN_POS(groups):
-    """Position of the th210 energy scan: the th210 position with the most energies."""
-    from collections import Counter
-    c = Counter(g["pos"] for g in groups if g["set"] == "th210")
-    return c.most_common(1)[0][0]
+def th210_scan(groups):
+    """The th210 energy scan used for the MIP -> GeV line: one th210 group per energy of CAL_E. Selected by
+    energy, not by position: every group sits at its own data centroid, so the scan's energies do not share
+    one position (selecting by a common position left a single 7.5 GeV point and a meaningless line)."""
+    scan = {}
+    for g in groups:
+        if g["set"] == "th210" and g["E"] in CAL_E:
+            if g["E"] in scan:
+                raise SystemExit(f"two th210 groups at {g['E']} GeV ({scan[g['E']]}, {g['name']}): "
+                                 "the calibration scan needs exactly one per energy")
+            scan[g["E"]] = g["name"]
+    if len(scan) < 3:
+        raise SystemExit(f"th210 calibration scan has only {sorted(scan)} GeV; need at least 3 energies")
+    return scan
+
+
+def calibration_plot(S, groups, scan, cal, path):
+    """The MIP -> GeV line: Gaussian-core mu of sum_w against beam energy on the th210 scan (fitted, 7.5-74 GeV),
+    with every th210 99 GeV group drawn on top (not fitted), and the residuals to the line."""
+    e99 = [g for g in groups if g["set"] == "th210" and g["E"] == "99"]
+    fig, (ax, axr) = plt.subplots(2, 1, figsize=(8.5, 7.5), sharex=True, gridspec_kw={"height_ratios": [2.2, 1]})
+    xx = np.linspace(0, 105, 50)
+    for i, k in enumerate(KINDS):
+        a, b = cal[k]
+        Es = np.array([float(E) for E in CAL_E if E in scan])
+        mu = np.array([gauss_core(S[scan[E]][k]["sum_w"])[0] for E in CAL_E if E in scan])
+        mu99 = np.array([gauss_core(S[g["name"]][k]["sum_w"])[0] for g in e99])
+        dx = (i - 1) * 0.8
+        filled = COLOR[k] if k != "nodigi" else "white"
+        ax.plot(xx, a * xx + b, color=COLOR[k], lw=1.2, alpha=0.7)
+        ax.plot(Es + dx, mu, "o", color=COLOR[k], mfc=filled, mew=1.6, ms=7,
+                label=f"{LABEL[k]}: a = {a:.1f} MIP/GeV, b = {b:.0f} MIP")
+        ax.plot(np.full(len(mu99), 99.0) + dx, mu99, "D", color=COLOR[k], mfc="none", mew=1.4, ms=7)
+        axr.plot(Es + dx, 100 * (mu - (a * Es + b)) / (a * Es + b), "o", color=COLOR[k], mfc=filled, mew=1.6, ms=7)
+        axr.plot(np.full(len(mu99), 99.0) + dx, 100 * (mu99 - (a * 99 + b)) / (a * 99 + b), "D", color=COLOR[k],
+                 mfc="none", mew=1.4, ms=7)
+    ax.plot([], [], "D", color="0.3", mfc="none", label=f"99 GeV, {len(e99)} positions (not fitted)")
+    ax.set_ylabel("sum_w, Gaussian-core $\\mu$ [MIP]"); ax.grid(alpha=0.25); ax.legend(fontsize=9, loc="upper left")
+    ax.set_title("MIP → GeV calibration, th210 scan: sum_w = a E + b, fitted 7.5–74 GeV", fontsize=12)
+    axr.axhline(0, color="0.5", lw=1, ls="--"); axr.grid(alpha=0.25)
+    axr.set_xlabel("Beam energy [GeV]"); axr.set_ylabel("residual to the line [%]")
+    fig.tight_layout(); fig.savefig(path, dpi=130); plt.close(fig)
 
 
 def resolution_plot(RES, path):

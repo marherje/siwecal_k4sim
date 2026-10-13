@@ -1,0 +1,8 @@
+# Contamination samples at P4 (= table position E4, runs 41-46, th230) for analysis/final_v6 (launch_beam_final.sh with
+# GROUPS_FILE=this PARTICLE=pi-|mu- SIGMA_X SIGMA_Y). No data runs: these are simulation-only samples.
+#   <set> <pos> <E> <x_y> <runs>
+# x_y: the E4 beam centre at 20-34 GeV (final_v6_groups.txt). Beam sigma (given on the command line):
+#   pi- 30 GeV: the e- sigma interpolated between 20 and 34 GeV in beam_spread.txt, 14.8 x 10.5 mm
+#   mu- 150 GeV: 60 x 60 mm, the width that matches the TB2026 muon runs (final-campaign muon sample)
+th230 E4 30  2_-34 -
+th230 E4 150 2_-34 -

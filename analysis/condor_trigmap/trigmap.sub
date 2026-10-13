@@ -1,0 +1,14 @@
+universe                = vanilla
+executable              = /bin/bash
+arguments               = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/run_sim_chain_final.sh th210 S1 $(E) $(OUT)
+environment             = "TRIGGER_TABLES=$(TT) PARTICLE=e- IN_DIR=/eos/user/m/marquezh/siwecal_sim/Generated/trigmap"
+log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_trigmap/logs/trigmap.log
+output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_trigmap/logs/trigmap_e$(E)_tt$(TT).out
+error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_trigmap/logs/trigmap_e$(E)_tt$(TT).err
+request_cpus            = 1
+request_memory          = 8000
+request_disk            = 20000M
+should_transfer_files   = NO
+getenv                  = False
++JobFlavour             = "tomorrow"
+queue E, TT, OUT from /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_trigmap/jobs.txt
