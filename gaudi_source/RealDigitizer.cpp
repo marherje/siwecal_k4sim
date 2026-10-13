@@ -2,12 +2,19 @@
 #include "GaudiKernel/MsgStream.h"
 #include "k4FWCore/DataHandle.h"
 #include "CellShaping.hh"
+#include "CalibTables.hh"
+#include "PadMap.hh"
 #include "edm4hep/MCParticle.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 #include "podio/UserDataCollection.h"
 #include "DDSegmentation/BitFieldCoder.h"
 
 #include <atomic>
+#include <cmath>
+#include <fstream>
+#include <map>
+#include <sstream>
+#include <tuple>
 #include <cstdint>
 #include <memory>
 #include <numeric>
@@ -78,6 +85,7 @@ public:
       }
 
       if (!setupMIPCalibration()) return StatusCode::FAILURE;
+      if (!setupTriggerTables()) return StatusCode::FAILURE;
 
       if (mode == "real") {
         m_digitizedEnergyHandle =
@@ -192,12 +200,7 @@ public:
           // and the trigger model is this cell's layer's (per-layer vectors, or
           // the set's scalars when they are empty).
           cfg.mipValueGeV = mipValueFor(hit.getCellID());
-          cfg.mipThreshold = perLayerOr(m_thresholdPerLayer.value(), hit.getCellID(),
-                                        m_threshold.value());
-          cfg.fastNoiseMIP = perLayerOr(m_fastNoisePerLayer.value(), hit.getCellID(),
-                                        m_fastNoiseMIP.value());
-          cfg.triggerEfficiency = perLayerOr(m_triggerEfficiencyPerLayer.value(),
-                                             hit.getCellID(), m_triggerEfficiency.value());
+          setTriggerModel(hit, cfg);
           const double hitToGeV = inputIsGeV ? 1.0 : cfg.mipValueGeV;
 
           std::vector<double> stepEnergyGeV;
@@ -296,6 +299,11 @@ public:
       m_digitizedFastHandle.reset();
       m_digitizedTriggerHandle.reset();
       m_decoder.reset();
+      if (m_useTriggerTables) {
+        info() << "[RealDigitizer] Trigger model used per cell: channel table " << m_nTrigChannel.load()
+               << ", chip table " << m_nTrigChip.load() << ", per-layer fallback " << m_nTrigLayer.load()
+               << "; with the cell's own gain " << m_nTrigGain.load() << endmsg;
+      }
       return Gaudi::Algorithm::finalize();
     } catch (const std::exception& e) {
       error() << "[RealDigitizer] Exception in finalize(): " << e.what() << endmsg;
@@ -365,6 +373,167 @@ private:
            << " GeV/MIP." << endmsg;
     return true;
   }
+
+
+  // --------------------------------------------------------------------- //
+  // Trigger model per cell.  The turn-on of every channel and chip comes from
+  // the muon calibration (siwecal-tb2026 PedestalMipCalibrator Mode=FitTrigger:
+  // trigger/<th>/Trigger_{channel,chip}_highgain.txt, ADC above the pedestal).
+  // The cell's chip and channel are found exactly as ChannelMapper finds them
+  // (nearest pad in the slab's pad map, PadMap.hh).  Order: the channel's row,
+  // else its chip's, else the per-layer vectors, else the set's scalars.
+  // --------------------------------------------------------------------- //
+  // In ADC above the pedestal, as measured; turned into MIP per cell with the
+  // cell's own gain (AdcPerMip x gain shape), the same gain AdcDigitizer gives
+  // the cell's charge, so a channel with a high gain reaches its ADC threshold
+  // with less charge exactly as it does in the detector.
+  struct TriggerModel {
+    double muAdc, sigmaAdc, efficiency;
+  };
+
+  bool readTriggerTable(const std::string& path, bool perChannel) {
+    std::ifstream fin(path);
+    if (!fin) {
+      error() << "[RealDigitizer] Cannot open trigger table " << path << endmsg;
+      return false;
+    }
+    std::string line;
+    std::size_t n = 0;
+    while (std::getline(fin, line)) {
+      if (line.empty() || line[0] == '#') continue;
+      std::istringstream ss(line);
+      int layer = -1, chip = -1, channel = -1;
+      double mu, sigma, plateau;
+      ss >> layer >> chip;
+      if (perChannel) ss >> channel;
+      ss >> mu >> sigma >> plateau;
+      if (ss.fail() || !std::isfinite(mu) || !std::isfinite(sigma) || !std::isfinite(plateau)) continue;
+      const TriggerModel t{mu, sigma, plateau};
+      if (perChannel) {
+        m_trigChannel[{layer, chip, channel}] = t;
+      } else {
+        m_trigChip[{layer, chip}] = t;
+      }
+      ++n;
+    }
+    info() << "[RealDigitizer] Trigger table " << path << ": " << n << " " << (perChannel ? "channels" : "chips")
+           << endmsg;
+    return n > 0;
+  }
+
+  bool setupTriggerTables() {
+    const bool haveChip = !m_triggerChipTable.value().empty();
+    const bool haveChannel = !m_triggerChannelTable.value().empty();
+    if (!haveChip && !haveChannel) return true;
+    if (!(m_triggerAdcPerMip.value() > 0.0)) {
+      error() << "[RealDigitizer] TriggerAdcPerMip must be set (> 0) with the trigger tables" << endmsg;
+      return false;
+    }
+    if (m_bitField.value().empty()) {
+      error() << "[RealDigitizer] the trigger tables need BitField to decode the layer" << endmsg;
+      return false;
+    }
+    if (!m_decoder) m_decoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(m_bitField.value());
+    std::string err;
+    if (!siwecal::loadPadMap(m_padMapFile.value(), m_padDefault, err) ||
+        !siwecal::loadPadMapOverrides(m_padMapSlabOverrides.value(), m_padOverrides, err)) {
+      error() << "[RealDigitizer] " << err << endmsg;
+      return false;
+    }
+    if (!m_triggerGainShapeTable.value().empty()) {
+      std::string log;
+      if (!siwecal::readMipTable(m_triggerGainShapeTable.value(), m_gainShape, err) ||
+          !siwecal::normaliseGainShape(m_gainShape, m_gainShapeNormalisation.value(), m_gainShapeShrink.value(),
+                                       m_gainShapeTrueSpread.value(), err, log)) {
+        error() << "[RealDigitizer] trigger gain shape: " << err << endmsg;
+        return false;
+      }
+      m_haveGainShape = true;
+      info() << "[RealDigitizer] trigger thresholds in MIP per cell with the gain shape of "
+             << m_triggerGainShapeTable.value() << " (" << m_gainShape.nCalibrated << " channels)" << endmsg;
+    }
+    if (haveChip && !readTriggerTable(m_triggerChipTable.value(), false)) return false;
+    if (haveChannel && !readTriggerTable(m_triggerChannelTable.value(), true)) return false;
+    m_useTriggerTables = true;
+    return true;
+  }
+
+  void setTriggerModel(const edm4hep::SimCalorimeterHit& hit, siwecal::CellShapingConfig& cfg) const {
+    const std::uint64_t cellID = hit.getCellID();
+    if (m_useTriggerTables) {
+      const int slab = static_cast<int>(m_decoder->get(cellID, "layer"));
+      const auto& pos = hit.getPosition();
+      int chip = 0, channel = 0;
+      float dist2 = 0.f;
+      siwecal::nearestPad(m_padDefault, m_padOverrides, slab, pos.x, pos.y, chip, channel, dist2);
+      if (std::sqrt(dist2) <= m_posTolerance.value()) {
+        const TriggerModel* t = nullptr;
+        if (auto it = m_trigChannel.find({slab, chip, channel}); it != m_trigChannel.end()) {
+          t = &it->second;
+          ++m_nTrigChannel;
+        } else if (auto ic = m_trigChip.find({slab, chip}); ic != m_trigChip.end()) {
+          t = &ic->second;
+          ++m_nTrigChip;
+        }
+        if (t != nullptr) {
+          double adcPerMip = m_triggerAdcPerMip.value();
+          if (m_haveGainShape) {
+            const double g = m_gainShape.at(slab, chip, channel);
+            if (std::isfinite(g) && g > 0.0) {
+              adcPerMip *= g;
+              ++m_nTrigGain;
+            }
+          }
+          cfg.mipThreshold = t->muAdc / adcPerMip;
+          cfg.fastNoiseMIP = t->sigmaAdc / adcPerMip;
+          cfg.triggerEfficiency = t->efficiency;
+          return;
+        }
+      }
+    }
+    if (m_useTriggerTables) ++m_nTrigLayer;
+    cfg.mipThreshold = perLayerOr(m_thresholdPerLayer.value(), cellID, m_threshold.value());
+    cfg.fastNoiseMIP = perLayerOr(m_fastNoisePerLayer.value(), cellID, m_fastNoiseMIP.value());
+    cfg.triggerEfficiency = perLayerOr(m_triggerEfficiencyPerLayer.value(), cellID, m_triggerEfficiency.value());
+  }
+
+  Gaudi::Property<std::string> m_triggerChipTable{
+      this, "TriggerChipTable", "",
+      "Per-chip trigger turn-on, 'layer chip mu_adc sigma_adc plateau ...' (siwecal-tb2026 "
+      "PedestalMipCalibrator Mode=FitTrigger); empty = per-layer vectors / scalars"};
+  Gaudi::Property<std::string> m_triggerChannelTable{
+      this, "TriggerChannelTable", "",
+      "Per-channel trigger turn-on, 'layer chip channel mu_adc sigma_adc plateau ...'; wins over the chip table"};
+  Gaudi::Property<double> m_triggerAdcPerMip{
+      this, "TriggerAdcPerMip", 0.0,
+      "ADC per MIP of the threshold set, to turn the tables' ADC into the MIP the shaping works in"};
+  Gaudi::Property<std::string> m_triggerGainShapeTable{
+      this, "TriggerGainShapeTable", "",
+      "MIP table whose gain shape turns each cell's ADC threshold into MIP (AdcDigitizer's GainShapeThreshold "
+      "table); empty = TriggerAdcPerMip for every cell"};
+  Gaudi::Property<std::string> m_gainShapeNormalisation{
+      this, "GainShapeNormalisation", "per-slab", "As AdcDigitizer.GainShapeNormalisation"};
+  Gaudi::Property<bool> m_gainShapeShrink{this, "GainShapeShrink", false, "As AdcDigitizer.GainShapeShrink"};
+  Gaudi::Property<double> m_gainShapeTrueSpread{
+      this, "GainShapeTrueSpread", 0.0, "As AdcDigitizer.GainShapeTrueSpread"};
+  Gaudi::Property<std::string> m_padMapFile{
+      this, "PadMapFile", "mappings/fev10_rotate_chip_channel_x_y_mapping.txt",
+      "Default pad map (chip/channel -> x,y), as ChannelMapper.PadMapFile"};
+  Gaudi::Property<std::vector<std::string>> m_padMapSlabOverrides{
+      this, "PadMapSlabOverrides", {}, "Per-slab pad maps 'slab:path', as ChannelMapper.PadMapSlabOverrides"};
+  Gaudi::Property<double> m_posTolerance{
+      this, "PositionTolerance", 4.0,
+      "Max distance [mm] to the nearest pad, as ChannelMapper.PositionTolerance; beyond it the cell keeps the "
+      "per-layer model"};
+
+  bool m_useTriggerTables = false;
+  bool m_haveGainShape = false;
+  siwecal::MipTable m_gainShape;
+  mutable std::atomic<long long> m_nTrigChannel{0}, m_nTrigChip{0}, m_nTrigLayer{0}, m_nTrigGain{0};
+  std::vector<siwecal::PadEntry> m_padDefault;
+  std::map<int, std::vector<siwecal::PadEntry>> m_padOverrides;
+  std::map<std::tuple<int, int, int>, TriggerModel> m_trigChannel;
+  std::map<std::pair<int, int>, TriggerModel> m_trigChip;
 
   double mipValueFor(std::uint64_t cellID) const {
     return perLayerOr(m_MIPValues.value(), cellID, m_MIPValue.value());

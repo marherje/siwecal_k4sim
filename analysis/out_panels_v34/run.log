@@ -1,0 +1,835 @@
+MIP -> GeV: sum_w [MIP] = a * E [GeV] + b, fitted on the Gaussian-core mu of the th210 scan 7.5-74 GeV
+   Data                     a =    81.92 MIP/GeV   b =     42.1 MIP
+   Sim (no digitisation)    a =    88.75 MIP/GeV   b =     -0.0 MIP
+   Sim (digitised)          a =    87.15 MIP/GeV   b =      2.2 MIP
+
+Per group: Gaussian-core mu and sigma/mu for the first four variables, median for the others; ratio = sim / data
+
+== th210_e7.5_17_-50  (1 run(s); N data/nodigi/digi = 14921/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                140       157       144    11.67%     8.21%     8.16%        1.125      1.031
+   sum_hg              9.52e+03       nan  9.87e+03    10.17%               9.26%          nan      1.036
+   sum_energy               516       538       531    10.68%     8.89%     9.00%        1.044      1.030
+   gev                     7.26      7.51       7.5    11.29%     8.62%     8.95%        1.035      1.034
+   e_over_nhit             3.65      3.42      3.69                                      0.937      1.009
+   moliere                 28.3      29.3      28.6                                      1.033      1.009
+   transverse_rms            19      19.2      18.9                                      1.011      0.992
+   bar_r                     58      53.3      53.3                                      0.919      0.919
+   zbary                   4.74      4.98      4.92                                      1.049      1.038
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              9         9         9                                      1.000      1.000
+   n_layers_hit              13        14        14                                      1.077      1.077
+   mip_likeness           0.212     0.201     0.212                                      0.950      1.001
+   fractal_dimension       1.63      1.64      1.63                                      1.007      0.999
+
+== th210_e10_19_-51  (1 run(s); N data/nodigi/digi = 24562/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                173       195       178    10.20%     6.65%     7.10%        1.125      1.030
+   sum_hg              1.27e+04       nan  1.32e+04     8.97%               6.61%          nan      1.038
+   sum_energy               687       716       706     9.52%     6.80%     6.96%        1.043      1.027
+   gev                     9.89        10        10     9.67%     7.28%     7.33%        1.015      1.014
+   e_over_nhit             3.96      3.69      3.96                                      0.932      1.001
+   moliere                 28.1      29.2      28.3                                      1.039      1.009
+   transverse_rms            19      19.2      18.8                                      1.010      0.989
+   bar_r                   58.7      54.1      54.2                                      0.922      0.923
+   zbary                   4.94      5.23      5.17                                      1.057      1.045
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length             10        10        10                                      1.000      1.000
+   n_layers_hit              14        15        14                                      1.071      1.000
+   mip_likeness           0.195     0.185     0.198                                      0.951      1.016
+   fractal_dimension       1.67      1.69      1.67                                      1.007      1.001
+
+== th210_e20_26_-52  (1 run(s); N data/nodigi/digi = 36293/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                278       311       285     8.26%     5.53%     5.71%        1.120      1.028
+   sum_hg              2.52e+04       nan   2.6e+04     6.80%               6.13%          nan      1.032
+   sum_energy          1.36e+03  1.41e+03  1.39e+03     7.52%     6.32%     6.61%        1.038      1.023
+   gev                     20.3        20      20.1     7.27%     5.66%     5.68%        0.988      0.989
+   e_over_nhit             4.87      4.51      4.85                                      0.927      0.996
+   moliere                 27.8      28.7      28.2                                      1.035      1.015
+   transverse_rms          18.8      19.2      18.8                                      1.019      0.997
+   bar_r                   59.2      57.7      57.8                                      0.975      0.975
+   zbary                   5.45       5.7      5.65                                      1.047      1.037
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 6         7         6                                      1.167      1.000
+   shower_length             11        12        12                                      1.091      1.091
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.138     0.123     0.136                                      0.889      0.983
+   fractal_dimension       1.76      1.77      1.76                                      1.009      1.003
+
+== th210_e34_27_-53  (1 run(s); N data/nodigi/digi = 8264/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                386       439       403     6.75%     5.88%     6.07%        1.138      1.045
+   sum_hg              4.12e+04       nan  4.33e+04     6.81%               5.92%          nan      1.052
+   sum_energy          2.22e+03  2.36e+03  2.33e+03     7.98%     5.90%     5.97%        1.063      1.046
+   gev                       34      33.9      33.9     7.24%     5.29%     5.54%        0.995      0.994
+   e_over_nhit             5.76      5.37      5.75                                      0.932      0.998
+   moliere                 27.3      28.7      28.1                                      1.052      1.027
+   transverse_rms          18.5      19.1      18.8                                      1.032      1.013
+   bar_r                   59.4      59.3      59.4                                      0.999      1.000
+   zbary                   5.81      6.04      5.98                                      1.040      1.029
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             13        13        13                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0894    0.0818    0.0914                                      0.916      1.023
+   fractal_dimension       1.82      1.84      1.83                                      1.012      1.007
+
+== th210_e52_24_-51  (1 run(s); N data/nodigi/digi = 9483/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                497       581       533     5.52%     4.95%     5.08%        1.170      1.073
+   sum_hg              6.11e+04       nan  6.47e+04     5.71%               5.00%          nan      1.059
+   sum_energy          3.37e+03   3.6e+03  3.54e+03     6.78%     4.97%     5.58%        1.068      1.052
+   gev                     52.3        52        52     5.76%     4.28%     4.52%        0.994      0.995
+   e_over_nhit             6.68      6.19      6.64                                      0.926      0.994
+   moliere                 27.4        29      28.3                                      1.056      1.030
+   transverse_rms          18.6      19.3      18.9                                      1.042      1.020
+   bar_r                   57.1      55.7      55.8                                      0.977      0.977
+   zbary                    6.1      6.31      6.25                                      1.035      1.025
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         7         7                                      0.875      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0676    0.0627    0.0685                                      0.927      1.013
+   fractal_dimension       1.86      1.88      1.87                                      1.014      1.009
+
+== th210_e74_22_-49  (1 run(s); N data/nodigi/digi = 12460/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                607       723       665     5.16%     5.03%     4.72%        1.191      1.096
+   sum_hg              8.28e+04       nan  8.89e+04     5.25%               4.78%          nan      1.073
+   sum_energy          4.71e+03  5.08e+03     5e+03     5.95%     4.84%     5.22%        1.079      1.062
+   gev                     73.7      74.1        74     4.94%     3.79%     4.14%        1.004      1.004
+   e_over_nhit             7.56      7.02      7.52                                      0.929      0.995
+   moliere                 27.6      29.3      28.6                                      1.063      1.035
+   transverse_rms          18.7      19.5        19                                      1.041      1.018
+   bar_r                   55.1      53.3      53.3                                      0.967      0.968
+   zbary                   6.36      6.57       6.5                                      1.033      1.022
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0563    0.0514    0.0584                                      0.913      1.038
+   fractal_dimension       1.89      1.92      1.91                                      1.021      1.015
+
+== th210_e99_22_-48  (1 run(s); N data/nodigi/digi = 3585/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                710       859       789     5.18%     4.11%     4.20%        1.209      1.112
+   sum_hg              1.05e+05       nan  1.14e+05     4.75%               3.75%          nan      1.082
+   sum_energy          6.16e+03  6.74e+03  6.64e+03     5.69%     4.33%     4.72%        1.095      1.078
+   gev                     97.4      98.8      98.8     4.46%     3.18%     3.45%        1.014      1.014
+   e_over_nhit             8.19      7.83      8.39                                      0.957      1.024
+   moliere                 28.3      29.5      28.7                                      1.044      1.015
+   transverse_rms          19.1      19.5      19.1                                      1.018      0.997
+   bar_r                   54.3      52.9      52.9                                      0.974      0.975
+   zbary                   6.68      6.79      6.72                                      1.016      1.005
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0555    0.0481     0.056                                      0.865      1.008
+   fractal_dimension        1.9      1.96      1.95                                      1.030      1.025
+
+== th210_e99_1_-31  (1 run(s); N data/nodigi/digi = 47993/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                755       894       819     4.12%     3.72%     3.67%        1.185      1.085
+   sum_hg              1.04e+05       nan  1.14e+05     4.84%               5.03%          nan      1.091
+   sum_energy          6.22e+03  6.77e+03  6.68e+03     5.39%     4.96%     5.41%        1.088      1.074
+   gev                     98.4      99.5      99.5     4.00%     3.84%     4.36%        1.012      1.012
+   e_over_nhit             7.57      7.53      8.09                                      0.994      1.068
+   moliere                 32.4      31.7      30.6                                      0.979      0.947
+   transverse_rms          20.7      20.3      19.8                                      0.980      0.958
+   bar_r                   32.2      32.6      32.6                                      1.012      1.014
+   zbary                   6.66      6.82      6.73                                      1.023      1.010
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.056    0.0454    0.0511                                      0.811      0.913
+   fractal_dimension       1.85      1.92      1.91                                      1.034      1.029
+
+== th210_e99_28_-30  (1 run(s); N data/nodigi/digi = 47837/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                723       889       815     4.81%     3.77%     3.81%        1.229      1.127
+   sum_hg              9.22e+04       nan  1.15e+05    11.53%               4.01%          nan      1.245
+   sum_energy          5.38e+03  6.84e+03   6.8e+03    14.37%     4.22%     4.56%        1.270      1.264
+   gev                     85.1       100       101    13.89%     3.43%     3.74%        1.177      1.188
+   e_over_nhit             6.65      7.71      8.33                                      1.158      1.252
+   moliere                 34.4      30.5      29.5                                      0.888      0.858
+   transverse_rms          21.7      19.9      19.3                                      0.917      0.893
+   bar_r                   42.6      40.9      40.9                                      0.961      0.961
+   zbary                   6.68      6.75      6.66                                      1.010      0.997
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0579    0.0453    0.0527                                      0.782      0.910
+   fractal_dimension       1.85      1.93      1.92                                      1.048      1.042
+
+== th210_e99_-39_-30  (1 run(s); N data/nodigi/digi = 56660/999/999)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                713       885       814     4.69%     3.92%     3.87%        1.242      1.143
+   sum_hg              1.04e+05       nan  1.16e+05     5.93%               3.92%          nan      1.111
+   sum_energy          6.16e+03  6.82e+03  6.73e+03     8.28%     4.41%     4.84%        1.108      1.093
+   gev                     97.9       100       100     6.20%     3.36%     3.67%        1.026      1.024
+   e_over_nhit             7.79      7.73      8.28                                      0.991      1.063
+   moliere                 30.3      29.9      29.1                                      0.984      0.958
+   transverse_rms            20      19.5      19.1                                      0.980      0.959
+   bar_r                   50.4      48.8        49                                      0.969      0.971
+   zbary                   6.66       6.8      6.72                                      1.020      1.009
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0571    0.0459    0.0519                                      0.805      0.910
+   fractal_dimension       1.87      1.95      1.94                                      1.046      1.040
+
+== th210_e99_-40_52  (1 run(s); N data/nodigi/digi = 65709/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                669       851       784     4.71%     5.33%     5.06%        1.272      1.171
+   sum_hg              1.03e+05       nan  1.14e+05     5.65%               3.86%          nan      1.108
+   sum_energy          6.26e+03  6.78e+03  6.75e+03     7.20%     4.30%     4.71%        1.084      1.077
+   gev                     98.6      99.4       100     5.75%     3.43%     3.85%        1.008      1.016
+   e_over_nhit             8.56      7.97      8.58                                      0.931      1.002
+   moliere                 26.6      28.4      27.7                                      1.067      1.040
+   transverse_rms          18.6      18.9      18.4                                      1.014      0.990
+   bar_r                   66.2        65      65.1                                      0.982      0.984
+   zbary                   6.61      6.76      6.67                                      1.022      1.010
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0598    0.0486    0.0549                                      0.812      0.919
+   fractal_dimension        1.9      1.98      1.97                                      1.040      1.035
+
+== th230_e7.5_-47_48  (1 run(s); N data/nodigi/digi = 211323/996/996)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                108       157       109    11.84%     7.81%    10.00%        1.455      1.007
+   sum_hg              8.88e+03       nan  9.01e+03    11.04%              10.32%          nan      1.015
+   sum_energy               487       540       496    11.20%     9.30%    10.54%        1.108      1.018
+   gev                      6.8      7.52      6.98    11.88%     9.23%    10.37%        1.106      1.026
+   e_over_nhit             4.49      3.46      4.57                                      0.771      1.018
+   moliere                 25.7      27.8      25.6                                      1.081      0.995
+   transverse_rms          17.8      18.7      17.1                                      1.049      0.962
+   bar_r                   69.8      66.4      66.7                                      0.951      0.955
+   zbary                   4.65      4.96       4.8                                      1.066      1.031
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              8         9         8                                      1.125      1.000
+   n_layers_hit              13        14        13                                      1.077      1.000
+   mip_likeness           0.237     0.204     0.236                                      0.861      0.997
+   fractal_dimension       1.59      1.66       1.6                                      1.041      1.003
+
+== th230_e10_-42_49  (1 run(s); N data/nodigi/digi = 83530/999/998)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                136       195       137    10.30%     7.00%     8.44%        1.436      1.011
+   sum_hg               1.2e+04       nan  1.22e+04     9.25%               7.96%          nan      1.018
+   sum_energy               657       723       670     9.53%     7.33%     8.30%        1.100      1.020
+   gev                      9.4      10.1      9.48     9.78%     7.17%     8.06%        1.077      1.009
+   e_over_nhit             4.82       3.7      4.86                                      0.767      1.007
+   moliere                   26      28.1      25.8                                      1.081      0.993
+   transverse_rms          17.9      18.8      17.3                                      1.052      0.966
+   bar_r                   67.6      64.1      64.4                                      0.947      0.952
+   zbary                   4.87      5.19      5.03                                      1.066      1.034
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length              9        10         9                                      1.111      1.000
+   n_layers_hit              14        15        14                                      1.071      1.000
+   mip_likeness            0.22     0.184      0.22                                      0.835      1.001
+   fractal_dimension       1.63      1.69      1.64                                      1.038      1.003
+
+== th230_e20_-42_52  (1 run(s); N data/nodigi/digi = 202828/999/999)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                223       312       228     7.74%     5.83%     6.46%        1.401      1.024
+   sum_hg              2.43e+04       nan  2.46e+04     6.69%               6.10%          nan      1.015
+   sum_energy          1.33e+03  1.42e+03  1.35e+03     7.16%     5.75%     6.22%        1.069      1.016
+   gev                     19.8      20.1      19.4     6.85%     5.29%     5.81%        1.018      0.978
+   e_over_nhit             5.93      4.57      5.91                                      0.771      0.997
+   moliere                 25.8      27.9      25.6                                      1.080      0.990
+   transverse_rms          17.7      18.7      17.2                                      1.052      0.971
+   bar_r                   66.5      66.1      66.5                                      0.995      1.000
+   zbary                    5.4       5.7      5.56                                      1.056      1.029
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 5         6         6                                      1.200      1.200
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.165     0.126     0.166                                      0.764      1.009
+   fractal_dimension       1.72      1.78      1.74                                      1.035      1.010
+
+== th230_e34_-37_51  (1 run(s); N data/nodigi/digi = 455209/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                315       446       333     6.33%     5.46%     6.01%        1.417      1.058
+   sum_hg              4.06e+04       nan  4.21e+04     5.55%               4.69%          nan      1.037
+   sum_energy          2.24e+03  2.41e+03  2.31e+03     6.47%     4.71%     5.39%        1.076      1.031
+   gev                     34.1      34.4      33.3     5.73%     4.54%     5.21%        1.010      0.978
+   e_over_nhit             7.03      5.38      6.92                                      0.765      0.985
+   moliere                 25.7      28.6      26.2                                      1.113      1.022
+   transverse_rms          17.7        19      17.5                                      1.073      0.992
+   bar_r                   64.8      62.7      62.9                                      0.968      0.971
+   zbary                   5.77      6.03      5.91                                      1.046      1.024
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         6                                      1.000      0.857
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.115    0.0803     0.116                                      0.701      1.016
+   fractal_dimension       1.78      1.84       1.8                                      1.036      1.015
+
+== th230_e52_-42_53  (1 run(s); N data/nodigi/digi = 150263/999/999)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                405       575       436     5.42%     5.36%     5.43%        1.420      1.078
+   sum_hg              6.01e+04       nan  6.24e+04     5.00%               4.39%          nan      1.037
+   sum_energy           3.4e+03  3.61e+03  3.49e+03     6.09%     4.61%     5.03%        1.062      1.028
+   gev                     52.4      52.1        51     5.06%     3.75%     4.04%        0.994      0.974
+   e_over_nhit             8.27      6.31      8.04                                      0.762      0.972
+   moliere                 24.8        28      25.8                                      1.127      1.039
+   transverse_rms          17.3      18.8      17.4                                      1.087      1.003
+   bar_r                   67.7      66.8      67.1                                      0.987      0.992
+   zbary                   6.05      6.28      6.15                                      1.039      1.018
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.084    0.0649    0.0851                                      0.772      1.014
+   fractal_dimension       1.83       1.9      1.87                                      1.040      1.020
+
+== th230_e74_-42_53  (1 run(s); N data/nodigi/digi = 98562/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                495       713       545     5.19%     4.63%     4.78%        1.441      1.102
+   sum_hg              8.11e+04       nan  8.59e+04     5.25%               4.60%          nan      1.059
+   sum_energy          4.72e+03   5.1e+03  4.96e+03     6.53%     4.38%     4.71%        1.079      1.049
+   gev                     73.8      73.9      72.7     5.19%     3.70%     4.15%        1.001      0.985
+   e_over_nhit              9.3       7.2       9.1                                      0.774      0.978
+   moliere                 24.5      27.9      25.7                                      1.140      1.049
+   transverse_rms          17.3      18.8      17.4                                      1.086      1.006
+   bar_r                   68.2      67.5      67.9                                      0.991      0.997
+   zbary                   6.29      6.49      6.38                                      1.032      1.013
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         7                                      1.000      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0697    0.0542    0.0703                                      0.778      1.008
+   fractal_dimension       1.87      1.95      1.92                                      1.043      1.024
+
+== th230_e7.5_-44_-35  (1 run(s); N data/nodigi/digi = 127555/998/998)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                111       160       111    10.66%     8.15%     8.70%        1.441      1.001
+   sum_hg              8.97e+03       nan  9.19e+03    10.01%               7.90%          nan      1.025
+   sum_energy               487       549       501    10.09%     7.40%     8.05%        1.127      1.029
+   gev                      6.8      7.64      7.03    10.66%     7.57%     8.33%        1.123      1.034
+   e_over_nhit             4.38      3.42      4.49                                      0.782      1.026
+   moliere                 27.3      29.2      26.9                                      1.071      0.985
+   transverse_rms          18.4        19      17.6                                      1.031      0.957
+   bar_r                   60.6      55.8      55.9                                      0.921      0.922
+   zbary                   4.72      4.99      4.84                                      1.058      1.024
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              8       9.5         8                                      1.188      1.000
+   n_layers_hit              13        14        13                                      1.077      1.000
+   mip_likeness           0.236     0.205     0.237                                      0.872      1.006
+   fractal_dimension       1.58      1.65      1.59                                      1.045      1.008
+
+== th230_e10_-44_-36  (1 run(s); N data/nodigi/digi = 242772/998/998)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                138       197       138     9.60%     6.86%     9.16%        1.432      1.000
+   sum_hg              1.21e+04       nan  1.22e+04     8.55%               8.99%          nan      1.009
+   sum_energy               658       723       666     8.64%     8.19%     8.92%        1.099      1.012
+   gev                     9.42      10.1      9.41     8.91%     7.99%     9.05%        1.077      1.000
+   e_over_nhit             4.74      3.67      4.83                                      0.774      1.018
+   moliere                 27.2      28.9      26.5                                      1.062      0.976
+   transverse_rms          18.3      19.1      17.7                                      1.039      0.963
+   bar_r                   59.8      57.1      57.5                                      0.954      0.961
+   zbary                   4.93       5.2      5.05                                      1.054      1.023
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length              9        10         9                                      1.111      1.000
+   n_layers_hit              14        15        14                                      1.071      1.000
+   mip_likeness           0.218     0.182     0.219                                      0.835      1.002
+   fractal_dimension       1.62      1.69      1.64                                      1.041      1.009
+
+== th230_e20_-41_-35  (1 run(s); N data/nodigi/digi = 302002/999/999)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                227       319       233     7.50%     5.81%     6.20%        1.403      1.026
+   sum_hg              2.46e+04       nan   2.5e+04     6.14%               5.75%          nan      1.018
+   sum_energy          1.33e+03  1.44e+03  1.35e+03     6.33%     5.34%     5.74%        1.082      1.020
+   gev                     19.8      20.4      19.4     6.10%     5.39%     5.79%        1.030      0.981
+   e_over_nhit              5.8      4.49      5.79                                      0.773      0.998
+   moliere                 27.2      29.6      27.1                                      1.087      0.994
+   transverse_rms          18.3      19.5      17.9                                      1.066      0.978
+   bar_r                   55.6      53.2      53.5                                      0.957      0.962
+   zbary                   5.44      5.68      5.54                                      1.045      1.018
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 6         6         6                                      1.000      1.000
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.162      0.12     0.165                                      0.744      1.017
+   fractal_dimension        1.7      1.76      1.72                                      1.033      1.012
+
+== th230_e34_-40_-35  (1 run(s); N data/nodigi/digi = 195033/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                323       455       337     6.00%     4.70%     5.32%        1.406      1.042
+   sum_hg              4.14e+04       nan  4.24e+04     5.01%               5.30%          nan      1.024
+   sum_energy          2.25e+03  2.42e+03  2.31e+03     5.59%     5.38%     5.70%        1.074      1.024
+   gev                     34.2      34.6      33.3     5.04%     4.97%     5.31%        1.011      0.973
+   e_over_nhit             6.92      5.33      6.84                                      0.770      0.988
+   moliere                 26.9      29.5      26.9                                      1.096      1.001
+   transverse_rms          18.1      19.3      17.9                                      1.066      0.986
+   bar_r                   53.9      53.4      53.6                                      0.991      0.995
+   zbary                   5.81      6.05      5.92                                      1.041      1.019
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         6                                      1.000      0.857
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.109    0.0798     0.119                                      0.731      1.087
+   fractal_dimension       1.76      1.83      1.79                                      1.035      1.016
+
+== th230_e52_-43_-34  (1 run(s); N data/nodigi/digi = 147139/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                418       596       448     5.23%     4.17%     4.88%        1.425      1.073
+   sum_hg              6.14e+04       nan  6.36e+04     4.71%               4.38%          nan      1.035
+   sum_energy          3.42e+03  3.65e+03  3.51e+03     5.38%     4.61%     4.94%        1.070      1.028
+   gev                     52.7      52.8      51.3     4.52%     4.00%     4.30%        1.003      0.974
+   e_over_nhit             8.12      6.14      7.82                                      0.757      0.963
+   moliere                 26.2      29.4      26.7                                      1.123      1.022
+   transverse_rms          17.9      19.3      17.9                                      1.083      1.002
+   bar_r                   55.3      54.7        55                                      0.990      0.994
+   zbary                   6.09      6.33       6.2                                      1.039      1.019
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0814     0.062    0.0838                                      0.761      1.029
+   fractal_dimension       1.81      1.88      1.85                                      1.040      1.021
+
+== th230_e74_-43_-33  (1 run(s); N data/nodigi/digi = 44390/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                513       738       562     4.76%     4.57%     4.57%        1.439      1.096
+   sum_hg              8.29e+04       nan  8.76e+04     4.77%               4.34%          nan      1.057
+   sum_energy          4.76e+03  5.15e+03  4.97e+03     5.66%     4.71%     4.95%        1.082      1.045
+   gev                     74.3      75.1      73.3     4.49%     3.74%     3.95%        1.010      0.987
+   e_over_nhit             9.14      6.98      8.81                                      0.764      0.964
+   moliere                   26      29.4      27.1                                      1.134      1.043
+   transverse_rms          17.9      19.3        18                                      1.083      1.006
+   bar_r                   54.6      54.4      54.7                                      0.996      1.001
+   zbary                   6.33      6.61      6.48                                      1.044      1.023
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         7                                      1.000      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0687    0.0527    0.0687                                      0.768      1.000
+   fractal_dimension       1.84      1.93      1.89                                      1.044      1.026
+
+== th230_e7.5_36_-34  (1 run(s); N data/nodigi/digi = 161505/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                108       160       111    11.52%     6.99%     9.13%        1.479      1.021
+   sum_hg              8.86e+03       nan  9.08e+03    10.46%               8.62%          nan      1.024
+   sum_energy               482       545       501    11.14%     8.08%     9.04%        1.130      1.039
+   gev                     6.74      7.61      7.05    11.64%     8.15%     8.97%        1.129      1.046
+   e_over_nhit              4.4      3.41      4.51                                      0.774      1.024
+   moliere                 27.6      29.6      27.2                                      1.072      0.984
+   transverse_rms          18.6      19.5      17.9                                      1.046      0.960
+   bar_r                   54.7      49.1      49.3                                      0.898      0.901
+   zbary                   4.65      5.01      4.84                                      1.076      1.040
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              8        10         8                                      1.250      1.000
+   n_layers_hit              13        14        13                                      1.077      1.000
+   mip_likeness           0.236     0.203     0.238                                      0.860      1.007
+   fractal_dimension       1.57      1.65      1.59                                      1.049      1.013
+
+== th230_e10_40_-35  (1 run(s); N data/nodigi/digi = 67390/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                135       196       137    10.64%     6.74%     9.12%        1.453      1.015
+   sum_hg              1.19e+04       nan  1.21e+04     9.23%               8.62%          nan      1.019
+   sum_energy               649       719       669     9.98%     7.89%     8.85%        1.109      1.031
+   gev                     9.29      10.1      9.47    10.15%     7.29%     8.38%        1.086      1.019
+   e_over_nhit             4.78      3.68      4.86                                      0.771      1.017
+   moliere                 27.1      29.4      26.6                                      1.084      0.981
+   transverse_rms          18.4      19.3      17.8                                      1.050      0.968
+   bar_r                   57.1      52.6      52.8                                      0.921      0.925
+   zbary                   4.86      5.17      5.01                                      1.062      1.029
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length              9        10         9                                      1.111      1.000
+   n_layers_hit              14        15        14                                      1.071      1.000
+   mip_likeness            0.22     0.181     0.224                                      0.826      1.019
+   fractal_dimension       1.61      1.68      1.63                                      1.042      1.009
+
+== th230_e20_45_-34  (1 run(s); N data/nodigi/digi = 75609/997/997)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                221       315       229     8.45%     6.58%     7.27%        1.428      1.040
+   sum_hg              2.39e+04       nan  2.46e+04     6.91%               6.85%          nan      1.027
+   sum_energy          1.31e+03  1.43e+03  1.36e+03     7.55%     6.16%     6.54%        1.086      1.034
+   gev                     19.5      20.2      19.4     7.25%     6.22%     6.37%        1.033      0.995
+   e_over_nhit              5.9      4.53      5.91                                      0.767      1.002
+   moliere                 26.3      29.1      26.2                                      1.104      0.996
+   transverse_rms            18      19.2      17.6                                      1.068      0.975
+   bar_r                   58.5      55.8        56                                      0.954      0.957
+   zbary                   5.37      5.66      5.52                                      1.054      1.026
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 5         6         6                                      1.200      1.200
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.166     0.121     0.162                                      0.731      0.978
+   fractal_dimension       1.71      1.77      1.73                                      1.036      1.014
+
+== th230_e34_47_-35  (1 run(s); N data/nodigi/digi = 71173/999/999)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                311       446       330     6.92%     6.22%     6.63%        1.434      1.061
+   sum_hg              4.01e+04       nan  4.15e+04     6.25%               5.72%          nan      1.035
+   sum_energy          2.22e+03  2.38e+03  2.29e+03     7.11%     5.64%     6.20%        1.074      1.034
+   gev                     33.8      34.1      33.2     6.39%     4.85%     5.50%        1.011      0.983
+   e_over_nhit             7.09      5.35      6.92                                      0.754      0.976
+   moliere                 25.8      28.7      26.1                                      1.113      1.014
+   transverse_rms          17.8      19.2      17.6                                      1.078      0.991
+   bar_r                     59      57.5      57.7                                      0.974      0.978
+   zbary                   5.75      6.03      5.89                                      1.049      1.025
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             12        14        13                                      1.167      1.083
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.117    0.0799     0.117                                      0.681      0.993
+   fractal_dimension       1.77      1.83      1.79                                      1.036      1.016
+
+== th230_e52_46_-34  (1 run(s); N data/nodigi/digi = 61406/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                406       584       439     5.60%     5.62%     5.91%        1.440      1.081
+   sum_hg              5.93e+04       nan  6.25e+04     5.65%               4.35%          nan      1.055
+   sum_energy          3.37e+03  3.61e+03   3.5e+03     6.31%     5.01%     5.51%        1.072      1.038
+   gev                     52.1      52.3      51.3     5.10%     4.26%     4.61%        1.004      0.984
+   e_over_nhit              8.2      6.21      7.98                                      0.757      0.973
+   moliere                 25.5        29      26.3                                      1.137      1.034
+   transverse_rms          17.7      19.2      17.7                                      1.083      1.000
+   bar_r                   56.9      56.6      56.9                                      0.994      0.999
+   zbary                   6.03      6.33       6.2                                      1.050      1.028
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         7         7                                      0.875      0.875
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0853    0.0637    0.0848                                      0.747      0.995
+   fractal_dimension       1.81      1.88      1.85                                      1.041      1.023
+
+== th230_e74_45_-33  (1 run(s); N data/nodigi/digi = 47304/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                501       724       552     5.22%     6.09%     5.87%        1.446      1.102
+   sum_hg              8.03e+04       nan  8.58e+04     5.24%               4.96%          nan      1.068
+   sum_energy          4.72e+03  5.08e+03  4.95e+03     5.99%     5.07%     5.62%        1.077      1.049
+   gev                     73.8      74.2      73.1     4.67%     4.14%     4.48%        1.005      0.990
+   e_over_nhit             9.26      7.05      8.98                                      0.761      0.969
+   moliere                 25.3      28.9      26.4                                      1.140      1.043
+   transverse_rms          17.7      19.2      17.7                                      1.082      1.000
+   bar_r                   55.8      56.7      56.9                                      1.017      1.021
+   zbary                   6.28      6.54      6.42                                      1.041      1.021
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         8                                      1.000      1.000
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0699    0.0533    0.0687                                      0.763      0.983
+   fractal_dimension       1.84      1.93       1.9                                      1.046      1.029
+
+== th230_e7.5_-8_-34  (1 run(s); N data/nodigi/digi = 87475/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                112       159       110    10.27%     8.31%     9.22%        1.419      0.981
+   sum_hg              9.12e+03       nan  9.06e+03     9.41%               9.39%          nan      0.993
+   sum_energy               494       540       491     9.63%     8.28%     9.37%        1.094      0.995
+   gev                     6.91      7.55      6.92    10.15%     8.15%     9.33%        1.092      1.001
+   e_over_nhit             4.33       3.4      4.45                                      0.786      1.028
+   moliere                 29.1      31.3      28.6                                      1.073      0.981
+   transverse_rms          19.2      20.2      18.7                                      1.052      0.976
+   bar_r                   43.2      37.1      37.2                                      0.858      0.861
+   zbary                   4.72      5.01      4.87                                      1.061      1.032
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              8        10         8                                      1.250      1.000
+   n_layers_hit              13        14        13                                      1.077      1.000
+   mip_likeness           0.234     0.203     0.236                                      0.867      1.008
+   fractal_dimension       1.56      1.63      1.58                                      1.046      1.011
+
+== th230_e10_-5_-35  (1 run(s); N data/nodigi/digi = 189405/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                140       197       138     8.97%     7.49%     8.27%        1.405      0.987
+   sum_hg              1.22e+04       nan  1.22e+04     8.19%               8.94%          nan      0.997
+   sum_energy               662       721       660     8.41%     7.66%     8.80%        1.089      0.998
+   gev                     9.48      10.1      9.37     8.61%     7.37%     8.58%        1.070      0.988
+   e_over_nhit             4.66      3.63      4.75                                      0.779      1.019
+   moliere                   29      31.2      28.3                                      1.074      0.976
+   transverse_rms          19.1      20.1      18.6                                      1.051      0.972
+   bar_r                   41.7      36.7      36.8                                      0.879      0.882
+   zbary                   4.94      5.27      5.13                                      1.068      1.039
+   shower_start               1         1         2                                      1.000      2.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length              9        10         9                                      1.111      1.000
+   n_layers_hit              14        15        14                                      1.071      1.000
+   mip_likeness           0.216     0.182      0.22                                      0.840      1.017
+   fractal_dimension        1.6      1.66      1.62                                      1.036      1.009
+
+== th230_e20_2_-34  (1 run(s); N data/nodigi/digi = 69299/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                232       320       232     6.96%     5.52%     6.65%        1.377      0.998
+   sum_hg              2.44e+04       nan  2.46e+04     6.17%               6.62%          nan      1.005
+   sum_energy          1.32e+03  1.42e+03  1.33e+03     6.34%     6.24%     6.89%        1.072      1.007
+   gev                     19.7      20.2      19.2     6.09%     5.81%     6.29%        1.024      0.973
+   e_over_nhit             5.64      4.42      5.73                                      0.783      1.016
+   moliere                 28.8      31.4      28.4                                      1.090      0.986
+   transverse_rms            19      20.3      18.7                                      1.068      0.982
+   bar_r                   37.3      35.8      35.9                                      0.959      0.963
+   zbary                   5.44       5.7      5.57                                      1.047      1.023
+   shower_start               1         1         2                                      1.000      2.000
+   shower_max                 5         6         6                                      1.200      1.200
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.156     0.117      0.16                                      0.749      1.025
+   fractal_dimension       1.69      1.74       1.7                                      1.028      1.007
+
+== th230_e34_3_-34  (1 run(s); N data/nodigi/digi = 147201/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                332       455       337     5.51%     5.32%     5.78%        1.374      1.015
+   sum_hg              4.11e+04       nan  4.18e+04     5.21%               5.37%          nan      1.017
+   sum_energy          2.23e+03  2.39e+03  2.27e+03     5.60%     5.13%     5.95%        1.071      1.018
+   gev                       34      34.4        33     5.07%     4.46%     5.29%        1.011      0.971
+   e_over_nhit             6.69      5.21      6.68                                      0.778      0.997
+   moliere                 28.4      31.4      28.4                                      1.105      0.998
+   transverse_rms          18.8      20.2      18.6                                      1.071      0.988
+   bar_r                   36.5      35.8      35.9                                      0.980      0.984
+   zbary                   5.82      6.09      5.95                                      1.046      1.023
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.105    0.0766      0.11                                      0.728      1.049
+   fractal_dimension       1.75       1.8      1.77                                      1.029      1.010
+
+== th230_e52_0_-33  (1 run(s); N data/nodigi/digi = 51044/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                434       599       447     4.64%     4.56%     4.94%        1.379      1.030
+   sum_hg              6.08e+04       nan  6.27e+04     4.63%               4.77%          nan      1.032
+   sum_energy          3.38e+03  3.62e+03  3.47e+03     5.13%     4.78%     5.41%        1.073      1.027
+   gev                     52.2      52.4      50.7     4.36%     4.21%     4.54%        1.003      0.972
+   e_over_nhit              7.7      6.01      7.69                                      0.780      0.999
+   moliere                 28.3      31.5      28.5                                      1.116      1.008
+   transverse_rms          18.8      20.3      18.8                                      1.079      0.999
+   bar_r                   34.5      34.2      34.4                                      0.991      0.998
+   zbary                   6.13      6.35      6.23                                      1.037      1.017
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         7         7                                      0.875      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0787    0.0613    0.0827                                      0.779      1.050
+   fractal_dimension       1.79      1.84      1.81                                      1.028      1.011
+
+== th230_e74_0_-32  (1 run(s); N data/nodigi/digi = 140244/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                539       747       564     4.20%     4.14%     4.34%        1.386      1.046
+   sum_hg              8.21e+04       nan   8.6e+04     4.51%               5.00%          nan      1.047
+   sum_energy           4.7e+03  5.07e+03  4.88e+03     4.97%     5.36%     6.01%        1.080      1.038
+   gev                     73.4      74.2      72.2     4.01%     3.93%     4.69%        1.010      0.983
+   e_over_nhit             8.57      6.78      8.61                                      0.791      1.005
+   moliere                 28.4      31.6      28.5                                      1.113      1.006
+   transverse_rms          18.9      20.3      18.8                                      1.074      0.995
+   bar_r                   33.5      34.9        35                                      1.041      1.045
+   zbary                   6.38      6.58      6.47                                      1.032      1.014
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         7                                      1.000      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0667    0.0508    0.0678                                      0.762      1.018
+   fractal_dimension       1.83      1.88      1.86                                      1.031      1.016
+
+== th230_e7.5_-8_7  (1 run(s); N data/nodigi/digi = 233725/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                111       157       108    10.16%     8.47%     9.34%        1.405      0.971
+   sum_hg              9.05e+03       nan  8.84e+03     9.65%              10.37%          nan      0.977
+   sum_energy               489       526       477    10.09%     9.56%    11.02%        1.077      0.976
+   gev                     6.85      7.37      6.73    10.48%     8.97%    10.68%        1.076      0.982
+   e_over_nhit             4.31      3.37      4.43                                      0.783      1.028
+   moliere                 30.8      32.9      29.7                                      1.067      0.963
+   transverse_rms            20      20.9      19.4                                      1.046      0.971
+   bar_r                   29.7      16.4      16.5                                      0.553      0.556
+   zbary                   4.74      5.06      4.91                                      1.068      1.035
+   shower_start               2         1         2                                      0.500      1.000
+   shower_max                 4         5         5                                      1.250      1.250
+   shower_length              8         9         8                                      1.125      1.000
+   n_layers_hit              13        14        13                                      1.077      1.000
+   mip_likeness            0.23     0.205     0.237                                      0.891      1.029
+   fractal_dimension       1.55      1.61      1.56                                      1.039      1.008
+
+== th230_e10_-3_-1  (1 run(s); N data/nodigi/digi = 193883/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                139       192       135     9.14%     7.07%     8.41%        1.382      0.969
+   sum_hg               1.2e+04       nan  1.18e+04     8.41%               9.32%          nan      0.978
+   sum_energy               649       692       633     8.90%     8.87%     9.70%        1.068      0.976
+   gev                     9.31      9.73      8.97     8.99%     8.52%     9.46%        1.046      0.964
+   e_over_nhit             4.58      3.59       4.7                                      0.784      1.027
+   moliere                 31.1      33.5      30.3                                      1.076      0.975
+   transverse_rms          20.1      21.1      19.5                                      1.054      0.973
+   bar_r                   25.7      13.1      13.2                                      0.511      0.513
+   zbary                   4.93      5.26      5.11                                      1.067      1.037
+   shower_start               1         1         2                                      1.000      2.000
+   shower_max                 5         5         5                                      1.000      1.000
+   shower_length              9        10         9                                      1.111      1.000
+   n_layers_hit              14        14        14                                      1.000      1.000
+   mip_likeness           0.212     0.181     0.223                                      0.858      1.054
+   fractal_dimension       1.59      1.64      1.59                                      1.034      1.003
+
+== th230_e20_2_6  (1 run(s); N data/nodigi/digi = 180753/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                229       315       227     6.99%     5.91%     6.77%        1.373      0.988
+   sum_hg               2.4e+04       nan  2.41e+04     6.11%               7.30%          nan      1.006
+   sum_energy          1.28e+03  1.38e+03  1.29e+03     6.82%     7.13%     7.60%        1.074      1.002
+   gev                     19.2      19.7      18.6     6.51%     6.29%     6.70%        1.030      0.971
+   e_over_nhit             5.55      4.36      5.62                                      0.785      1.014
+   moliere                 30.5      33.3        30                                      1.091      0.983
+   transverse_rms          19.8        21      19.5                                      1.058      0.981
+   bar_r                   18.1      14.8      14.7                                      0.821      0.815
+   zbary                    5.5      5.72      5.58                                      1.040      1.015
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 6         6         6                                      1.000      1.000
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        14                                      1.000      0.933
+   mip_likeness           0.151     0.113     0.153                                      0.750      1.012
+   fractal_dimension       1.67      1.72      1.68                                      1.026      1.006
+
+== th230_e34_4_7  (1 run(s); N data/nodigi/digi = 160064/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                328       452       331     5.65%     5.14%     5.53%        1.375      1.007
+   sum_hg              4.02e+04       nan   4.1e+04     5.07%               6.14%          nan      1.018
+   sum_energy          2.15e+03  2.32e+03  2.19e+03     5.81%     6.00%     6.53%        1.080      1.016
+   gev                     32.8      33.5      31.9     5.31%     4.98%     5.52%        1.022      0.972
+   e_over_nhit              6.5      5.11      6.57                                      0.786      1.011
+   moliere                 30.2      33.2        30                                      1.100      0.993
+   transverse_rms          19.7        21      19.5                                      1.069      0.989
+   bar_r                   15.1      15.1      15.1                                      0.998      1.001
+   zbary                   5.88      6.12         6                                      1.042      1.021
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 7         7         7                                      1.000      1.000
+   shower_length             13        14        13                                      1.077      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0999     0.075       0.1                                      0.751      1.002
+   fractal_dimension       1.73      1.77      1.74                                      1.023      1.007
+
+== th230_e52_1_9  (1 run(s); N data/nodigi/digi = 101406/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                433       595       443     4.73%     4.28%     4.99%        1.376      1.024
+   sum_hg              5.98e+04       nan   6.2e+04     4.39%               6.03%          nan      1.036
+   sum_energy          3.27e+03  3.56e+03  3.39e+03     5.05%     5.68%     6.30%        1.089      1.035
+   gev                     50.5      51.7      49.7     4.41%     5.06%     5.78%        1.022      0.983
+   e_over_nhit              7.5       5.9      7.55                                      0.787      1.007
+   moliere                 29.8        33      29.7                                      1.107      0.997
+   transverse_rms          19.6      20.9      19.4                                      1.071      0.994
+   bar_r                   13.6      15.6      15.7                                      1.154      1.156
+   zbary                   6.17       6.4      6.27                                      1.038      1.016
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         7         7                                      0.875      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0757    0.0643    0.0765                                      0.850      1.011
+   fractal_dimension       1.77      1.82      1.79                                      1.025      1.012
+
+== th230_e74_0_9  (1 run(s); N data/nodigi/digi = 116095/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                539       746       560     4.17%     4.40%     4.56%        1.385      1.040
+   sum_hg              8.11e+04       nan  8.45e+04     4.33%               6.40%          nan      1.042
+   sum_energy          4.58e+03  4.98e+03  4.77e+03     4.79%     5.98%     6.54%        1.087      1.040
+   gev                     71.5      72.9      70.5     3.97%     5.53%     6.02%        1.019      0.986
+   e_over_nhit             8.38      6.65      8.46                                      0.793      1.009
+   moliere                 29.8      33.1      29.7                                      1.113      0.999
+   transverse_rms          19.5      20.9      19.4                                      1.073      0.995
+   bar_r                   13.5      15.1      15.2                                      1.118      1.121
+   zbary                   6.41      6.63       6.5                                      1.034      1.014
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         7                                      1.000      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0656    0.0554    0.0638                                      0.845      0.973
+   fractal_dimension       1.81      1.86      1.83                                      1.026      1.014
+
+== th230_e99_-1_10  (1 run(s); N data/nodigi/digi = 30630/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                642       892       676     3.90%     3.67%     3.98%        1.390      1.053
+   sum_hg              1.03e+05       nan  1.09e+05     4.01%               6.10%          nan      1.055
+   sum_energy          6.03e+03  6.62e+03  6.36e+03     4.46%     5.97%     6.50%        1.098      1.054
+   gev                     94.8      97.6      94.8     3.61%     4.57%     5.20%        1.030      1.001
+   e_over_nhit             9.02      7.39      9.34                                      0.819      1.036
+   moliere                 30.3        33      29.7                                      1.088      0.980
+   transverse_rms          19.8      20.9      19.4                                      1.057      0.980
+   bar_r                   14.7      16.1      16.1                                      1.096      1.100
+   zbary                   6.68      6.81      6.68                                      1.020      1.000
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 9         8         8                                      0.889      0.889
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0628    0.0513    0.0596                                      0.817      0.949
+   fractal_dimension       1.83      1.89      1.87                                      1.033      1.019
+
+== th230_e99_-40_40  (1 run(s); N data/nodigi/digi = 26876/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                595       875       672     4.42%     4.49%     4.59%        1.471      1.130
+   sum_hg              1.06e+05       nan  1.12e+05     3.75%               4.11%          nan      1.058
+   sum_energy          6.38e+03  6.84e+03  6.68e+03     5.14%     4.27%     4.58%        1.071      1.047
+   gev                      100      99.9      98.8     3.98%     3.67%     3.91%        0.996      0.985
+   e_over_nhit             10.3      7.81       9.9                                      0.762      0.965
+   moliere                 25.7      29.5        27                                      1.147      1.050
+   transverse_rms          17.9      19.4      17.9                                      1.080      1.000
+   bar_r                   56.6      56.7      57.1                                      1.002      1.009
+   zbary                   6.62      6.74      6.63                                      1.018      1.001
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         8                                      1.000      1.000
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.065    0.0458    0.0629                                      0.705      0.967
+   fractal_dimension       1.86      1.96      1.93                                      1.053      1.035
+
+== th220_e20_-40_34  (1 run(s); N data/nodigi/digi = 3672/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                259       320       263     7.11%     5.83%     6.24%        1.236      1.015
+   sum_hg              2.51e+04       nan  2.56e+04     5.85%               6.36%          nan      1.020
+   sum_energy          1.37e+03  1.44e+03  1.41e+03     6.19%     6.09%     6.40%        1.050      1.025
+   gev                     20.4      20.4      20.2     6.06%     5.47%     5.86%        0.999      0.987
+   e_over_nhit             5.25       4.5      5.33                                      0.856      1.015
+   moliere                 28.1      29.6      27.6                                      1.054      0.983
+   transverse_rms          18.7      19.4      18.3                                      1.034      0.976
+   bar_r                     54      52.9      53.2                                      0.979      0.985
+   zbary                   5.43      5.67      5.57                                      1.044      1.026
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 6         6         6                                      1.000      1.000
+   shower_length             11        12        11                                      1.091      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness           0.146     0.121     0.148                                      0.824      1.012
+   fractal_dimension       1.73      1.76      1.74                                      1.020      1.009
+
+== th220_e74_-40_37  (6 run(s); N data/nodigi/digi = 75375/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                559       737       617     4.84%     4.56%     4.26%        1.318      1.104
+   sum_hg              8.31e+04       nan  8.83e+04     4.56%               4.06%          nan      1.062
+   sum_energy           4.8e+03  5.17e+03  5.11e+03     6.03%     4.00%     4.23%        1.077      1.064
+   gev                     75.1        75      75.1     4.88%     3.58%     3.70%        0.999      1.001
+   e_over_nhit              8.4      6.98      8.22                                      0.831      0.979
+   moliere                 26.9      29.6      27.8                                      1.100      1.031
+   transverse_rms          18.4      19.5      18.4                                      1.056      0.999
+   bar_r                   55.7      54.2      54.5                                      0.973      0.977
+   zbary                   6.37      6.53      6.43                                      1.025      1.011
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         7                                      1.000      0.875
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0639    0.0541    0.0641                                      0.846      1.002
+   fractal_dimension       1.85      1.92       1.9                                      1.038      1.027
+
+== th220_e74_-3_-1  (1 run(s); N data/nodigi/digi = 4974/1000/1000)
+   variable                data    nodigi      digi  res data  res nodg  res digi  nodigi/data  digi/data
+   nhit_chan                599       747       618     4.01%     4.14%     4.45%        1.247      1.032
+   sum_hg              8.29e+04       nan  8.47e+04     4.12%               6.16%          nan      1.022
+   sum_energy          4.68e+03  4.93e+03  4.77e+03     4.83%     6.27%     6.98%        1.053      1.021
+   gev                     73.1      72.2      70.9     3.91%     5.28%     5.82%        0.987      0.970
+   e_over_nhit             7.69      6.56      7.67                                      0.853      0.997
+   moliere                 30.8      33.2        31                                      1.076      1.004
+   transverse_rms          20.1        21        20                                      1.047      0.996
+   bar_r                     10      13.1      13.1                                      1.299      1.307
+   zbary                   6.49      6.66      6.55                                      1.027      1.009
+   shower_start               1         1         1                                      1.000      1.000
+   shower_max                 8         8         8                                      1.000      1.000
+   shower_length             14        14        14                                      1.000      1.000
+   n_layers_hit              15        15        15                                      1.000      1.000
+   mip_likeness          0.0627    0.0551    0.0631                                      0.879      1.007
+   fractal_dimension       1.82      1.86      1.84                                      1.020      1.012
+EXIT=0

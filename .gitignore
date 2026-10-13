@@ -60,6 +60,7 @@ docs/ejemplos_tracking.md
 
 # Condor job lists and logs of analysis/submit_sim_chain.sh
 analysis/condor_sim_chain/
+analysis/condor_sim_chain_final/
 
 # Core dumps and Kerberos credential caches -- never commit
 /core.*

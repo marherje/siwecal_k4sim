@@ -354,14 +354,6 @@ private:
     return q / std::pow(1.0 + std::pow(q / a, n), 1.0 / n);
   }
 
-  /// Divide the gain table by its own median, so it carries only the relative
-  /// channel-to-channel variation and AdcPerMip carries the scale.
-  static double medianOf(std::vector<double> values) {
-    const std::size_t mid = values.size() / 2;
-    std::nth_element(values.begin(), values.begin() + mid, values.end());
-    return values[mid];
-  }
-
   // The gain table is a SHAPE: channel-to-channel variation only, the absolute
   // scale is AdcPerMip.  "global" divides every channel by the detector median.
   // "per-slab" divides each slab by its own median, so a slab whose table MPV is
@@ -373,104 +365,15 @@ private:
   // must not add it again.  Per slab, the data reconstruction does the same
   // thing implicitly: it divides every channel by its own table.
   bool normaliseGainShape() {
-    std::vector<double> all;
-    all.reserve(m_gainTable.mpv.size());
-    for (double v : m_gainTable.mpv) {
-      if (std::isfinite(v)) all.push_back(v);
-    }
-    if (all.empty()) {
-      error() << "[AdcDigitizer] gain-shape table has no calibrated channel."
-              << endmsg;
+    std::string err, log;
+    if (!siwecal::normaliseGainShape(m_gainTable, m_gainShapeNormalisation.value(), m_gainShapeShrink.value(),
+                                     m_gainShapeTrueSpread.value(), err, log)) {
+      error() << "[AdcDigitizer] " << err << endmsg;
       return false;
     }
-    const double global = medianOf(all);
-    if (!(global > 0.0)) {
-      error() << "[AdcDigitizer] gain-shape median is " << global << endmsg;
-      return false;
-    }
-    const std::string mode = m_gainShapeNormalisation.value();
-    if (mode == "global") {
-      for (double& v : m_gainTable.mpv) v /= global;
-      info() << "[AdcDigitizer] gain shape normalised by its median "
-             << global << " ADC/MIP" << endmsg;
-      return true;
-    }
-    if (mode != "per-slab") {
-      error() << "[AdcDigitizer] GainShapeNormalisation must be 'global' or 'per-slab', got '"
-              << mode << "'" << endmsg;
-      return false;
-    }
-    info() << "[AdcDigitizer] gain shape normalised per slab (detector median "
-           << global << " ADC/MIP); slab medians / global:";
-    for (int slab = 0; slab < siwecal::kSlabs; ++slab) {
-      std::vector<double> vals;
-      const std::size_t first = static_cast<std::size_t>(slab) * siwecal::kChips *
-                                siwecal::kChannels;
-      const std::size_t last = first + siwecal::kChips * siwecal::kChannels;
-      for (std::size_t i = first; i < last; ++i) {
-        if (std::isfinite(m_gainTable.mpv[i])) vals.push_back(m_gainTable.mpv[i]);
-      }
-      const double median = vals.empty() ? global : medianOf(vals);
-      for (std::size_t i = first; i < last; ++i) {
-        m_gainTable.mpv[i] /= median;
-        m_gainTable.err[i] /= median;
-      }
-      info() << " " << slab << ":" << std::fixed << std::setprecision(2) << median / global;
-    }
-    info() << endmsg;
-    if (m_gainShapeShrink.value()) shrinkGainShape();
+    std::istringstream lines(log);
+    for (std::string line; std::getline(lines, line);) info() << "[AdcDigitizer] " << line << endmsg;
     return true;
-  }
-
-  // The table's channel-to-channel spread is the true gain spread PLUS each MPV's
-  // fit error (th210, fixed decoding: 4.6 % measured per slab, 2.5 % median fit
-  // error, so ~3.9 % true).  Used as it is, the simulation gets more smearing than
-  // the detector has.  Per slab, the true variance is estimated as the robust
-  // measured variance minus the mean squared fit error, and every channel is pulled
-  // toward the slab's median by its own reliability,
-  //   r -> 1 + (r - 1) * s_true^2 / (s_true^2 + e_r^2)
-  // (the linear shrinkage estimator of the true r given its measurement), which
-  // leaves channels with precise fits where they are and does not invent
-  // variation for the poorly measured ones.  Channels without an error keep r.
-  void shrinkGainShape() {
-    info() << "[AdcDigitizer] gain shape shrinkage per slab (measured -> true spread):";
-    for (int slab = 0; slab < siwecal::kSlabs; ++slab) {
-      const std::size_t first = static_cast<std::size_t>(slab) * siwecal::kChips * siwecal::kChannels;
-      const std::size_t last = first + siwecal::kChips * siwecal::kChannels;
-      std::vector<double> r, e2;
-      for (std::size_t i = first; i < last; ++i) {
-        if (std::isfinite(m_gainTable.mpv[i]) && std::isfinite(m_gainTable.err[i])) {
-          r.push_back(m_gainTable.mpv[i]);
-          e2.push_back(m_gainTable.err[i] * m_gainTable.err[i]);
-        }
-      }
-      if (r.size() < 20) continue;
-      std::vector<double> sorted = r;
-      std::sort(sorted.begin(), sorted.end());
-      const double q16 = sorted[static_cast<std::size_t>(0.16 * (sorted.size() - 1))];
-      const double q84 = sorted[static_cast<std::size_t>(0.84 * (sorted.size() - 1))];
-      const double varMeas = std::pow(0.5 * (q84 - q16), 2);
-      std::vector<double> e2s = e2;
-      const double e2Typ = medianOf(e2s);
-      const double target = m_gainShapeTrueSpread.value();
-      const double varTrue = target > 0.0 ? target * target : std::max(varMeas - e2Typ, 0.0);
-      for (std::size_t i = first; i < last; ++i) {
-        if (!std::isfinite(m_gainTable.mpv[i])) continue;
-        double k;
-        if (target > 0.0) {
-          // measured true spread given: scale every deviation so the slab's spread is exactly it
-          k = varMeas > 0.0 ? std::min(1.0, std::sqrt(varTrue / varMeas)) : 1.0;
-        } else {
-          if (!std::isfinite(m_gainTable.err[i])) continue;
-          const double ei2 = m_gainTable.err[i] * m_gainTable.err[i];
-          k = (varTrue + ei2) > 0.0 ? varTrue / (varTrue + ei2) : 0.0;
-        }
-        m_gainTable.mpv[i] = 1.0 + (m_gainTable.mpv[i] - 1.0) * k;
-      }
-      info() << " " << slab << ":" << std::fixed << std::setprecision(3) << std::sqrt(varMeas) << "->"
-             << std::sqrt(varTrue);
-    }
-    info() << endmsg;
   }
 
   /// <CalibDir>/<kind>/<threshold>/<prefix>*_<gain>.txt, resolved by globbing the
@@ -543,7 +446,7 @@ private:
   Gaudi::Property<bool> m_gainShapeShrink{
       this, "GainShapeShrink", false,
       "Remove the MPV fit error from the gain shape's channel-to-channel spread "
-      "(per-slab linear shrinkage toward the slab median, see shrinkGainShape)"};
+      "(per-slab linear shrinkage toward the slab median, see siwecal::normaliseGainShape)"};
   Gaudi::Property<double> m_gainShapeTrueSpread{
       this, "GainShapeTrueSpread", 0.0,
       "With GainShapeShrink: the true relative channel-to-channel gain spread per slab. > 0 scales each "

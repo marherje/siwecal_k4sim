@@ -81,6 +81,7 @@
  *   BitFieldOut          Output CellID encoding string
  *   DebugFrequency       Print per-event debug info every N events
  */
+#include "PadMap.hh"
 #include "k4FWCore/Transformer.h"
 
 #include "edm4hep/SimCalorimeterHitCollection.h"
@@ -138,7 +139,11 @@ struct ChannelMapper final
     m_decoderOut = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(m_bitFieldOut.value());
 
     // --- load pad maps ---
-    if (!loadPadMap(m_padMapFile.value(), m_padDefault)) return StatusCode::FAILURE;
+    std::string padErr;
+    if (!siwecal::loadPadMap(m_padMapFile.value(), m_padDefault, padErr)) {
+      error() << "[ChannelMapper] " << padErr << endmsg;
+      return StatusCode::FAILURE;
+    }
     info() << "[ChannelMapper] Default pad map: " << m_padDefault.size()
            << " entries from " << m_padMapFile.value() << endmsg;
 
@@ -153,27 +158,12 @@ struct ChannelMapper final
                    "PadMapSlabOverrides=['12:<path>']" << endmsg;
       overrides.push_back("12:" + m_padMapFileSlab12.value());
     }
-    for (const auto& entry : overrides) {
-      const auto colon = entry.find(':');
-      if (colon == std::string::npos || colon == 0) {
-        error() << "[ChannelMapper] PadMapSlabOverrides entry '" << entry
-                << "' is not 'slab:path'." << endmsg;
-        return StatusCode::FAILURE;
-      }
-      int slab = -1;
-      try {
-        slab = std::stoi(entry.substr(0, colon));
-      } catch (const std::exception&) {
-        error() << "[ChannelMapper] PadMapSlabOverrides entry '" << entry
-                << "': slab is not an integer." << endmsg;
-        return StatusCode::FAILURE;
-      }
-      const std::string path = entry.substr(colon + 1);
-      std::vector<PadEntry> pads;
-      if (!loadPadMap(path, pads)) return StatusCode::FAILURE;
-      info() << "[ChannelMapper] Slab " << slab << " pad map: " << pads.size()
-             << " entries from " << path << endmsg;
-      m_padOverrides[slab] = std::move(pads);
+    if (!siwecal::loadPadMapOverrides(overrides, m_padOverrides, padErr)) {
+      error() << "[ChannelMapper] " << padErr << endmsg;
+      return StatusCode::FAILURE;
+    }
+    for (const auto& [slab, pads] : m_padOverrides) {
+      info() << "[ChannelMapper] Slab " << slab << " pad map: " << pads.size() << " entries" << endmsg;
     }
 
     // --- load MIP calibration ---
@@ -218,8 +208,6 @@ struct ChannelMapper final
     const bool      doPrint = (evtNum % m_debugFreq.value() == 0);
     int nMasked = 0;
 
-    const auto& pads = m_padDefault;  // alias for readability
-
     for (const auto& hit : input) {
       const std::uint64_t cellID = hit.getCellID();
       const int slab  = static_cast<int>(m_decoderIn->get(cellID, "layer"));
@@ -227,16 +215,9 @@ struct ChannelMapper final
       const float hx  = pos.x, hy = pos.y;
 
       // --- nearest-neighbour lookup in the pad map ---
-      const auto ovr = m_padOverrides.find(slab);
-      const auto& padMap = (ovr != m_padOverrides.end()) ? ovr->second : pads;
-
       int   bestChip = 0, bestChan = 0;
       float bestDist2 = 1e12f;
-      for (const auto& p : padMap) {
-        const float dx = p.x - hx, dy = p.y - hy;
-        const float d2 = dx*dx + dy*dy;
-        if (d2 < bestDist2) { bestDist2 = d2; bestChip = p.chip; bestChan = p.channel; }
-      }
+      siwecal::nearestPad(m_padDefault, m_padOverrides, slab, hx, hy, bestChip, bestChan, bestDist2);
 
       const float tol    = static_cast<float>(m_posTolerance.value());
       const bool unmapped = std::sqrt(bestDist2) > tol;
@@ -277,35 +258,6 @@ private:
   // ----------------------------------------------------------------- //
   // Helpers
   // ----------------------------------------------------------------- //
-  struct PadEntry { float x, y; int chip, channel; };
-
-  bool loadPadMap(const std::string& path, std::vector<PadEntry>& dest) const {
-    std::ifstream fin(path);
-    if (!fin) {
-      error() << "[ChannelMapper] Cannot open pad map file: " << path << endmsg;
-      return false;
-    }
-    std::string line;
-    while (std::getline(fin, line)) {
-      if (line.empty() || line[0] == '#') continue;
-      std::istringstream ss(line);
-      int chip, channel;
-      float x0, y0, x, y;
-      // Format: chip x0 y0 channel x y
-      // Skip the text header ("chip x0 y0 ...") by checking first token is numeric
-      ss >> chip;
-      if (ss.fail()) continue;  // non-numeric first token → header row
-      ss >> x0 >> y0 >> channel >> x >> y;
-      if (ss.fail()) continue;
-      dest.push_back({x, y, chip, channel});
-    }
-    if (dest.empty()) {
-      error() << "[ChannelMapper] Pad map loaded 0 entries from " << path << endmsg;
-      return false;
-    }
-    return true;
-  }
-
   /// Pick the MIP file for the configured threshold/gain, or honour an explicit
   /// MIPCalibFile.  Returns "" (and reports) if the choice is not unambiguous;
   /// silently taking the first match would make the masking depend on directory
@@ -426,8 +378,8 @@ private:
   // ----------------------------------------------------------------- //
   // State initialised in initialize()
   // ----------------------------------------------------------------- //
-  std::vector<PadEntry> m_padDefault;
-  std::map<int, std::vector<PadEntry>> m_padOverrides;
+  std::vector<siwecal::PadEntry> m_padDefault;
+  std::map<int, std::vector<siwecal::PadEntry>> m_padOverrides;
   mutable std::set<std::tuple<int,int,int>> m_masked;
 
   std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_decoderIn;

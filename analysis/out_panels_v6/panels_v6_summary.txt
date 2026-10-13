@@ -1,0 +1,35 @@
+MIP -> GeV: final_v5's line per sample kind (final_panels_select.CAL)
+
+== th210_S1_e20  N data/nodigi/digi = 36293/49804/49807
+   nhit_chan              277.5     309.7     287.1   digi/data 1.034
+   sum_hg             2.517e+04       nan 2.578e+04   digi/data 1.024
+   sum_energy              1355      1400      1385   digi/data 1.022
+   gev                    20.28     19.88     19.96   digi/data 0.984
+   e_over_nhit            4.868     4.537     4.842   digi/data 0.995
+   moliere                27.76     28.55     27.85   digi/data 1.003
+   transverse_rms         18.84     19.15     18.73   digi/data 0.994
+   bar_r                  59.22     58.76     58.84   digi/data 0.994
+   zbary                  5.446     5.661     5.596   digi/data 1.028
+   shower_start               1         1         1   digi/data 1.000
+   shower_max                 6         6         6   digi/data 1.000
+   shower_length             11        12        12   digi/data 1.091
+   n_layers_hit              15        15        15   digi/data 1.000
+   mip_likeness          0.1385    0.1255    0.1391   digi/data 1.005
+   fractal_dimension      1.758     1.775     1.769   digi/data 1.006
+
+== th210_S1_e74  N data/nodigi/digi = 12460/49999/49999
+   nhit_chan              606.7       725     670.5   digi/data 1.105
+   sum_hg             8.281e+04       nan 8.937e+04   digi/data 1.079
+   sum_energy              4706      5107      5030   digi/data 1.069
+   gev                    73.75      74.3     74.32   digi/data 1.008
+   e_over_nhit            7.561     7.014     7.469   digi/data 0.988
+   moliere                 27.6     29.47     28.74   digi/data 1.041
+   transverse_rms         18.69     19.43     19.02   digi/data 1.018
+   bar_r                   55.1     53.28     53.35   digi/data 0.968
+   zbary                  6.361     6.554      6.49   digi/data 1.020
+   shower_start               1         1         1   digi/data 1.000
+   shower_max                 9         8         8   digi/data 0.889
+   shower_length             14        14        14   digi/data 1.000
+   n_layers_hit              15        15        15   digi/data 1.000
+   mip_likeness         0.05627   0.05231   0.05837   digi/data 1.037
+   fractal_dimension      1.885     1.923     1.914   digi/data 1.015

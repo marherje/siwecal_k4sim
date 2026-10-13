@@ -1,0 +1,69 @@
+# Groups of the final_v6 simulation campaign (simulation/run_script/launch_beam_final.sh, analysis/submit_sim_chain_final.sh)
+# and of the shower panels (FINAL_GROUPS=analysis/final_v6_groups.txt python analysis/final_panels.py).
+# Same groups, runs and beam centres as final_v5_groups.txt; what changes is the naming and the beam size:
+#   <set> <pos> <E> <x_y> <runs>
+# <pos>: table position of the run summary (TB2026-Run_Summary.xlsx; E = energy scan, U = uniformity scan), so the
+#        group is th230_E1_e74 instead of th230_e74_-42_53. Positions the summary does not name:
+#          S1          th210 energy scan (eudaq 285-293), position not recorded in the run summary
+#          T<H>_<V>    eudaq 166-169: the table coordinates the summary gives, H and V in mm (1.136 m -> 1136)
+#        and two runs that the summary labels but whose showers sit elsewhere (median barycentre, see final_v5_groups.txt):
+#          E5b         run 58, "E5" in the summary, measured at (-40, 40)
+#          U1b         run 65, "U1" in the summary, measured at (-3, -1)
+# <x_y>: beam centre of the simulated sample [mm] = median shower barycentre of the group in Reconstruction.
+# <runs>: comma-separated, 'e' prefix = eudaq run. Normal incidence, e+/e- only.
+# Beam sigma: per energy, from analysis/beam_spread.txt (analysis/beam_spread.py), not per group.
+#
+# th210 energy scan (eudaq 285-293)
+th210 S1          7.5 17_-50  e293
+th210 S1          10  19_-51  e292
+th210 S1          20  26_-52  e291
+th210 S1          34  27_-53  e288
+th210 S1          52  24_-51  e287
+th210 S1          74  22_-49  e286
+th210 S1          99  22_-48  e285
+# th210 99 GeV at four table positions
+th210 T1136_1195  99  1_-31   e166
+th210 T1108_1195  99  28_-30  e167
+th210 T1179_1195  99  -39_-30 e168
+th210 T1179_1108  99  -40_52  e169
+# th230, E1
+th230 E1          7.5 -47_48  22
+th230 E1          10  -42_49  21
+th230 E1          20  -42_52  20
+th230 E1          34  -37_51  15
+th230 E1          52  -42_53  13
+th230 E1          74  -42_53  12
+# th230, E2
+th230 E2          7.5 -44_-35 24
+th230 E2          10  -44_-36 25
+th230 E2          20  -41_-35 26
+th230 E2          34  -40_-35 27
+th230 E2          52  -43_-34 28
+th230 E2          74  -43_-33 29
+# th230, E3
+th230 E3          7.5 36_-34  40
+th230 E3          10  40_-35  36
+th230 E3          20  45_-34  35
+th230 E3          34  47_-35  32
+th230 E3          52  46_-34  31
+th230 E3          74  45_-33  30
+# th230, E4
+th230 E4          7.5 -8_-34  41
+th230 E4          10  -5_-35  42
+th230 E4          20  2_-34   43
+th230 E4          34  3_-34   44
+th230 E4          52  0_-33   45
+th230 E4          74  0_-32   46
+# th230, E5
+th230 E5          7.5 -8_7    57
+th230 E5          10  -3_-1   56
+th230 E5          20  2_6     55
+th230 E5          34  4_7     51
+th230 E5          52  1_9     50
+th230 E5          74  0_9     47
+th230 E5          99  -1_10   48
+th230 E5b         99  -40_40  58
+# th220, U1
+th220 U1          20  -40_34  67
+th220 U1          74  -40_37  66,68,69,70,71,72
+th220 U1b         74  -3_-1   65

@@ -6,7 +6,7 @@ Figures of the SCA column-order bug for the final artifact (English labels).
 
 bug_impact.png   per-run energy resolution and energy scale of shower-like events, legacy decoding (all events and
                  single-run events only) vs fixed decoding (all events), from analysis/verify_final_campaign.py
-                 tables: final_v5/verify_legacy_hitbit_th210.txt and Reconstructed_final/verify_final.txt.
+                 tables: final_v5/verify_legacy_hitbit_th210.txt and Reconstruction/verify_final.txt.
 eudaq_check.png  retrigger signature in the EUDAQ LCIO decoding of run 291, as written by EUDAQ and after the
                  column reversal, against the raw-binary decodings (final_v5/eudaq_check/eudaq_check.txt numbers).
 """
@@ -45,7 +45,7 @@ def read_verify(path):
 
 def bug_impact(out):
     leg = read_verify(f"{V5}/verify_legacy_hitbit_th210.txt")
-    fix = read_verify(f"{B}/Reconstructed_final/verify_final.txt")
+    fix = read_verify(f"{B}/Reconstruction/verify_final.txt")
     keys = [k for k in ENERGY if k in leg and k in fix]
     fig, ax = plt.subplots(1, 2, figsize=(15, 5.6))
     mark = {"th210": "o", "th220": "s", "th230": "^"}

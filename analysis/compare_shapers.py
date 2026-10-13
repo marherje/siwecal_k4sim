@@ -33,7 +33,7 @@ Usage
         --sim-simple ecal_sim_e52_simple.root \\
         --data-chunk /eos/.../TB2026CERN_run_000013/chunks/chunk_0000.root \\
         --data-events 40 --threshold th230 \\
-        --calib-dir ../siwecal-tb2026/calibration/MuonCalib_gaudi \\
+        --calib-dir /eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib \\
         --tag e52 --outdir plots/
 """
 
@@ -379,7 +379,7 @@ def main(argv=None) -> int:
     p.add_argument("--data-events", type=int, default=40,
                    help="Acquisitions read per chunk (default: 40)")
     p.add_argument("--calib-dir",
-                   default="../siwecal-tb2026/calibration/MuonCalib_gaudi")
+                   default="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Calib/MuonCalib")
     p.add_argument("--threshold", default="th230",
                    help="Calibration set matching the data run (default: th230)")
     p.add_argument("--threshold-mip", type=float, default=0.5,

@@ -1,0 +1,23 @@
+# group quantity kind total_per_event depth_of_max[X0]
+th210_e20_26_-52 hits data 273.4 6.80
+th210_e20_26_-52 hits nodigi 309.9 9.20
+th210_e20_26_-52 hits digi 284.8 9.20
+th210_e20_26_-52 adc data 2.452e+04 5.60
+th210_e20_26_-52 adc digi 2.578e+04 6.80
+th210_e20_26_-52 mip data 1320 5.60
+th210_e20_26_-52 mip nodigi 1398 6.80
+th210_e20_26_-52 mip digi 1378 6.80
+th210_e20_26_-52 gev data 20.25 5.60
+th210_e20_26_-52 gev nodigi 19.91 6.80
+th210_e20_26_-52 gev digi 19.93 6.80
+th210_e74_22_-49 hits data 593.4 12.00
+th210_e74_22_-49 hits nodigi 719.7 10.40
+th210_e74_22_-49 hits digi 661.7 10.40
+th210_e74_22_-49 adc data 7.81e+04 6.80
+th210_e74_22_-49 adc digi 8.827e+04 9.20
+th210_e74_22_-49 mip data 4401 6.80
+th210_e74_22_-49 mip nodigi 5031 6.80
+th210_e74_22_-49 mip digi 4955 6.80
+th210_e74_22_-49 gev data 69.53 6.80
+th210_e74_22_-49 gev nodigi 73.62 6.80
+th210_e74_22_-49 gev digi 73.58 6.80

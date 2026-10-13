@@ -37,7 +37,7 @@ import numpy as np
 # siwecal-tb2026/calibration/MuonCalib_gaudi/anchor/<th>/gain_anchor_<th>.txt.
 ANCHOR = {
     # refitted 2026-09-30 on the fixed-SCA-pairing chunks with the fixed th210 pedestals
-    # (siwecal-tb2026 calibration/MuonCalib_gaudi_fixed/anchor), the lines Reconstructed_final uses
+    # (EOS Calib/MuonCalib/anchor), the lines Reconstruction uses
     "th210": {"k": 0.0924, "c": 2.35, "source_run": "eudaq 166"},
     "th220": {"k": 0.0964, "c": 1.81, "source_run": "run 72"},
     "th230": {"k": 0.0958, "c": 1.62, "source_run": "run 12"},
