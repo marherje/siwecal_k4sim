@@ -29,8 +29,16 @@ for mode in real simple; do
   if [ $mode = real ]; then reco=$RECO_TABLE; dst=${remote}.root; else reco=""; dst=${remote}_simple.root; fi
   mkdir -p "$mode"
   (cd "$mode" && CALIB_THRESHOLD=${set_} DIGI_MODE=$mode RECO_TABLE_THRESHOLD=$reco INPUT_FILE=$sim \
-     ECAL_TREE_OUTPUT=ecal.root k4run "${repo}/gaudi_jobs/pid2026_common/job3_digitize.py" > job3.log 2>&1) \
-    || { echo "ERROR: job3 $mode failed"; tail -20 "$mode/job3.log"; exit 1; }
+     ECAL_TREE_OUTPUT=ecal.root k4run "${repo}/gaudi_jobs/pid2026_common/job3_digitize.py" > job3.log 2>&1)
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    # a crash in the teardown after the tree is complete ("free(): invalid pointer") loses nothing
+    if grep -q "\[EcalTreeWriter\] wrote ${nev} events" "$mode/job3.log"; then
+      echo "WARNING: job3 $mode exit $rc after writing all ${nev} events"
+    else
+      echo "ERROR: job3 $mode failed (exit $rc)"; tail -20 "$mode/job3.log"; exit 1
+    fi
+  fi
   n=$(python3 -c "import uproot; print(uproot.open('$mode/ecal.root')['ecal'].num_entries)" 2>/dev/null)
   [ -n "$n" ] && [ "$n" -gt 0 ] || { echo "ERROR: empty ecal tree ($mode)"; exit 1; }
   rm -f "$mode/digitized.edm4hep.root"

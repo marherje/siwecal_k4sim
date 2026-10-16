@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Energy linearity, data against the digitised simulation (final_v6): Gaussian-core mean of the shower energy against
+Energy linearity, data against the digitised simulation (final_v7): Gaussian-core mean of the shower energy against
 the beam energy, the deviation from a straight line fitted at low energy, and the sim / data ratio per energy.
 
-    FINAL_SIM=.../final_v6 python analysis/linearity.py <outdir> [--cache-dir analysis/out_panels_v6]
+    python analysis/linearity.py <outdir> [--cache-dir analysis/out_panels_v7]
 
-Samples: th230 E4 scan 7.5-74 GeV (data runs 41-46), and th210 S1 at 20 and 74 GeV (eudaq 291, 286).
+Samples: th230 E4 scan 7.5-74 GeV (data runs 41-46), and the th210 scan 7.5-99 GeV (eudaq 293-285).
 Inputs and selection are final_panels.py's (valtrees, 0.5 MIP hit cut, shower-like events); the per-group cache of
 final_panels.py is reused. The straight line E_reco = a E + b is fitted per sample kind on 7.5-20 GeV, so the
 residual at higher energy is the non-linearity of each kind on its own scale.
@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))
-os.environ.setdefault("FINAL_GROUPS", os.path.join(_HERE, "final_v6_groups.txt"))
 from analysis.final_panels import COLOR, LABEL, group_samples, load_groups  # noqa: E402
 from analysis.compare_event_level import gauss_core  # noqa: E402
 
@@ -31,18 +30,20 @@ INK, MUTED, GRID = "#1b2227", "#56626b", "#d7dde2"
 plt.rcParams.update({"font.size": 11, "axes.edgecolor": MUTED, "axes.labelcolor": INK, "xtick.color": MUTED,
                      "ytick.color": MUTED, "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.7,
                      "axes.spines.top": False, "axes.spines.right": False, "legend.frameon": False})
-SCANS = [("th230 E4", "th230_E4_e", ["7.5", "10", "20", "34", "52", "74"]), ("th210 S1", "th210_S1_e", ["20", "74"])]
+SCANS = [("th230 E4", {E: f"th230_E4_e{E}" for E in ["7.5", "10", "20", "34", "52", "74"]}),
+         ("th210", {"7.5": "th210_e7.5_17_-50", "10": "th210_e10_19_-51", "20": "th210_e20_26_-52", "34": "th210_e34_27_-53",
+                    "52": "th210_e52_24_-51", "74": "th210_e74_22_-49", "99": "th210_e99_22_-48"})]
 VARS = [("sum_energy", "Energy [MIP]"), ("sum_w", "W-weighted energy [MIP]"), ("nhit_chan", "Number of hits")]
 KINDS = ["data", "digi"]
 FIT_MAX = 20.0
 
 
 def measure(cache_dir):
-    groups = {g["name"]: g for g in load_groups(os.environ["FINAL_GROUPS"])}
+    groups = {g["name"]: g for g in load_groups()}
     out = {}
-    for scan, pre, energies in SCANS:
-        for E in energies:
-            s = group_samples(groups[pre + E], cache_dir)
+    for scan, names in SCANS:
+        for E, name in names.items():
+            s = group_samples(groups[name], cache_dir)
             for k in ("data", "nodigi", "digi"):
                 for v, _ in VARS:
                     x = s[k][v][np.isfinite(s[k][v])]
@@ -54,7 +55,7 @@ def measure(cache_dir):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("outdir")
-    ap.add_argument("--cache-dir", default=os.path.join(_HERE, "out_panels_v6"))
+    ap.add_argument("--cache-dir", default=os.path.join(_HERE, "out_panels_v7"))
     a = ap.parse_args()
     os.makedirs(a.outdir, exist_ok=True)
     m = measure(a.cache_dir)
@@ -63,8 +64,8 @@ def main():
     lines = [f"Gaussian-core mean per sample; line a E + b fitted on 7.5-{FIT_MAX:.0f} GeV per kind (th230 E4)"]
     for j, (v, yl) in enumerate(VARS):
         lines.append(f"\n== {v}")
-        for scan, _, energies in SCANS:
-            E = np.array([float(e) for e in energies])
+        for scan, names in SCANS:
+            E = np.array([float(e) for e in names])
             mk = "o" if scan == "th230 E4" else "D"
             mu = {k: np.array([m[(scan, e, k, v)][0] for e in E]) for k in KINDS}
             er = {k: np.array([m[(scan, e, k, v)][2] for e in E]) for k in KINDS}
@@ -75,7 +76,7 @@ def main():
                 if scan == "th230 E4":
                     lo = E <= FIT_MAX
                     p = np.polyfit(E[lo], mu[k][lo], 1)
-                    xx = np.linspace(0, 80, 50)
+                    xx = np.linspace(0, 105, 50)
                     ax[0, j].plot(xx, np.polyval(p, xx), "--", color=COLOR[k], lw=1.2)
                     res = mu[k] / np.polyval(p, E) - 1
                     ax[1, j].errorbar(E, 100 * res, yerr=100 * er[k] / np.polyval(p, E), fmt=mk + "-",
@@ -96,7 +97,7 @@ def main():
         ax[1, j].legend(fontsize=8.5); ax[2, j].legend(fontsize=8.5)
     ax[0, 0].legend(fontsize=8.5, loc="upper left")
     for x in ax.ravel():
-        x.set_xlim(0, 80)
+        x.set_xlim(0, 105)
     fig.tight_layout(); fig.savefig(f"{a.outdir}/linearity.png", dpi=120); plt.close(fig)
     txt = "\n".join(lines)
     print(txt)

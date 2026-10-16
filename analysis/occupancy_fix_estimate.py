@@ -27,7 +27,7 @@ B_SLOPE = -0.80e-3
 LG_SWITCH = 1500.0
 Q_C = np.array([2.2, 8.7, 21, 42, 85, 173, 354, 700])                                # MIP, bin centres
 R_Q = np.array([0.1116, 0.1114, 0.1099, 0.1080, 0.1056, 0.1038, 0.1017, 0.1000])     # LG/HG, 74 GeV, LG baseline-corrected
-GROUPS = ["th210_S1_e20", "th210_S1_e74", "th230_E4_e7.5", "th230_E4_e10", "th230_E4_e20", "th230_E4_e34",
+GROUPS = ["th210_e20_26_-52", "th210_e74_22_-49", "th230_E4_e7.5", "th230_E4_e10", "th230_E4_e20", "th230_E4_e34",
           "th230_E4_e52", "th230_E4_e74"]
 
 

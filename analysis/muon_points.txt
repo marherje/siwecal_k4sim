@@ -1,0 +1,11 @@
+# Muon beam points of the simulation campaign final_v7_muons (analysis/make_sim_dag.py --points analysis/muon_points.txt
+# --particle mu- --nevents 10000 --campaign final_v7_muons --seed-offset 20000000): 10k events per point, for tracking tests.
+# Same columns and naming rule as beam_points.txt. Beam centre = median barycentre of track-like events (n_layers_hit >= 10,
+# nhit <= 30) in Reconstruction; sigma = half the 16-84 % width of the same (the muon beam is wider than the detector
+# acceptance, so this is the profile seen by the ECAL, not the true beam size). No position in the run summary for runs 4
+# and eudaq 151; run 85 is "Center E5" but its muons sit at (-6, -4), not at E5 (-1, 10), so no label.
+#
+# name                          set    label  E     x     y     sx     sy     runs
+th230_mu150_-4_7                th230  -      150    -4     7   36.5   39.0  4
+th220_mu150_-6_-4               th220  -      150    -6    -4   40.8   43.8  85
+th210_mu150_-27_-26             th210  -      150   -27   -26   43.9   46.9  e151
