@@ -5,7 +5,7 @@
 # that never reaches the namespace). Nothing downstream: digitisation and PID run per group afterwards
 # (analysis/submit_sim_chain_final.sh), so a digitiser change never needs new Geant4.
 #
-#   ddsim_beam_chunk.sh <repo_root> <nevents> <particle> <E_GeV> <x_mm> <y_mm> <sigma_x_mm> <sigma_y_mm> \
+#   ddsim_beam_chunk.sh <repo_root> <nevents> <particle> <E_GeV|Emin-Emax> <x_mm> <y_mm> <sigma_x_mm> <sigma_y_mm> \
 #                       <sigma_E_frac> <seed> <remote_output>
 #
 # Environment (set in the .sub): COMPACT_FILE, BEAM_Z_MM, PHYSICS_LIST; KEEP_LOCAL=1 skips the stage-out.
@@ -26,7 +26,19 @@ command -v ddsim >/dev/null || { echo "ERROR: ddsim not on PATH"; exit 1; }
 export LD_LIBRARY_PATH=${repo}/install/lib64:${repo}/install/lib:${LD_LIBRARY_PATH}
 export PYTHONPATH=${repo}/install/lib64:${repo}/install/lib:${repo}/install/python:${PYTHONPATH}
 
-sigma_E_GeV=$(python3 -c "print(${energy} * ${sigma_E})")
+# <E_GeV> = "<min>-<max>" (e.g. 5-100): energy flat in [min, max] GeV (background samples); sigma_E is then ignored
+if [[ "${energy}" == *-* ]]; then
+  ene_cmds="/gps/ene/type Lin
+/gps/ene/gradient 0
+/gps/ene/intercept 1
+/gps/ene/min ${energy%-*} GeV
+/gps/ene/max ${energy#*-} GeV"
+else
+  sigma_E_GeV=$(python3 -c "print(${energy} * ${sigma_E})")
+  ene_cmds="/gps/ene/type Gauss
+/gps/ene/mono ${energy} GeV
+/gps/ene/sigma ${sigma_E_GeV} GeV"
+fi
 {
 echo "/gps/verbose 0"
 echo "/gps/particle ${particle}"
@@ -38,9 +50,7 @@ echo "/gps/pos/shape Circle"
 echo "/gps/pos/centre ${pos_x} ${pos_y} ${BEAM_Z_MM} mm"
 echo "/gps/pos/sigma_x ${sigma_x} mm"
 echo "/gps/pos/sigma_y ${sigma_y} mm"
-echo "/gps/ene/type Gauss"
-echo "/gps/ene/mono ${energy} GeV"
-echo "/gps/ene/sigma ${sigma_E_GeV} GeV"
+echo "${ene_cmds}"
 echo "/run/beamOn ${nevents}"
 } > gps.mac
 

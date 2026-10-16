@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 A reduced 2 x 2 shower panel for one group of the final TB2026 sample: number of hits, calibrated energy, Molière
-radius and longitudinal barycentre; data against the simulation without and with digitisation (final_v5).
+radius and longitudinal barycentre; data against the simulation without and with digitisation (final_v7).
 
     python analysis/final_panels_select.py <outdir> [--group th210_e20_26_-52] [--nbins 28]
         [--vars nhit_chan,gev,e_over_nhit,moliere,zbary,mip_likeness]   (any of final_panels.PANELS; 2 x 3 for six)

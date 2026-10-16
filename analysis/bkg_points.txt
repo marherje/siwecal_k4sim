@@ -1,0 +1,12 @@
+# General background samples at the energy-scan positions E1 and E2 (th230) for cleaning the positron runs:
+# campaign final_v7_bkg (python3 analysis/make_sim_dag.py --points analysis/bkg_points.txt --campaign final_v7_bkg
+# --seed-offset 30000000 --submit). Simulation only (no data runs). Energy flat in 5-100 GeV (E column "5-100";
+# ddsim_beam_chunk.sh GPS /gps/ene/type Lin); the true energy per event is not stored (not needed: the background
+# energy in the e+ runs is unknown). Centre = median over the energies of the E1 / E2 points of beam_points.txt.
+# Sigma: pi- = the 34 GeV e+ beam (middle of the range); mu- = 60 x 60 mm, the muon-beam width (final_v6 contamination).
+#
+# name                          set    label  E      x     y     sx     sy     runs  particle
+th230_E1_pi_e5-100              th230  E1     5-100  -42    51   13.7    9.5   -     pi-
+th230_E1_mu_e5-100              th230  E1     5-100  -42    51   60.0   60.0   -     mu-
+th230_E2_pi_e5-100              th230  E2     5-100  -43   -35   13.7    9.5   -     pi-
+th230_E2_mu_e5-100              th230  E2     5-100  -43   -35   60.0   60.0   -     mu-

@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 """
 Shower characterisation panels for the final TB2026 sample: data (Reconstruction, fixed SCA pairing, th210
-pedestals + MIP table for every run) against the simulation without and with digitisation (final_v5).
+pedestals + MIP table for every run) against the simulation without and with digitisation (final_v7).
 
 One 3 x 5 panel per group (threshold set, beam energy, beam position); runs of the same group are pooled.
 
-    python analysis/final_panels.py <outdir> [--groups th210_e20_scan,...] [--no-cache]
+    python analysis/final_panels.py <outdir> [--groups th210_e20_26_-52,th230_E4_e20,...] [--no-cache]
 
 Writes <outdir>/panel_<group>.png, final_panels_summary.txt, resolution_vs_energy.png, and a per-group cache
 (<outdir>/cache/<group>.npz) so re-plotting does not re-read EOS.
 
 Inputs (environment overrides, for tests on other campaigns):
     FINAL_RECO   data campaign        (default TB2026-06/Reconstruction)
-    FINAL_SIM    simulation folder    (default .../adc_vs_tb/final_v5; trees/ and pid/ inside)
+    FINAL_SIM    simulation folder    (default .../Simulation/Processed/final_v7; trees/ and pid/ inside)
 The simulation of group <set>_e<E>_<pos> is pid/<set>_e<E>_<pos>_{digi,nodigi}/*.valtree.root; the data
 <run>/ecal_<run>.valtree.root.
 
@@ -39,27 +39,31 @@ from analysis.compare_event_level import gauss_core  # noqa: E402
 
 B = "/eos/experiment/drdcalo/siw-ecal/TB2026-06"
 RECO = os.environ.get("FINAL_RECO", f"{B}/Reconstruction")
-SIM = os.environ.get("FINAL_SIM", f"{B}/Simulation/Processed/adc_vs_tb/final_v5")
+SIM = os.environ.get("FINAL_SIM", f"{B}/Simulation/Processed/final_v7")
 
 
 def _run(r):
     return f"TB2026CERN_eudaq_run_{int(r[1:]):06d}" if str(r).startswith("e") else f"TB2026CERN_run_{int(r):06d}"
 
 
-# (set, energy, position label, pooled runs). The position label is the sim sample's (x_y) beam centre in mm,
-# the median shower barycentre of the group in Reconstruction (final_v5/README.txt).
-GROUPS_FILE = os.environ.get("FINAL_GROUPS", os.path.join(_HERE, "final_v5_groups.txt"))
+# One group per simulated beam point (analysis/beam_points.txt): name, set, table label, energy, beam centre (the
+# median shower barycentre of the group in Reconstruction), beam sigma and pooled runs.
+GROUPS_FILE = os.environ.get("FINAL_GROUPS", os.path.join(_HERE, "beam_points.txt"))
 
 
 def load_groups(path=GROUPS_FILE):
-    """final_v5_groups.txt: '<set> <E> <x_y> <runs,comma-separated>' per line ('e' prefix = eudaq run), group
-    <set>_e<E>_<x_y>; final_v6_groups.txt: '<set> <label> <E> <x_y> <runs>', group <set>_<label>_e<E>."""
+    """beam_points.txt: '<name> <set> <label> <E> <x> <y> <sx> <sy> <runs,comma-separated>' ('e' prefix = eudaq
+    run, label '-' = none). Older files: final_v5_groups.txt '<set> <E> <x_y> <runs>', group <set>_e<E>_<x_y>;
+    final_v6_groups.txt '<set> <label> <E> <x_y> <runs>', group <set>_<label>_e<E>."""
     out = []
     for line in open(path):
         line = line.split("#")[0].split()
         if len(line) < 4:
             continue
-        if len(line) >= 5:
+        if len(line) >= 9:
+            name, th, label, E, x, y, _, _, runs = line[:9]
+            pos, label = f"{x}_{y}", None if label == "-" else label
+        elif len(line) >= 5:
             th, label, E, pos, runs = line[:5]
             name = f"{th}_{label}_e{E}"
         else:

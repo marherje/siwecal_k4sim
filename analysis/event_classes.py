@@ -2,10 +2,10 @@
 """
 Is there a class of data events that looks like the simulation? Shower variables of data events split by how they
 were recorded (events in the same DAQ acquisition, order in it, time in the run) and by where they hit, each against
-the digitised simulation (final_v6). Position classes cut the simulation the same way; the other classes are
+the digitised simulation (final_v7). Position classes cut the simulation the same way; the other classes are
 compared to the whole simulation.
 
-    python analysis/event_classes.py <outdir> --group th210_S1_e20 --group th210_S1_e74
+    python analysis/event_classes.py <outdir> --group th210_e20_26_-52 --group th210_e74_22_-49
 
 Data: Reconstruction ecal tree (n_events_acq, spill, bcid) + valtree (shower variables, 0.5 MIP cut), same
 entries. Selection: final_panels.py's shower-like cut. Writes event_classes.png and event_classes.txt.
@@ -22,8 +22,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))
-os.environ.setdefault("FINAL_GROUPS", os.path.join(_HERE, "final_v6_groups.txt"))
-os.environ.setdefault("FINAL_SIM", "/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Processed/adc_vs_tb/final_v6")
 from analysis.final_panels import RECO, load_groups, sim_valtree, showerlike  # noqa: E402
 from analysis.compare_event_level import gauss_core  # noqa: E402
 

@@ -29,7 +29,8 @@ def read_points(path):
         if line.startswith("#") or len(line.split()) < 9:
             continue
         name, set_, label, E, x, y, sx, sy, runs = line.split()[:9]
-        points.append(dict(name=name, set=set_, label=label, E=E, x=x, y=y, sx=sx, sy=sy, runs=runs))
+        particle = line.split()[9] if len(line.split()) > 9 and not line.split()[9].startswith("#") else None
+        points.append(dict(name=name, set=set_, label=label, E=E, x=x, y=y, sx=sx, sy=sy, runs=runs, particle=particle))
     return points
 
 
@@ -50,7 +51,7 @@ def main():
     ap.add_argument("--out", default=None, help="EOS output base (default Simulation/Processed/<campaign>)")
     ap.add_argument("--nevents", type=int, default=50000)
     ap.add_argument("--chunk-events", type=int, default=2000)
-    ap.add_argument("--particle", default="e-")
+    ap.add_argument("--particle", default="e-", help="unless the points file gives one (optional 10th column)")
     ap.add_argument("--sigma-e", default="0.02")
     ap.add_argument("--seed-offset", type=int, default=10000000)
     ap.add_argument("--only", default=None, help="comma-separated point names")
@@ -68,7 +69,7 @@ def main():
     with open(chunk_sub, "w") as f:
         f.write(f"""universe                = vanilla
 executable              = {REPO}/simulation/run_script/sim_digi_chunk.sh
-arguments               = {REPO} $(N) {args.particle} $(E) $(X) $(Y) $(SX) $(SY) {args.sigma_e} $(SEED) $(SET) $(REMOTE)
+arguments               = {REPO} $(N) $(PARTICLE) $(E) $(X) $(Y) $(SX) $(SY) {args.sigma_e} $(SEED) $(SET) $(REMOTE)
 environment             = "COMPACT_FILE=SND_compact_beamline.xml BEAM_Z_MM=-2650 PHYSICS_LIST=QGSP_BERT_EMZ RECO_TABLE=th210"
 log                     = {dag_dir}/logs/dag.log
 output                  = {dag_dir}/logs/$(NAME).out
@@ -91,7 +92,7 @@ log                     = {dag_dir}/logs/dag.log
 output                  = {dag_dir}/logs/group_$(NAME).out
 error                   = {dag_dir}/logs/group_$(NAME).err
 request_cpus            = 1
-request_memory          = 8000
+request_memory          = 4000
 request_disk            = 20000M
 should_transfer_files   = NO
 getenv                  = False
@@ -114,7 +115,7 @@ queue
         group_done = all(any(f.endswith(".valtree.root") for f in os.listdir(os.path.join(out, "pid", f"{name}_{k}")))
                          if os.path.isdir(os.path.join(out, "pid", f"{name}_{k}")) else False
                          for k in ("digi", "nodigi"))
-        flavour = "tomorrow" if float(p["E"]) >= 52 else "workday"
+        flavour = "tomorrow" if float(p["E"].split("-")[-1]) >= 52 else "workday"  # "5-100": flat energy range
         parents = []
         for c in range(nch):
             n = min(args.chunk_events, args.nevents - c * args.chunk_events)
@@ -124,7 +125,8 @@ queue
             lines.append(f"JOB {node} {chunk_sub}" + (" DONE" if group_done or (
                 os.path.exists(remote + ".root") and os.path.exists(remote + "_simple.root")) else ""))
             lines.append(f'VARS {node} N="{n}" E="{p["E"]}" X="{p["x"]}" Y="{p["y"]}" SX="{p["sx"]}" SY="{p["sy"]}" '
-                         f'SEED="{seed}" SET="{p["set"]}" REMOTE="{remote}" NAME="{node}" FLAVOUR="{flavour}"')
+                         f'SEED="{seed}" SET="{p["set"]}" REMOTE="{remote}" NAME="{node}" FLAVOUR="{flavour}" '
+                         f'PARTICLE="{p["particle"] or args.particle}"')
             lines.append(f"RETRY {node} 2")
             parents.append(node)
             nchunks += 1

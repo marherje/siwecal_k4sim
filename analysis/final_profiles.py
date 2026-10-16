@@ -2,7 +2,7 @@
 """
 Longitudinal shower profiles of the final TB2026 sample against depth in radiation lengths: hits, ADC sum,
 energy [MIP] and calibrated energy [GeV] per layer, data (Reconstruction) against the simulation without and
-with digitisation (final_v5).
+with digitisation (final_v7).
 
     python analysis/final_profiles.py <outdir> [--groups th210_e20_26_-52,th210_e74_22_-49] [--max-data-events N]
 
