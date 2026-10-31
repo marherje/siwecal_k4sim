@@ -6,9 +6,16 @@ pedestals + MIP table for every run) against the simulation without and with dig
 One 3 x 5 panel per group (threshold set, beam energy, beam position); runs of the same group are pooled.
 
     python analysis/final_panels.py <outdir> [--groups th210_e20_26_-52,th230_E4_e20,...] [--no-cache]
+        [--border-cut MM --cal-file <nocut_outdir>/mip_gev_line.txt]
 
-Writes <outdir>/panel_<group>.png, final_panels_summary.txt, resolution_vs_energy.png, and a per-group cache
-(<outdir>/cache/<group>.npz) so re-plotting does not re-read EOS.
+Writes <outdir>/panel_<group>.png, final_panels_summary.txt, resolution_vs_energy.png, mip_gev_line.txt (the fitted
+MIP -> GeV line), and a per-group cache (<outdir>/cache_<campaign>[_b<MM>]/<group>.npz) so re-plotting does not
+re-read EOS.
+
+--border-cut MM keeps, among the shower-like events, those with barxy_min_border_distance > MM (the barycentre's
+distance to the nearest active edge, needs valtrees that carry it), and writes border_survival.txt. The p90 of the
+shower-like cut is still taken on the whole sample. The MIP -> GeV calibration applies to every event, so it is not
+refitted on the cut sample: --border-cut requires --cal-file, the mip_gev_line.txt of a pass without the cut.
 
 Inputs (environment overrides, for tests on other campaigns):
     FINAL_RECO   data campaign        (default TB2026-06/Reconstruction)
@@ -104,32 +111,49 @@ def sim_valtree(g, kind):
 VT_BRANCHES = ["nhit_chan", "sum_hg", "sum_energy", "weighte"] + SHAPE_VARS
 
 
-def load_valtrees(paths):
+BORDER_VAR = "barxy_min_border_distance"
+
+
+def load_valtrees(paths, border_cut=None):
     """Every variable from the valtrees (pid_to_valtree.py): the PID stage's hit cut (0.5 MIP) applies to all of
-    them, identically in data and simulation. sum_w = weighte (tungsten-weighted energy)."""
-    cols = {b: [] for b in VT_BRANCHES}
+    them, identically in data and simulation. sum_w = weighte (tungsten-weighted energy). With border_cut, the
+    shower-like events are further required to have barxy_min_border_distance > border_cut [mm]; n_showerlike
+    keeps the count before that cut."""
+    branches = VT_BRANCHES + ([BORDER_VAR] if border_cut is not None else [])
+    cols = {b: [] for b in branches}
     for p in paths:
-        for a in uproot.iterate(f"{p}:ecal", VT_BRANCHES, step_size="400 MB", library="np"):
-            for b in VT_BRANCHES:
+        for a in uproot.iterate(f"{p}:ecal", branches, step_size="400 MB", library="np"):
+            for b in branches:
                 cols[b].append(a[b])
     c = {b: np.concatenate(v).astype(float) for b, v in cols.items()}
     c["sum_w"] = c.pop("weighte")
     k = showerlike(c["nhit_chan"])
-    return {b: v[k] for b, v in c.items()}
+    n_showerlike = int(k.sum())
+    if border_cut is not None:
+        k &= c.pop(BORDER_VAR) > border_cut     # NaN (no barycentre) fails
+    out = {b: v[k] for b, v in c.items()}
+    out["n_showerlike"] = np.array(n_showerlike)
+    return out
 
 
-def group_samples(g, outdir, use_cache=True):
-    cache = f"{outdir}/cache/{g['name']}.npz"
-    keys = ENERGY_VARS + SHAPE_VARS
+def cache_dir(outdir, border_cut=None):
+    """Per campaign and border cut, so samples of different campaigns or cuts never mix."""
+    tag = os.path.basename(os.path.normpath(SIM)) + (f"_b{border_cut:g}" if border_cut is not None else "")
+    return f"{outdir}/cache_{tag}"
+
+
+def group_samples(g, outdir, use_cache=True, border_cut=None):
+    cache = f"{cache_dir(outdir, border_cut)}/{g['name']}.npz"
+    keys = ENERGY_VARS + SHAPE_VARS + ["n_showerlike"]
     if use_cache and os.path.exists(cache):
         z = np.load(cache)
         return {k: {v: z[f"{k}__{v}"] for v in keys} for k in KINDS}
     runs = [r for r in g["runs"] if os.path.exists(f"{RECO}/{r}/ecal_{r}.valtree.root")]
     if len(runs) != len(g["runs"]):
         print(f"[{g['name']}] WARNING: missing runs {sorted(set(g['runs']) - set(runs))}")
-    s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in runs])}
+    s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in runs], border_cut)}
     for kind in ("nodigi", "digi"):
-        s[kind] = load_valtrees([sim_valtree(g, kind)])
+        s[kind] = load_valtrees([sim_valtree(g, kind)], border_cut)
     os.makedirs(os.path.dirname(cache), exist_ok=True)
     np.savez(cache, **{f"{k}__{v}": s[k][v] for k in KINDS for v in keys})
     return s
@@ -170,7 +194,33 @@ def draw_hist(ax, x, bins, kind, label):
                 elinewidth=1.1, capsize=2, zorder=4)
 
 
-def panel(g, s, outpath):
+def selection_label(border_cut=None):
+    return "shower-like events" + (f", barxy_min_border_distance > {border_cut:g} mm" if border_cut is not None
+                                   else "")
+
+
+def read_cal(path):
+    """mip_gev_line.txt: '<kind> <a [MIP/GeV]> <b [MIP]>' per line."""
+    cal = {}
+    for line in open(path):
+        f = line.split("#")[0].split()
+        if len(f) == 3:
+            cal[f[0]] = np.array([float(f[1]), float(f[2])])
+    missing = set(KINDS) - set(cal)
+    if missing:
+        raise SystemExit(f"{path}: no MIP -> GeV line for {sorted(missing)}")
+    return cal
+
+
+def write_cal(path, cal, source):
+    with open(path, "w") as f:
+        f.write(f"# MIP -> GeV line, sum_w [MIP] = a * E [GeV] + b, th210 scan {CAL_E[0]}-{CAL_E[-1]} GeV, "
+                f"Gaussian-core mu; {source}\n# kind a b\n")
+        for k in KINDS:
+            f.write(f"{k} {cal[k][0]:.6g} {cal[k][1]:.6g}\n")
+
+
+def panel(g, s, outpath, border_cut=None):
     fig, axes = plt.subplots(3, 5, figsize=(24, 13.5))
     stats = {}
     for ax, (v, xl) in zip(axes.ravel(), PANELS):
@@ -213,7 +263,7 @@ def panel(g, s, outpath):
             ax.legend(fontsize=7.6, loc="best")
     nruns = ", ".join(("eudaq " if "eudaq" in r else "run ") + str(int(r.split("_")[-1])) for r in g["runs"])
     fig.suptitle(f"{g['E']} GeV e$^\\pm$, {g['set']}, beam at ({g['pos'].replace('_', ', ')}) mm  —  data: {nruns}; "
-                 f"shower-like events", fontsize=14)
+                 f"{selection_label(border_cut)}", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.965])
     fig.savefig(outpath, dpi=100)
     plt.close(fig)
@@ -226,18 +276,32 @@ def main(argv=None):
     p.add_argument("--groups", default=None, help="Comma-separated group names (default: all)")
     p.add_argument("--groups-file", default=GROUPS_FILE)
     p.add_argument("--no-cache", action="store_true")
+    p.add_argument("--border-cut", type=float, default=None,
+                   help="keep barxy_min_border_distance > MM among the shower-like events")
+    p.add_argument("--cal-file", default=None,
+                   help="MIP -> GeV line (mip_gev_line.txt of a pass without --border-cut) instead of fitting it")
     args = p.parse_args(argv)
+    if args.border_cut is not None and not args.cal_file:
+        p.error("--border-cut needs --cal-file: the MIP -> GeV line is fitted without the cut")
     os.makedirs(args.outdir, exist_ok=True)
     groups = load_groups(args.groups_file)
-    S = {g["name"]: group_samples(g, args.outdir, not args.no_cache) for g in groups}
+    S = {g["name"]: group_samples(g, args.outdir, not args.no_cache, args.border_cut) for g in groups}
 
     # MIP -> GeV per sample kind on the th210 scan
     scan = th210_scan(groups)
-    cal = {}
-    for k in KINDS:
-        Es = np.array([float(E) for E in CAL_E if E in scan])
-        mu = np.array([gauss_core(S[scan[E]][k]["sum_w"])[0] for E in CAL_E if E in scan])
-        cal[k] = np.polyfit(Es, mu, 1)
+    if args.cal_file:
+        cal = read_cal(args.cal_file)
+        cal_source = f"read from {args.cal_file}"
+    else:
+        cal = {}
+        for k in KINDS:
+            Es = np.array([float(E) for E in CAL_E if E in scan])
+            mu = np.array([gauss_core(S[scan[E]][k]["sum_w"])[0] for E in CAL_E if E in scan])
+            cal[k] = np.polyfit(Es, mu, 1)
+        cal_source = f"fitted on {SIM} and {RECO}"
+    write_cal(f"{args.outdir}/mip_gev_line.txt", cal, cal_source)
+    if args.border_cut is not None:
+        survival_table(groups, S, args.border_cut, f"{args.outdir}/border_survival.txt")
     for s in S.values():
         for k in KINDS:
             s[k]["gev"] = (s[k]["sum_w"] - cal[k][1]) / cal[k][0]
@@ -248,7 +312,8 @@ def main(argv=None):
     def out(line=""):
         print(line); txt.write(line + "\n")
 
-    out("MIP -> GeV: sum_w [MIP] = a * E [GeV] + b, fitted on the Gaussian-core mu of the th210 scan 7.5-74 GeV")
+    out(f"Selection: {selection_label(args.border_cut)}; simulation {SIM}; data {RECO}")
+    out("MIP -> GeV: sum_w [MIP] = a * E [GeV] + b, Gaussian-core mu of the th210 scan 7.5-74 GeV; " + cal_source)
     for k in KINDS:
         out(f"   {LABEL[k]:<24} a = {cal[k][0]:8.2f} MIP/GeV   b = {cal[k][1]:8.1f} MIP")
     out("\nPer group: Gaussian-core mu and sigma/mu for the first four variables, median for the others;"
@@ -257,7 +322,7 @@ def main(argv=None):
     for g in groups:
         if only and g["name"] not in only:
             continue
-        st = panel(g, S[g["name"]], f"{args.outdir}/panel_{g['name']}.png")
+        st = panel(g, S[g["name"]], f"{args.outdir}/panel_{g['name']}.png", args.border_cut)
         out(f"\n== {g['name']}  ({len(g['runs'])} run(s); N data/nodigi/digi = "
             f"{st[('nhit_chan', 'data')][2]}/{st[('nhit_chan', 'nodigi')][2]}/{st[('nhit_chan', 'digi')][2]})")
         out(f"   {'variable':<18}{'data':>10}{'nodigi':>10}{'digi':>10}{'res data':>10}{'res nodg':>10}"
@@ -270,8 +335,25 @@ def main(argv=None):
                 f"{r('nodigi'):13.3f}{r('digi'):11.3f}")
         RES.append((g, {k: st[("gev", k)] for k in KINDS}))
     txt.close()
-    resolution_plot(RES, f"{args.outdir}/resolution_vs_energy.png")
-    calibration_plot(S, groups, scan, cal, f"{args.outdir}/calibration_th210.png")
+    resolution_plot(RES, f"{args.outdir}/resolution_vs_energy.png", args.border_cut)
+    calibration_plot(S, groups, scan, cal, f"{args.outdir}/calibration_th210.png", args.border_cut)
+
+
+def survival_table(groups, S, border_cut, path, min_data=1000):
+    """Fraction of the shower-like events with barxy_min_border_distance > border_cut, per group and kind."""
+    with open(path, "w") as f:
+        f.write(f"# barxy_min_border_distance > {border_cut:g} mm among shower-like events; "
+                f"N_pass / N_showerlike (fraction); '!' = fewer than {min_data} data events left\n")
+        f.write(f"# {'group':<28}" + "".join(f"{k:>24}" for k in KINDS) + "\n")
+        for g in groups:
+            s = S[g["name"]]
+            cells = []
+            for k in KINDS:
+                n0, n1 = int(s[k]["n_showerlike"]), len(s[k]["nhit_chan"])
+                cells.append(f"{n1:>9d}/{n0:<7d}({n1 / max(n0, 1):5.3f})")
+            flag = " !" if len(s["data"]["nhit_chan"]) < min_data else ""
+            f.write(f"  {g['name']:<28}" + "".join(f"{c:>24}" for c in cells) + flag + "\n")
+    print(open(path).read())
 
 
 def th210_scan(groups):
@@ -290,7 +372,7 @@ def th210_scan(groups):
     return scan
 
 
-def calibration_plot(S, groups, scan, cal, path):
+def calibration_plot(S, groups, scan, cal, path, border_cut=None):
     """The MIP -> GeV line: Gaussian-core mu of sum_w against beam energy on the th210 scan (fitted, 7.5-74 GeV),
     with every th210 99 GeV group drawn on top (not fitted), and the residuals to the line."""
     e99 = [g for g in groups if g["set"] == "th210" and g["E"] == "99"]
@@ -312,13 +394,15 @@ def calibration_plot(S, groups, scan, cal, path):
                  mfc="none", mew=1.4, ms=7)
     ax.plot([], [], "D", color="0.3", mfc="none", label=f"99 GeV, {len(e99)} positions (not fitted)")
     ax.set_ylabel("sum_w, Gaussian-core $\\mu$ [MIP]"); ax.grid(alpha=0.25); ax.legend(fontsize=9, loc="upper left")
-    ax.set_title("MIP → GeV calibration, th210 scan: sum_w = a E + b, fitted 7.5–74 GeV", fontsize=12)
+    ax.set_title("MIP → GeV calibration, th210 scan: sum_w = a E + b, fitted 7.5–74 GeV" +
+                 (f"\npoints: barxy_min_border_distance > {border_cut:g} mm; line without the cut"
+                  if border_cut is not None else ""), fontsize=12)
     axr.axhline(0, color="0.5", lw=1, ls="--"); axr.grid(alpha=0.25)
     axr.set_xlabel("Beam energy [GeV]"); axr.set_ylabel("residual to the line [%]")
     fig.tight_layout(); fig.savefig(path, dpi=130); plt.close(fig)
 
 
-def resolution_plot(RES, path):
+def resolution_plot(RES, path, border_cut=None):
     if not RES:
         return
     sets = sorted({g["set"] for g, _ in RES})
@@ -341,7 +425,8 @@ def resolution_plot(RES, path):
         ax.set_xlabel("Beam energy [GeV]"); ax.set_ylabel(yl); ax.grid(alpha=0.25)
     axes[0].legend(handles=h, fontsize=9)
     axes[1].axhline(1, color="0.5", lw=1, ls="--")
-    fig.suptitle("Calibrated energy (th210 scan MIP → GeV line per sample), every group; shower-like events")
+    fig.suptitle("Calibrated energy (th210 scan MIP → GeV line per sample), every group; "
+                 + selection_label(border_cut))
     fig.tight_layout(rect=[0, 0, 1, 0.94]); fig.savefig(path, dpi=110); plt.close(fig)
 
 

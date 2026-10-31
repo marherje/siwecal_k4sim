@@ -5,6 +5,7 @@ energy [MIP] and calibrated energy [GeV] per layer, data (Reconstruction) agains
 with digitisation (final_v7).
 
     python analysis/final_profiles.py <outdir> [--groups th210_e20_26_-52,th210_e74_22_-49] [--max-data-events N]
+        [--cal-file <final_panels outdir>/mip_gev_line.txt] [--border-cut MM]
 
 Same selection as final_panels.py, rebuilt hit by hit from the ecal trees (the valtrees carry no per-layer ADC):
 unmasked hits above 0.5 MIP (the PID stage's hit cut), shower-like events (nhit > 0.5 x p90 of the sample).
@@ -15,7 +16,15 @@ event. The calibrated energy is the sampling-corrected hit_w_energy divided by t
 each sample kind (final_panels.py, th210 scan), then by the absorber depth in front of the layer: dE/dX0 [GeV/X0],
 whose integral over depth is the shower energy (minus the line's offset b, which is not per layer).
 
-Writes <outdir>/profiles_<group>.png and profiles_summary.txt, with a cache per group (<outdir>/cache/).
+--border-cut MM keeps, among the shower-like events, those with barxy_min_border_distance > MM, taken from the
+valtree of the same file (final_panels.py's inputs). The valtree keeps the ecal tree's event order, so the two are
+joined row by row, after checking that (run, event, spill, bcid) agree on every row (the simulation repeats event
+numbers across chunks, so the key alone is not unique). The data's ecal trees are read from FINAL_RECO_TREES
+(default FINAL_RECO), for valtrees regenerated elsewhere. The slope a comes from --cal-file (final_panels.py's
+mip_gev_line.txt, fitted without the border cut); without it, the final_v7 slopes below.
+
+Writes <outdir>/profiles_<group>.png and profiles_summary.txt, with a cache per group
+(<outdir>/cache_<campaign>[_b<MM>]/).
 """
 import argparse
 import os
@@ -29,11 +38,14 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))
-from analysis.final_panels import RECO, SIM, KINDS, LABEL, COLOR, load_groups  # noqa: E402
+from analysis.final_panels import (RECO, SIM, KINDS, LABEL, COLOR, BORDER_VAR, load_groups, sim_valtree,  # noqa: E402
+                                   cache_dir, read_cal, selection_label)
+
+RECO_TREES = os.environ.get("FINAL_RECO_TREES", RECO)
 
 N_LAYERS = 15
 HIT_CUT = 0.5
-# MIP->GeV slope a [MIP/GeV] per sample kind, th210 scan 7.5-74 GeV (final_panels_summary.txt)
+# MIP->GeV slope a [MIP/GeV] per sample kind, th210 scan 7.5-74 GeV (final_panels_summary.txt, final_v7)
 SLOPE = {"data": 81.9, "digi": 87.2, "nodigi": 88.7}
 MARKER = {"data": "o", "nodigi": "^", "digi": "s"}
 LINESTYLE = {"data": "-", "nodigi": ":", "digi": "--"}
@@ -41,19 +53,44 @@ QUANTS = [("hits", "Hits per layer"), ("adc", "ADC sum per layer [ADC]"),
           ("mip", "Energy per layer [MIP]"), ("gev", "Calibrated energy, dE/dX$_0$ [GeV / X$_0$]")]
 RLIM = (0.6, 1.4)
 BRANCHES = ["hit_slab", "hit_energy", "hit_hg", "hit_w_energy", "hit_X0", "hit_ismasked"]
+ID_BRANCHES = ["run", "event", "spill", "bcid"]
 
 
 def sim_tree(g, kind):
     return f"{SIM}/trees/ecal_{g['name']}{'_simple' if kind == 'nodigi' else ''}.root"
 
 
-def layer_sums(paths, max_events=None):
-    """Per-event, per-layer sums of hits, ADC, MIP and W-weighted MIP after the hit cut; plus the X0 per layer."""
+def border_distance(tree_path, valtree_path, ids):
+    """barxy_min_border_distance of the first len(ids['run']) events of tree_path, from its valtree. Both are in the
+    same order, but run_pid_batch.py drops the events without hits, so the valtree is a subsequence of the tree: walk
+    the two together, matching (run, event, spill, bcid) row by row; events missing from the valtree get NaN (they
+    have no hits and fail the shower-like cut anyway). Every valtree row must find its event, or this stops."""
+    n = len(ids["run"])
+    v = uproot.open(valtree_path)["ecal"].arrays(ID_BRANCHES + [BORDER_VAR], library="np")
+    tkey = np.stack([ids[b] for b in ID_BRANCHES], 1)
+    vkey = np.stack([v[b] for b in ID_BRANCHES], 1)
+    out = np.full(n, np.nan)
+    j = 0
+    for i in range(n):
+        if j < len(vkey) and (tkey[i] == vkey[j]).all():
+            out[i] = v[BORDER_VAR][j]
+            j += 1
+    full = n == uproot.open(tree_path)["ecal"].num_entries      # whole tree read (no --max-data-events cut)
+    if (full and j != len(vkey)) or (n and j == 0):
+        raise SystemExit(f"{valtree_path} does not follow {tree_path}: {j} of {len(vkey)} valtree rows matched")
+    return out
+
+
+def layer_sums(paths, max_events=None, valtrees=None, border_cut=None):
+    """Per-event, per-layer sums of hits, ADC, MIP and W-weighted MIP after the hit cut; plus the X0 per layer.
+    With border_cut, valtrees (one per path) give barxy_min_border_distance for the cut."""
     out = {q: [] for q in ("hits", "adc", "mip", "w")}
+    border = []
     x0 = np.full(N_LAYERS, np.nan)
     n_read = 0
-    for p in paths:
-        for a in uproot.iterate(f"{p}:ecal", BRANCHES, step_size="300 MB", library="ak"):
+    for i, p in enumerate(paths):
+        ids = {b: [] for b in ID_BRANCHES}
+        for a in uproot.iterate(f"{p}:ecal", BRANCHES + ID_BRANCHES, step_size="300 MB", library="ak"):
             import awkward as ak
             keep = (a["hit_ismasked"] == 0) & (a["hit_energy"] > HIT_CUT)
             sl = a["hit_slab"][keep]
@@ -70,27 +107,34 @@ def layer_sums(paths, max_events=None):
             for l in range(N_LAYERS):
                 if np.isnan(x0[l]) and np.any(layer == l):
                     x0[l] = float(np.median(xl[layer == l]))
+            for b in ID_BRANCHES:
+                ids[b].append(ak.to_numpy(a[b]))
             n_read += n
             if max_events and n_read >= max_events:
                 break
+        if border_cut is not None:
+            border.append(border_distance(p, valtrees[i], {b: np.concatenate(v) for b, v in ids.items()}))
         if max_events and n_read >= max_events:
             break
     s = {q: np.concatenate(v)[:max_events] if max_events else np.concatenate(v) for q, v in out.items()}
     nhit = s["hits"].sum(axis=1)
     k = nhit > 0.5 * np.percentile(nhit, 90)
+    if border_cut is not None:
+        k &= np.concatenate(border)[:len(nhit)] > border_cut     # NaN (no barycentre) fails
     return {q: v[k] for q, v in s.items()}, x0
 
 
-def group_profiles(g, outdir, max_events, use_cache=True):
-    cache = f"{outdir}/cache/profiles_{g['name']}.npz"
+def group_profiles(g, outdir, max_events, use_cache=True, border_cut=None):
+    cache = f"{cache_dir(outdir, border_cut)}/profiles_{g['name']}.npz"
     if use_cache and os.path.exists(cache):
         z = np.load(cache)
         return {k: {q: z[f"{k}__{q}"] for q in ("hits", "adc", "mip", "w")} for k in KINDS}, z["x0"]
-    runs = [r for r in g["runs"] if os.path.exists(f"{RECO}/{r}/ecal_{r}.root")]
+    runs = [r for r in g["runs"] if os.path.exists(f"{RECO_TREES}/{r}/ecal_{r}.root")]
     s, x0 = {}, None
-    s["data"], x0 = layer_sums([f"{RECO}/{r}/ecal_{r}.root" for r in runs], max_events)
+    s["data"], x0 = layer_sums([f"{RECO_TREES}/{r}/ecal_{r}.root" for r in runs], max_events,
+                               [f"{RECO}/{r}/ecal_{r}.valtree.root" for r in runs], border_cut)
     for kind in ("nodigi", "digi"):
-        s[kind], x0k = layer_sums([sim_tree(g, kind)])
+        s[kind], x0k = layer_sums([sim_tree(g, kind)], None, [sim_valtree(g, kind)], border_cut)
         if not np.allclose(x0, x0k, equal_nan=True):
             print(f"[{g['name']}] WARNING: X0 per layer differs, data {x0} {kind} {x0k}")
     os.makedirs(os.path.dirname(cache), exist_ok=True)
@@ -98,9 +142,9 @@ def group_profiles(g, outdir, max_events, use_cache=True):
     return s, x0
 
 
-def profile(s, kind, q, dx0):
+def profile(s, kind, q, dx0, slope=SLOPE):
     """Mean per event and its statistical error, per layer."""
-    v = s[kind]["w"] / SLOPE[kind] / dx0 if q == "gev" else s[kind][q]
+    v = s[kind]["w"] / slope[kind] / dx0 if q == "gev" else s[kind][q]
     return v.mean(axis=0), v.std(axis=0) / np.sqrt(max(len(v), 1))
 
 
@@ -113,7 +157,7 @@ def draw_stairs(ax, values, edges, kind, label):
         ax.stairs(values, edges, color=COLOR[kind], lw=1.6, label=label)
 
 
-def plot_group(g, s, x0, outpath):
+def plot_group(g, s, x0, outpath, slope=SLOPE, border_cut=None):
     dx0 = np.diff(np.r_[0.0, x0])
     # one bin per layer on the depth axis, centred on the layer's X0, edges halfway to its neighbours
     mid = 0.5 * (x0[1:] + x0[:-1])
@@ -123,7 +167,7 @@ def plot_group(g, s, x0, outpath):
     for col, (q, ylab) in enumerate(QUANTS):
         ax, rax = axes[0, col], axes[1, col]
         kinds = [k for k in KINDS if not (q == "adc" and k == "nodigi")]
-        prof = {k: profile(s, k, q, dx0) for k in kinds}
+        prof = {k: profile(s, k, q, dx0, slope) for k in kinds}
         md, ed = prof["data"]
         for k in kinds:
             m, e = prof[k]
@@ -172,7 +216,7 @@ def plot_group(g, s, x0, outpath):
         top.set_xlabel("Layer", fontsize=9.5)
     nruns = ", ".join(("eudaq " if "eudaq" in r else "run ") + str(int(r.split("_")[-1])) for r in g["runs"])
     fig.suptitle(f"Longitudinal profiles, {g['E']} GeV e$^\\pm$, {g['set']}, beam at ({g['pos'].replace('_', ', ')}) mm"
-                 f"  —  data: {nruns}; shower-like events, hits > {HIT_CUT} MIP", fontsize=13.5)
+                 f"  —  data: {nruns}; {selection_label(border_cut)}, hits > {HIT_CUT} MIP", fontsize=13.5)
     fig.tight_layout(rect=[0, 0, 1, 0.955])
     fig.savefig(outpath, dpi=100)
     plt.close(fig)
@@ -185,14 +229,20 @@ def main(argv=None):
     ap.add_argument("--groups", default="th210_e20_26_-52,th210_e74_22_-49")
     ap.add_argument("--max-data-events", type=int, default=None)
     ap.add_argument("--no-cache", action="store_true")
+    ap.add_argument("--cal-file", default=None, help="mip_gev_line.txt of a final_panels.py pass without the cut")
+    ap.add_argument("--border-cut", type=float, default=None,
+                    help="keep barxy_min_border_distance > MM among the shower-like events")
     a = ap.parse_args(argv)
+    if a.border_cut is not None and not a.cal_file:
+        ap.error("--border-cut needs --cal-file: the MIP -> GeV line is fitted without the cut")
+    slope = {k: ab[0] for k, ab in read_cal(a.cal_file).items()} if a.cal_file else SLOPE
     os.makedirs(a.outdir, exist_ok=True)
     want = a.groups.split(",")
     groups = [g for g in load_groups() if g["name"] in want]
     rows = []
     for g in groups:
-        s, x0 = group_profiles(g, a.outdir, a.max_data_events, not a.no_cache)
-        rows += plot_group(g, s, x0, f"{a.outdir}/profiles_{g['name']}.png")
+        s, x0 = group_profiles(g, a.outdir, a.max_data_events, not a.no_cache, a.border_cut)
+        rows += plot_group(g, s, x0, f"{a.outdir}/profiles_{g['name']}.png", slope, a.border_cut)
         print(f"[{g['name']}] done")
     with open(f"{a.outdir}/profiles_summary.txt", "w") as f:
         f.write("# group quantity kind total_per_event depth_of_max[X0]\n")

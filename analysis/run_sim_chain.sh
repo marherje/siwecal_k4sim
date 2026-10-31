@@ -13,7 +13,7 @@
 # Environment:
 #   DIGI_CALIB_DIR   MuonCalib-style table tree for the digitiser (default: the official EOS Calib/MuonCalib)
 #   RECO_TABLE       table that reconstructs the simulated ADC (default th210, like Reconstruction)
-#   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry fractal_dimension)
+#   TB_REPO          siwecal-tb2026 checkout for the PID stage (its gaudi_source/build must carry barxy_min_border_distance)
 #   DDSIM_SUFFIX     suffix of a ddsim variant after _w1924_mat_emz (e.g. _chipair, _rc0.1); use with <out_base>
 #   WORK             scratch dir (default ${TMPDIR:-/tmp}/sim_chain_$USER)
 #   PED_NOISE        1 (default): per-cell noise and true gain spread in the digitiser; 0 = the scalar noise

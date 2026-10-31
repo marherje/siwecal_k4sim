@@ -5,11 +5,13 @@ radius and longitudinal barycentre; data against the simulation without and with
 
     python analysis/final_panels_select.py <outdir> [--group th210_e20_26_-52] [--nbins 28]
         [--vars nhit_chan,gev,e_over_nhit,moliere,zbary,mip_likeness]   (any of final_panels.PANELS; 2 x 3 for six)
+        [--cal-file <final_panels outdir>/mip_gev_line.txt] [--border-cut MM]
 
 Same inputs, selection and MIP -> GeV line as final_panels.py (valtrees, 0.5 MIP hit cut, shower-like events), with
 coarser bins (about half of final_panels.py's 55) so that the 1000-event simulation does not jump bin to bin; for
 the integer number of hits the bin width is a whole number of hits, so no bin collects one more integer than its
-neighbours.
+neighbours. The MIP -> GeV line comes from --cal-file (final_panels.py's mip_gev_line.txt, fitted without the
+border cut); without it, the final_v7 line of the report (CAL below). --border-cut MM as in final_panels.py.
 """
 import argparse
 import os
@@ -23,9 +25,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))
 from analysis.final_panels import (RECO, KINDS, LABEL, COLOR, load_groups, load_valtrees, sim_valtree,  # noqa: E402
-                                   gauss_core, core_curve, draw_hist, PANELS as ALL_PANELS, FIT_PANELS)
+                                   gauss_core, core_curve, draw_hist, PANELS as ALL_PANELS, FIT_PANELS, read_cal,
+                                   selection_label)
 
-# MIP -> GeV line per sample kind, th210 scan 7.5-74 GeV (final_panels_summary.txt of the report, v3.3)
+# MIP -> GeV line per sample kind, th210 scan 7.5-74 GeV (final_panels_summary.txt of the report, v3.3; final_v7)
 CAL = {"data": (81.92, 42.1), "nodigi": (88.75, 0.0), "digi": (87.15, 2.2)}
 PANELS = [("nhit_chan", "Number of hits", True), ("gev", "Calibrated energy [GeV]", True),
           ("moliere", "Molière radius (90 %) [mm]", False), ("zbary", "Longitudinal barycentre [layer]", False)]
@@ -38,14 +41,20 @@ def main(argv=None):
     ap.add_argument("--nbins", type=int, default=28)
     ap.add_argument("--vars", default=None, help="comma-separated variables (default: the four of the 2 x 2 panel); "
                     "Gaussian-core fit for the energy-like ones (final_panels.FIT_PANELS), median for the rest")
+    ap.add_argument("--cal-file", default=None, help="mip_gev_line.txt of a final_panels.py pass without the cut")
+    ap.add_argument("--border-cut", type=float, default=None,
+                    help="keep barxy_min_border_distance > MM among the shower-like events")
     a = ap.parse_args(argv)
+    if a.border_cut is not None and not a.cal_file:
+        ap.error("--border-cut needs --cal-file: the MIP -> GeV line is fitted without the cut")
     os.makedirs(a.outdir, exist_ok=True)
     g = next(x for x in load_groups() if x["name"] == a.group)
-    s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in g["runs"]])}
+    cal = read_cal(a.cal_file) if a.cal_file else CAL
+    s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in g["runs"]], a.border_cut)}
     for k in ("nodigi", "digi"):
-        s[k] = load_valtrees([sim_valtree(g, k)])
+        s[k] = load_valtrees([sim_valtree(g, k)], a.border_cut)
     for k in KINDS:
-        s[k]["gev"] = (s[k]["sum_w"] - CAL[k][1]) / CAL[k][0]
+        s[k]["gev"] = (s[k]["sum_w"] - cal[k][1]) / cal[k][0]
 
     panels = PANELS
     if a.vars:
@@ -88,7 +97,7 @@ def main(argv=None):
         ax.set_ylim(top=ax.get_ylim()[1] * 1.25)
     nruns = ", ".join(("eudaq " if "eudaq" in r else "run ") + str(int(r.split("_")[-1])) for r in g["runs"])
     fig.suptitle(f"{g['E']} GeV e$^\\pm$, {g['set']}, beam at ({g['pos'].replace('_', ', ')}) mm  —  data: {nruns}; "
-                 f"shower-like events, N data / no-digi / digi = {len(xs['data'])} / {len(xs['nodigi'])} / "
+                 f"{selection_label(a.border_cut)}, N data / no-digi / digi = {len(xs['data'])} / {len(xs['nodigi'])} / "
                  f"{len(xs['digi'])}", fontsize=12.5)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     stem = f"panel{len(panels)}_{g['name']}"
