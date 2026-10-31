@@ -15,6 +15,8 @@
 #include <map>
 #include <utility>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <memory>
 #include <random>
 #include <string>
@@ -61,6 +63,24 @@
 //      EventBuilder::buildHit, so the simulation inherits exactly the same
 //      calibration, and the same bias, as the data it is compared with.
 //
+// 4. (OccupancySlope != 0) the chip's baseline sag under its own load: the
+//    other hits of the same chip pull the common baseline by B = k * Q, Q = the
+//    HG-ADC charge of the chip's other hits.  Measured on pedestals
+//    (k = -0.95e-3) and fitted on the electron chip multiplicity
+//    (k = -1.5e-3, sim_tuning 2.1b).  A cell read in the high gain loses |B| in
+//    amplitude and energy, and its trigger survives with P(a + B) / P(a), the
+//    per-slab erf turn-on at its pre-sag amplitude a.  The low gain moves by
+//    GainRatio * B, which is negligible, and is left alone.  Q is taken before
+//    the sag (the shift is small against the charge it comes from), from the
+//    hits the chip would keep, at or above OccupancyMinMip.
+//    With OccupancySagTable (2026-10-29, replaces k * Q): B is read from a map
+//    MEASURED on the electron runs of the threshold set, B(Q_chip, Q_slab), with
+//    Q_chip as above and Q_slab = the HG-ADC charge of the other chips of the
+//    same slab: the baseline also drops with the load of the whole slab, and
+//    saturates (analysis/cm_sag_collect.py, sag_table.py).  Bilinear in
+//    (ln(1+Q_chip), ln(1+Q_slab)) between the map's bin centres, clamped at its
+//    edges.
+//
 // A channel missing from either table gets energy 0, which is what
 // EventBuilder::buildHit does with a masked channel.  The algorithm is strictly
 // 1:1: every input hit produces one output hit, because the parallel
@@ -93,6 +113,29 @@ public:
       }
 
       if (!loadTables()) return StatusCode::FAILURE;
+
+      if (!m_occupancySagTable.value().empty()) {
+        if (!loadSagTable(m_occupancySagTable.value())) return StatusCode::FAILURE;
+        if (m_occupancySlope.value() != 0.0) {
+          error() << "[AdcDigitizer] OccupancySlope and OccupancySagTable are exclusive" << endmsg;
+          return StatusCode::FAILURE;
+        }
+      }
+      if (sagOn()) {
+        if (m_occTriggerAdc.value().empty() || m_occTriggerSigmaAdc.value().empty()) {
+          error() << "[AdcDigitizer] OccupancySlope needs OccupancyTriggerAdc and OccupancyTriggerSigmaAdc "
+                     "(the per-slab turn-on in HG ADC)" << endmsg;
+          return StatusCode::FAILURE;
+        }
+        info() << "[AdcDigitizer] occupancy baseline sag ON: "
+               << (m_sagQc.empty() ? "B = " + std::to_string(m_occupancySlope.value()) + " x Q"
+                                   : "B(Q_chip, Q_slab) map " + m_occupancySagTable.value() + " (" +
+                                         std::to_string(m_sagQc.size()) + " x " + std::to_string(m_sagQs.size()) +
+                                         ", B " + std::to_string(m_sagMin) + " .. " + std::to_string(m_sagMax) + ")")
+               << " [HG ADC], Q = the chip's other kept hits >= " << m_occupancyMinMip.value()
+               << " MIP; trigger survival P(a+B)/P(a) with " << m_occTriggerAdc.value().size()
+               << " per-slab turn-ons" << endmsg;
+      }
 
       m_decoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(m_bitField.value());
 
@@ -154,8 +197,16 @@ public:
       const bool doPrint = (evtNum % m_debugFreq == 0);
       int nUncalibrated = 0, nSaturated = 0, nDropped = 0, nRecovered = 0;
 
+      // Pass 1: the readout of every cell.  The writing waits for pass 2, because the
+      // chip's baseline sag (step 4) needs the whole chip first.
+      const std::size_t nIn = input->size();
+      std::vector<int> vSlab(nIn), vChip(nIn), vFired(nIn), vCalib(nIn), vSat(nIn);
+      std::vector<double> vHigh(nIn), vRecoMpv(nIn);
+      std::vector<float> vHighOut(nIn), vLowOut(nIn), vEnergy(nIn);
+
       std::size_t hitIndex = 0;
       for (const auto& hit : *input) {
+        const std::size_t ih = hitIndex;
         const std::uint64_t cellID = hit.getCellID();
         const int slab = static_cast<int>(m_decoder->get(cellID, "slab"));
         const int chip = static_cast<int>(m_decoder->get(cellID, "chip"));
@@ -236,9 +287,13 @@ public:
           }
           adcHighPedsub = static_cast<float>(highQ);
           adcLowPedsub = static_cast<float>(low);
+          vHigh[ih] = highQ;
+          vRecoMpv[ih] = recoMpv;
+          vCalib[ih] = 1;
 
           // 3. the reconstruction, port of EventBuilder::buildHit
           const bool saturated = highQ >= m_saturationAdc.value();
+          vSat[ih] = saturated ? 1 : 0;
           if (saturated) {
             ++nSaturated;
             const double highEquivalent =
@@ -249,31 +304,105 @@ public:
           }
         }
 
+        vSlab[ih] = slab;
+        vChip[ih] = chip;
+        vFired[ih] = fired ? 1 : 0;
+        vHighOut[ih] = adcHighPedsub;
+        vLowOut[ih] = adcLowPedsub;
+        vEnergy[ih] = energyMip;
+      }
+
+      // The chip-level decision.  Without a trigger collection every hit is
+      // kept (the cell-level selection already happened upstream).  With one:
+      // a cell on a chip that fired is a hit if it fired itself or if its
+      // sampled high gain is above the threshold; anything else is written
+      // (the collections stay 1:1) but flagged out, and sim_to_ecal_tree
+      // drops it.
+      auto keepRule = [&](std::size_t i) {
+        if (!trigger) return vFired[i] > 0;
+        const bool onFiredChip = chipFired.count({vSlab[i], vChip[i]}) > 0;
+        return onFiredChip && (vFired[i] > 0 || vHighOut[i] > m_adcHitThreshold.value());
+      };
+
+      // 4. the chip's baseline sag, B = k * Q or the measured B(Q_chip, Q_slab) (see the header).
+      int nOccLost = 0;
+      double occShiftSum = 0.0;
+      if (sagOn()) {
+        std::map<std::pair<int, int>, double> chipQ;
+        std::map<int, double> slabQ;
+        std::vector<double> ownQ(nIn, 0.0);
+        for (std::size_t i = 0; i < nIn; ++i) {
+          if (!keepRule(i) || vEnergy[i] < m_occupancyMinMip.value()) continue;
+          ownQ[i] = vEnergy[i] * m_adcPerMip.value();
+          chipQ[{vSlab[i], vChip[i]}] += ownQ[i];
+          slabQ[vSlab[i]] += ownQ[i];
+        }
+        for (std::size_t i = 0; i < nIn; ++i) {
+          const auto it = chipQ.find({vSlab[i], vChip[i]});
+          const double qChipAll = it == chipQ.end() ? 0.0 : it->second;
+          const double q = qChipAll - ownQ[i];
+          double b;
+          if (m_sagQc.empty()) {
+            b = m_occupancySlope.value() * std::max(q, 0.0);
+          } else {
+            const auto is = slabQ.find(vSlab[i]);
+            const double qSlab = (is == slabQ.end() ? 0.0 : is->second) - qChipAll;   // the OTHER chips
+            b = sagFromTable(std::max(q, 0.0), std::max(qSlab, 0.0));
+          }
+          if (b == 0.0 || !vCalib[i]) continue;
+          // the trigger, at the amplitude before the sag
+          if (vFired[i]) {
+            const double mu = perSlab(m_occTriggerAdc.value(), vSlab[i]);
+            const double sg = perSlab(m_occTriggerSigmaAdc.value(), vSlab[i]);
+            const double a = vHigh[i];
+            const double p0 = turnOn(a, mu, sg), p1 = turnOn(a + b, mu, sg);
+            const double survive = p0 > 1e-9 ? std::clamp(p1 / p0, 0.0, 1.0) : 1.0;
+            const auto seed = static_cast<std::uint64_t>(m_randomSeed.value()) * 131ULL
+                + 0x94d049bb133111ebULL * static_cast<std::uint64_t>(evtNum + 1)
+                + static_cast<std::uint64_t>(i);
+            std::mt19937_64 rng(seed);
+            if (std::uniform_real_distribution<double>(0.0, 1.0)(rng) >= survive) {
+              vFired[i] = 0;
+              ++nOccLost;
+            }
+          }
+          // the amplitude and energy of a cell read in the high gain
+          if (!vSat[i]) {
+            vHigh[i] += b;
+            vHighOut[i] = static_cast<float>(vHigh[i]);
+            vEnergy[i] = static_cast<float>(vHigh[i] / vRecoMpv[i]);
+          }
+          occShiftSum += b;
+        }
+        if (trigger) {
+          chipFired.clear();
+          for (std::size_t i = 0; i < nIn; ++i)
+            if (vFired[i]) chipFired[{vSlab[i], vChip[i]}] = true;
+        }
+      }
+
+      // Pass 2: write, 1:1 with the input.
+      hitIndex = 0;
+      for (const auto& hit : *input) {
+        const std::size_t i = hitIndex++;
         auto nh = output->create();
-        nh.setCellID(cellID);
-        nh.setEnergy(energyMip);
+        nh.setCellID(hit.getCellID());
+        nh.setEnergy(vEnergy[i]);
         nh.setPosition(hit.getPosition());
         for (const auto& contrib : hit.getContributions()) {
           nh.addToContributions(contrib);
         }
-        adcHighOut->push_back(adcHighPedsub);
-        adcLowOut->push_back(adcLowPedsub);
-
-        // The chip-level decision.  Without a trigger collection every hit is
-        // kept (the cell-level selection already happened upstream).  With one:
-        // a cell on a chip that fired is a hit if it fired itself or if its
-        // sampled high gain is above the threshold; anything else is written
-        // (the collections stay 1:1) but flagged out, and sim_to_ecal_tree
-        // drops it.
-        int kept = 1;
+        adcHighOut->push_back(vHighOut[i]);
+        adcLowOut->push_back(vLowOut[i]);
+        const int kept = keepRule(i) ? 1 : 0;
         if (trigger) {
-          const bool onFiredChip = chipFired.count({slab, chip}) > 0;
-          kept = (onFiredChip && (fired || adcHighPedsub > m_adcHitThreshold.value())) ? 1 : 0;
-          if (kept && !fired) ++nRecovered;
+          if (kept && !vFired[i]) ++nRecovered;
           if (!kept) ++nDropped;
         }
         keptOut->push_back(kept);
       }
+      m_nOccLost += nOccLost;
+      m_nOccEvents += 1;
 
       if (doPrint) {
         debug() << "AdcDigitizer: " << input->size() << " hits, "
@@ -283,6 +412,10 @@ public:
                                " kept without their own trigger, " + std::to_string(nDropped) +
                                " dropped")
                             : std::string())
+                << (sagOn()
+                        ? ", occupancy: " + std::to_string(nOccLost) + " triggers lost, summed shift " +
+                              std::to_string(occShiftSum) + " ADC"
+                        : std::string())
                 << endmsg;
       }
       return StatusCode::SUCCESS;
@@ -293,6 +426,11 @@ public:
   }
 
   StatusCode finalize() override {
+    if (sagOn() && m_nOccEvents.load() > 0) {
+      info() << "[AdcDigitizer] occupancy baseline sag: " << m_nOccLost.load() << " triggers lost in "
+             << m_nOccEvents.load() << " events ("
+             << static_cast<double>(m_nOccLost.load()) / m_nOccEvents.load() << " per event)" << endmsg;
+    }
     m_inputHandle.reset();
     m_outputHandle.reset();
     m_adcHighHandle.reset();
@@ -343,6 +481,73 @@ private:
       return false;
     }
     return true;
+  }
+
+  /// Erf turn-on of the trigger at HG amplitude a [ADC].
+  bool sagOn() const { return m_occupancySlope.value() != 0.0 || !m_sagQc.empty(); }
+
+  // OccupancySagTable: '#' comments, 'qchip <centres>', 'qslab <centres>', one row of B per Q_chip centre.
+  bool loadSagTable(const std::string& path) {
+    std::ifstream in(path);
+    if (!in) {
+      error() << "[AdcDigitizer] cannot open OccupancySagTable " << path << endmsg;
+      return false;
+    }
+    std::string line;
+    std::vector<double> qc, qs, b;
+    while (std::getline(in, line)) {
+      if (line.empty() || line[0] == '#') continue;
+      std::istringstream ss(line);
+      std::string tag;
+      ss >> tag;
+      std::vector<double>* dst = tag == "qchip" ? &qc : tag == "qslab" ? &qs : nullptr;
+      if (!dst) {
+        std::istringstream row(line);
+        double v;
+        while (row >> v) b.push_back(v);
+        continue;
+      }
+      double v;
+      while (ss >> v) dst->push_back(std::log1p(v));
+    }
+    if (qc.size() < 2 || qs.size() < 2 || b.size() != qc.size() * qs.size()) {
+      error() << "[AdcDigitizer] OccupancySagTable " << path << ": " << qc.size() << " x " << qs.size()
+              << " centres but " << b.size() << " values" << endmsg;
+      return false;
+    }
+    m_sagQc = qc;
+    m_sagQs = qs;
+    m_sagB = b;
+    m_sagMin = *std::min_element(b.begin(), b.end());
+    m_sagMax = *std::max_element(b.begin(), b.end());
+    return true;
+  }
+
+  // Bilinear in (ln(1+Q_chip), ln(1+Q_slab)), clamped at the edges (as analysis/sag_table.py interp).
+  double sagFromTable(double qChip, double qSlab) const {
+    auto locate = [](const std::vector<double>& x, double v, std::size_t& i, double& t) {
+      v = std::clamp(v, x.front(), x.back());
+      i = std::min<std::size_t>(std::upper_bound(x.begin(), x.end(), v) - x.begin(), x.size() - 1);
+      i = i == 0 ? 0 : i - 1;
+      t = (v - x[i]) / (x[i + 1] - x[i]);
+    };
+    std::size_t i, j;
+    double tu, tv;
+    locate(m_sagQc, std::log1p(qChip), i, tu);
+    locate(m_sagQs, std::log1p(qSlab), j, tv);
+    const std::size_t n = m_sagQs.size();
+    auto B = [&](std::size_t r, std::size_t c) { return m_sagB[r * n + c]; };
+    return (1 - tu) * (1 - tv) * B(i, j) + tu * (1 - tv) * B(i + 1, j) + (1 - tu) * tv * B(i, j + 1) +
+           tu * tv * B(i + 1, j + 1);
+  }
+
+  static double turnOn(double a, double mu, double sg) {
+    return 0.5 * (1.0 + std::erf((a - mu) / (std::sqrt(2.0) * std::max(sg, 1e-6))));
+  }
+
+  /// v[slab], or its last entry for a slab past the end (a single value = every slab).
+  static double perSlab(const std::vector<double>& v, int slab) {
+    return v[std::min<std::size_t>(static_cast<std::size_t>(std::max(slab, 0)), v.size() - 1)];
   }
 
   /// The high-gain roll-over: identity for q << A, saturating at A.
@@ -509,6 +714,25 @@ private:
   Gaudi::Property<std::string> m_bitField{
       this, "BitField", "system:8,slab:8,chip:16,channel:8,sca:8",
       "Test-beam CellID bitfield"};
+  Gaudi::Property<double> m_occupancySlope{
+      this, "OccupancySlope", 0.0,
+      "k of the chip baseline sag B = k * Q [HG ADC per HG ADC], Q = HG-ADC charge of the chip's other hits. "
+      "0 = off. Fitted on the electron chip multiplicity: -1.5e-3 (digi_calibration.yml occupancy_slope)"};
+  Gaudi::Property<std::string> m_occupancySagTable{
+      this, "OccupancySagTable", "",
+      "Measured chip baseline sag map B(Q_chip, Q_slab) [HG ADC] (digi_calibration.yml occupancy_sag_table); "
+      "replaces OccupancySlope, which must then be 0. Empty = off"};
+  std::vector<double> m_sagQc, m_sagQs, m_sagB;   // ln(1+Q) centres and the row-major map
+  double m_sagMin = 0.0, m_sagMax = 0.0;
+  Gaudi::Property<double> m_occupancyMinMip{
+      this, "OccupancyMinMip", 0.5,
+      "Hits below this energy [MIP] do not count in Q (the 0.5 MIP hit cut the fit was made with)"};
+  Gaudi::Property<std::vector<double>> m_occTriggerAdc{
+      this, "OccupancyTriggerAdc", {},
+      "Per-slab trigger turn-on mean [HG ADC] for the survival P(a+B)/P(a) (threshold_adc / slab_overrides)"};
+  Gaudi::Property<std::vector<double>> m_occTriggerSigmaAdc{
+      this, "OccupancyTriggerSigmaAdc", {},
+      "Per-slab trigger turn-on width [HG ADC] (sigma_mip * adc_per_mip / slab_overrides sigma_adc)"};
   Gaudi::Property<int> m_debugFreq{this, "DebugFrequency", 500, ""};
 
   mutable std::unique_ptr<k4FWCore::DataHandle<edm4hep::SimCalorimeterHitCollection>> m_inputHandle;
@@ -522,6 +746,8 @@ private:
   siwecal::MipTable m_recoTable;
   siwecal::PedestalTable m_pedestals;
   mutable std::atomic<long long> m_eventCount{0};
+  mutable std::atomic<long long> m_nOccLost{0};
+  mutable std::atomic<long long> m_nOccEvents{0};
 };
 
 DECLARE_COMPONENT(AdcDigitizer)

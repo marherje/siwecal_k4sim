@@ -2,6 +2,37 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
+  <!-- DEFAULT GEOMETRY since 2026-10-26 (was SND_compact_beamline_h2line.xml). The final_v5..v7 geometry, without the
+     upstream line below and with the beam born at -2650 mm, is kept as SND_compact_beamline_v7.xml.
+     sim_tuning (2026-10-17): H2-LIKE UPSTREAM BEAM LINE, a model, not a survey.
+     The data want ~0.2 X0 more upstream material than SND_compact_beamline.xml has (Al thickness scan, profile chi2
+     minimum 0.20-0.24 X0 at 10-74 GeV) and want it far upstream: with the same 0.20 X0 of Al at -2.2 / -10 / -30 m the
+     longitudinal profile is unchanged but only -30 m reproduces the width of layers 1-2 (R90, f(r>22 mm)).
+     This file spreads that budget over elements of the kind the H2 line has in the ~25-65 m before an EHN1 zone
+     (cf. the CMS HGCAL 2018 H2 layout, JINST 17 P05022 fig. 1: XCETs at -97/-82 m, DWCs at -32/-27 m): a gas
+     threshold Cherenkov (XCET, 3 m CO2 at 1 bar, 1 mm Al windows), a 20 m open-air section between two vacuum
+     sections with its 0.5 mm Al windows, a fibre profile monitor (XBPF, 2 mm scintillator), three 1 cm trigger
+     scintillators (XSCI) and two delay wire chambers (XDWC: 2 x 25 um Kapton, 30 mm Ar/CO2, SL-Note-98-023).
+     Positions and thicknesses are plausible, NOT measured: only the total X0 and its mean distance are constrained
+     by our data. Beam born at -65.5 m in vacuum (BEAM_Z_MM=-65500).
+           H2_XcetWinIn       Al               1.000 mm  at  -61.50 m   0.0112 X0
+           H2_XcetGas         CO2           3000.000 mm  at  -60.00 m   0.0153 X0
+           H2_XcetWinOut      Al               1.000 mm  at  -58.50 m   0.0112 X0
+           H2_VacExitWin      Al               0.500 mm  at  -45.00 m   0.0056 X0
+           H2_Xbpf            Scintillator     2.000 mm  at  -40.00 m   0.0047 X0
+           H2_Xsci1           Scintillator    10.000 mm  at  -36.00 m   0.0236 X0
+           H2_Xsci2           Scintillator    10.000 mm  at  -35.00 m   0.0236 X0
+           H2_Xdwc1_WinIn     Kapton           0.025 mm  at  -32.02 m   0.0001 X0
+           H2_Xdwc1_Gas       ArCO2           30.000 mm  at  -32.00 m   0.0002 X0
+           H2_Xdwc1_WinOut    Kapton           0.025 mm  at  -31.98 m   0.0001 X0
+           H2_Xsci3           Scintillator    10.000 mm  at  -28.00 m   0.0236 X0
+           H2_Xdwc2_WinIn     Kapton           0.025 mm  at  -27.02 m   0.0001 X0
+           H2_Xdwc2_Gas       ArCO2           30.000 mm  at  -27.00 m   0.0002 X0
+           H2_Xdwc2_WinOut    Kapton           0.025 mm  at  -26.98 m   0.0001 X0
+           H2_VacEntryWin     Al               0.500 mm  at  -25.00 m   0.0056 X0
+           open air, -45 m .. -25 m (20 m)                         0.0655 X0
+           total 0.191 X0 upstream of the existing 0.04 X0 (X0-weighted mean distance 39 m)
+     Everything downstream of -2.6 m is SND_compact_beamline_v7.xml unchanged. -->
   <info name="SND_sim_beamline" title="SND simulation with H2/H6-like beamline material in front" author="J.P. Marquez"
         url="" status="development" version="1.0">
     <comment> key4hep 2026-02-01 compatible </comment>
@@ -22,7 +53,7 @@
 
     <!-- World -->
     <!-- 80 m so the beam can start 30 m upstream and cross that much air (0.1 X0). -->
-    <constant name="world_side" value="80*m"/>
+    <constant name="world_side" value="140*m"/>
     <constant name="world_x"    value="world_side"/>
     <constant name="world_y"    value="world_side"/>
     <constant name="world_z"    value="world_side"/>
@@ -239,6 +270,114 @@
 
   <detectors>
     <include ref="SiPadDetector_beamline.xml"/>
+    <detector name="H2_Vac0" type="DD4hep_BoxSegment" id="140" vis="AlVis">
+      <material name="Vacuum"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="2249.5000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-63750.5000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_XcetWinIn" type="DD4hep_BoxSegment" id="141" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.5000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-61500.5000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_XcetGas" type="DD4hep_BoxSegment" id="142" vis="AlVis">
+      <material name="CO2"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="1500.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-60000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_XcetWinOut" type="DD4hep_BoxSegment" id="143" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.5000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-58499.5000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Vac1" type="DD4hep_BoxSegment" id="144" vis="AlVis">
+      <material name="Vacuum"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="6749.2500*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-51749.7500)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_VacExitWin" type="DD4hep_BoxSegment" id="145" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.2500*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-45000.2500)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xbpf" type="DD4hep_BoxSegment" id="146" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="1.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-40000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xsci1" type="DD4hep_BoxSegment" id="147" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="5.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-36000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xsci2" type="DD4hep_BoxSegment" id="148" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="5.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-35000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc1_WinIn" type="DD4hep_BoxSegment" id="149" vis="AlVis">
+      <material name="Kapton"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.0125*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-32015.0125)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc1_Gas" type="DD4hep_BoxSegment" id="150" vis="AlVis">
+      <material name="ArCO2"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="15.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-32000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc1_WinOut" type="DD4hep_BoxSegment" id="151" vis="AlVis">
+      <material name="Kapton"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.0125*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-31984.9875)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xsci3" type="DD4hep_BoxSegment" id="152" vis="AlVis">
+      <material name="Scintillator"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="5.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-28000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc2_WinIn" type="DD4hep_BoxSegment" id="153" vis="AlVis">
+      <material name="Kapton"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.0125*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-27015.0125)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc2_Gas" type="DD4hep_BoxSegment" id="154" vis="AlVis">
+      <material name="ArCO2"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="15.0000*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-27000.0000)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Xdwc2_WinOut" type="DD4hep_BoxSegment" id="155" vis="AlVis">
+      <material name="Kapton"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.0125*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-26984.9875)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_VacEntryWin" type="DD4hep_BoxSegment" id="156" vis="AlVis">
+      <material name="Al"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="0.2500*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-24999.7500)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
+    <detector name="H2_Vac2" type="DD4hep_BoxSegment" id="157" vis="AlVis">
+      <material name="Vacuum"/>
+      <box x="Beamline_XY/2.0" y="Beamline_XY/2.0" z="11199.7500*mm"/>
+      <position x="0" y="0" z="Beamline_Front_z+(-13799.7500)*mm"/>
+      <rotation x="0" y="0" z="0"/>
+    </detector>
     <!-- Beamline elements, 3 m to 1 m upstream of the box (see the Beamline_* constants). -->
     <detector name="Beamline_Residual" type="DD4hep_BoxSegment" id="100" vis="AlVis">
       <material name="Al"/>

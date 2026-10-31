@@ -19,7 +19,7 @@
 #   SIGMAS         per-energy beam sigma table (default analysis/beam_spread.txt)
 #   ONLY_SET / ONLY_POS / ONLY_E   restrict to one threshold set / table position / energy
 #   PARTICLE (e-), SIGMA_E (0.02), PHYSICS_LIST (QGSP_BERT_EMZ), COMPACT_FILE (SND_compact_beamline.xml),
-#   BEAM_Z_MM (-2650), TAG (_beamline_real_w1924_mat_emz): the final_v5 settings
+#   BEAM_Z_MM (-65500: the H2-like line of the default compact since 2026-10-26; -2650 with SND_compact_beamline_v7.xml), TAG (_beamline_real_w1924_mat_emz): the final_v5 settings
 #   OUT_DIR        EOS output dir (default .../Simulation/Generated/final_v6)
 #   SIGMA_X SIGMA_Y  beam sigma [mm] for every sample, instead of the per-energy table (e.g. pi-/mu- points)
 set -uo pipefail
@@ -32,7 +32,7 @@ PARTICLE=${PARTICLE:-e-}
 SIGMA_E=${SIGMA_E:-0.02}
 export PHYSICS_LIST=${PHYSICS_LIST:-QGSP_BERT_EMZ}
 export COMPACT_FILE=${COMPACT_FILE:-SND_compact_beamline.xml}
-export BEAM_Z_MM=${BEAM_Z_MM:--2650}
+export BEAM_Z_MM=${BEAM_Z_MM:--65500}
 TAG=${TAG-_beamline_real_w1924_mat_emz}
 OUT_DIR=${OUT_DIR:-/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/Generated/final_v6}
 STEER=$R/simulation/run_script/steer/final_v6

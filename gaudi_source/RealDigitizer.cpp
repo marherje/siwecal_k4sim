@@ -210,7 +210,7 @@ public:
 
           for (const auto& contrib : hit.getContributions()) {
             stepEnergyGeV.push_back(contrib.getEnergy());
-            stepTimeNs.push_back(contrib.getTime());
+            stepTimeNs.push_back(contrib.getTime() - m_timeOffsetNs.value());
           }
 
           if (stepEnergyGeV.empty()) {
@@ -639,6 +639,10 @@ private:
   Gaudi::Property<int> m_orderSlow{
       this, "OrderSlow", 2,
       "Slow CR-RC shaping order"};
+  Gaudi::Property<double> m_timeOffsetNs{
+      this, "TimeOffsetNs", 0.0,
+      "Subtracted from every contribution time [ns]: the extra flight time when the beam is born further "
+      "upstream than the -2650 mm the shaping windows were set for (job3_digitize.py: from BEAM_Z_MM)"};
   Gaudi::Property<double> m_fastWindowNs{
       this, "FastWindowNs", 200.0,
       "Fast peak search window [ns]"};

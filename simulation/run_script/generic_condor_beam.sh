@@ -29,8 +29,10 @@ sigma_E=$8
 # existing ones on EOS carry).  The bare detector in 2 m of nothing is
 #   COMPACT_FILE=SND_compact.xml BEAM_Z_MM=-2000 OUTPUT_TAG=
 # and SND_compact_beamline_hgcal.xml (0.5 X0 reference budget) wants BEAM_Z_MM=-30000.
+# Since 2026-10-26 SND_compact_beamline.xml carries the H2-like upstream line and the beam is born at -65.5 m;
+# the June-2026 line alone (final_v5..v7) is SND_compact_beamline_v7.xml with BEAM_Z_MM=-2650.
 COMPACT_FILE=${COMPACT_FILE:-SND_compact_beamline.xml}
-BEAM_Z_MM=${BEAM_Z_MM:--2650}
+BEAM_Z_MM=${BEAM_Z_MM:--65500}
 OUTPUT_TAG=${OUTPUT_TAG-_beamline_real}
 
 local=$PWD

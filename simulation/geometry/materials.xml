@@ -79,4 +79,19 @@
     <fraction n="0.085" ref="H"/>
   </material>
 
+  <!-- CO2 at 1 atm, 20 C: XCET radiator gas (beam-line model, sim_tuning 2026-10-17) -->
+  <material name="CO2" state="gas">
+    <D unit="g/cm3" value="0.001842"/>
+    <composite n="1" ref="C"/>
+    <composite n="2" ref="O"/>
+  </material>
+
+  <!-- Ar/CO2 50/50 by volume at 1 atm: delay wire chamber gas -->
+  <material name="ArCO2" state="gas">
+    <D unit="g/cm3" value="0.001771"/>
+    <fraction n="0.4758" ref="Ar"/>
+    <fraction n="0.1430" ref="C"/>
+    <fraction n="0.3812" ref="O"/>
+  </material>
+
 </materials>

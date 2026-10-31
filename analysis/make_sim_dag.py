@@ -3,12 +3,13 @@
 
 Per beam point: NCHUNKS chunk nodes (simulation/run_script/sim_digi_chunk.sh: ddsim + digitised and undigitised
 ecal trees, staged to <out>/chunks/<name>/), then one group node (analysis/sim_reco_group.sh: hadd, ECalPid with the
-0.5 MIP hit cut, valtree). Geometry/physics as final_v5/v6: SND_compact_beamline.xml, QGSP_BERT_EMZ, beam born at
-z = -2650 mm, e- with sigma_E 2 %. Digitiser: the job3_digitize.py defaults (EOS Calib/MuonCalib, th210 tables,
+0.5 MIP hit cut, valtree). Geometry/physics: SND_compact_beamline.xml (since 2026-10-26 with the H2-like upstream
+line, beam born at z = -65500 mm; final_v5..v7 = --compact SND_compact_beamline_v7.xml --beam-z -2650),
+QGSP_BERT_EMZ, e- with sigma_E 2 %. Digitiser: the job3_digitize.py defaults (EOS Calib/MuonCalib, th210 tables,
 PED_NOISE=1), reconstructed with the th210 MIP table like the data in Reconstruction.
 
-    python3 analysis/make_sim_dag.py                       # writes analysis/condor_<campaign>/
-    python3 analysis/make_sim_dag.py --submit              # ... and condor_submit_dag
+    python3 analysis/make_sim_dag.py --campaign final_v8            # writes analysis/condor_final_v8/
+    python3 analysis/make_sim_dag.py --campaign final_v8 --submit   # ... and condor_submit_dag
     python3 analysis/make_sim_dag.py --only th230_E4_e20 --nevents 20 --chunk-events 10 --campaign test  # small test
 
 Chunks whose two trees are already on EOS (or groups whose valtrees are) are written as DONE, so re-running the
@@ -47,7 +48,9 @@ def eos_mkdir(path):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--points", default=os.path.join(REPO, "analysis", "beam_points.txt"))
-    ap.add_argument("--campaign", default="final_v7")
+    ap.add_argument("--campaign", required=True,
+                    help="output Processed/<campaign>; required, so a run never lands on an existing campaign "
+                         "by default (its chunks would be taken as DONE)")
     ap.add_argument("--out", default=None, help="EOS output base (default Simulation/Processed/<campaign>)")
     ap.add_argument("--nevents", type=int, default=50000)
     ap.add_argument("--chunk-events", type=int, default=2000)
@@ -55,6 +58,10 @@ def main():
     ap.add_argument("--sigma-e", default="0.02")
     ap.add_argument("--seed-offset", type=int, default=10000000)
     ap.add_argument("--only", default=None, help="comma-separated point names")
+    ap.add_argument("--compact", default="SND_compact_beamline.xml",
+                    help="compact file in simulation/geometry/ (geometry variants)")
+    ap.add_argument("--beam-z", type=float, default=-65500.0,
+                    help="beam origin z [mm] (BEAM_Z_MM); -65500 for the default compact, -2650 for _v7")
     ap.add_argument("--submit", action="store_true")
     args = ap.parse_args()
 
@@ -70,7 +77,7 @@ def main():
         f.write(f"""universe                = vanilla
 executable              = {REPO}/simulation/run_script/sim_digi_chunk.sh
 arguments               = {REPO} $(N) $(PARTICLE) $(E) $(X) $(Y) $(SX) $(SY) {args.sigma_e} $(SEED) $(SET) $(REMOTE)
-environment             = "COMPACT_FILE=SND_compact_beamline.xml BEAM_Z_MM=-2650 PHYSICS_LIST=QGSP_BERT_EMZ RECO_TABLE=th210"
+environment             = "COMPACT_FILE={args.compact} BEAM_Z_MM={args.beam_z:g} PHYSICS_LIST=QGSP_BERT_EMZ RECO_TABLE=th210"
 log                     = {dag_dir}/logs/dag.log
 output                  = {dag_dir}/logs/$(NAME).out
 error                   = {dag_dir}/logs/$(NAME).err

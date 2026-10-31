@@ -172,6 +172,34 @@ if DIGI_MODE not in ("simple", "real", "both"):
 
 infile = os.environ.get("INPUT_FILE", "timewindows.edm4hep.root")
 
+
+def _beam_z_from_input(path):
+    """z [mm] of the first generated particle's vertex in the input file, or None. The digitiser's time windows
+    depend on where the beam was born, and every launcher that digitises in a separate step would otherwise have to
+    repeat the BEAM_Z_MM it simulated with."""
+    try:
+        import ROOT
+        f = ROOT.TFile.Open(path)
+        t = f.Get("events") if f and not f.IsZombie() else None
+        if not t or not t.GetBranch("MCParticles"):
+            return None
+        for i in range(min(int(t.GetEntries()), 50)):
+            t.GetEntry(i)
+            for p in t.MCParticles:
+                if p.generatorStatus == 1:
+                    return float(p.vertex.z)
+    except Exception:
+        return None
+    return None
+
+
+# BEAM_Z_MM (the ddsim gun's z) wins; else read from the input; else -2650 (final_v5..v7, no time offset).
+if "BEAM_Z_MM" in os.environ:
+    BEAM_Z_MM, BEAM_Z_SOURCE = float(os.environ["BEAM_Z_MM"]), "BEAM_Z_MM"
+else:
+    _z = _beam_z_from_input(infile)
+    BEAM_Z_MM, BEAM_Z_SOURCE = (_z, "first primary vertex of the input") if _z is not None else (-2650.0, "default")
+
 iosvc = IOSvc()
 iosvc.Input  = infile
 iosvc.Output = "digitized.edm4hep.root"
@@ -295,6 +323,13 @@ if DIGI_MODE in ("real", "both"):
     # 'cell' (default) is the historical behaviour, one hit per fired cell.
     real.HitSelection = HIT_SELECTION
     real.DigitizationMode = "real"
+    # The shaping windows (FastWindowNs 200, SlowWindowNs 500) start at t = 0 and were set for a beam born at
+    # z = -2650 mm; a beam born further upstream (the default SND_compact_beamline.xml since 2026-10-26 has it at
+    # -65.5 m, behind the H2-like line) arrives later by the extra flight path / c, which is subtracted so the
+    # pulses sit where they always did. Without it a -65.5 m beam lands ~210 ns late and NO cell triggers.
+    real.TimeOffsetNs = max(0.0, -BEAM_Z_MM - 2650.0) / 299.792458
+    print(f"[job3] beam origin z = {BEAM_Z_MM:g} mm ({BEAM_Z_SOURCE}): RealDigitizer.TimeOffsetNs = "
+          f"{real.TimeOffsetNs:.2f} ns")
     real.InputEnergyUnit  = "GeV"
     real.HitEnergyContent = "digitized"          # shaped slow sample [MIP] -> hit energy
     real.MIPValues = MIP_VALUES_CHARGE   # charge unit: see MIP_VALUES above
@@ -425,6 +460,24 @@ if DIGI_MODE in ("real", "both"):
         if HIT_SELECTION == "chip":
             adc.TriggerCollection = "SiPadHitsRealDigitizedTrigger"
             adc.AdcHitThreshold   = ADC_HIT_THRESHOLD
+        # The chip's baseline sag under load. Default since 2026-10-29: the MEASURED map B(Q_chip, Q_slab) of the set,
+        # digi_calibration.yml occupancy_sag_table (mappings/), OCCUPANCY_SAG_TABLE overrides (empty = off). Before:
+        # B = k * Q (Q = HG-ADC charge of the chip's other hits), occupancy_slope / OCCUPANCY_SLOPE, now 0 in the YAML;
+        # the two are exclusive. The trigger survival P(a+B)/P(a) uses the same per-slab turn-on as RealDigitizer,
+        # here in HG ADC.
+        adc.OccupancySlope = float(os.environ.get("OCCUPANCY_SLOPE", TH.get("occupancy_slope", 0.0)))
+        _sag = os.environ.get("OCCUPANCY_SAG_TABLE", TH.get("occupancy_sag_table", "") or "")
+        if _sag and adc.OccupancySlope == 0.0:
+            adc.OccupancySagTable = _sag if os.path.isabs(_sag) else os.path.join(REPO_ROOT, "mappings", _sag)
+            print(f"[job3] occupancy baseline sag: measured map {adc.OccupancySagTable}")
+        if adc.OccupancySlope != 0.0 or adc.OccupancySagTable:
+            _mu = [float(TH["threshold_adc"])] * SIPAD_NLAYERS
+            _sg = [float(TH["sigma_mip"]) * float(TH["adc_per_mip"])] * SIPAD_NLAYERS
+            for _slab, _o in (TH.get("slab_overrides") or {}).items():
+                _mu[int(_slab)] = float(_o.get("threshold_adc", _mu[int(_slab)]))
+                _sg[int(_slab)] = float(_o.get("sigma_adc", _sg[int(_slab)]))
+            adc.OccupancyTriggerAdc = _mu
+            adc.OccupancyTriggerSigmaAdc = _sg
         adc.KeptCollection      = "SiPadHitsRealAdcKept"
         adc.BitField        = SIPAD_BITFIELD_TB
         adc.DebugFrequency  = 500

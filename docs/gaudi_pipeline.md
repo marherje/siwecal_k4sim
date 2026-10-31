@@ -571,6 +571,41 @@ third value, 16.6 mm) and two test files. A wrong z table does not fail, it
 produces perfectly plausible hits in the wrong place. The tests read the same
 two sources through `analysis/tests/geometry_ref.py`.
 
+## Upstream line and chip occupancy (26 Oct)
+
+From the sim_tuning study (EOS `Simulation/tests/sim_tuning/`), three changes are
+the default now:
+
+- **`SND_compact_beamline.xml` carries an H2-like upstream line**: about 0.19 X₀ at
+  25–62 m, X₀-weighted mean distance 39 m. It contains an XCET (3 m CO₂), 20 m of
+  open air between two vacuum windows, an XBPF, three XSCI and two XDWC. The beam
+  is born at **`BEAM_Z_MM=-65500`**, which is now the default of `make_sim_dag.py`,
+  `launch_beam_final.sh` and `generic_condor_beam.sh`.
+  - The data want about 0.2 X₀ more than final_v7 had (longitudinal profile).
+    They want it at 30 m or more (width of layers 1–2): the photon–electron pair
+    separates by θ₀·L before the box.
+  - The composition is a model, not a survey.
+  - The final_v5..v7 geometry is `SND_compact_beamline_v7.xml` (beam at −2650).
+- **`RealDigitizer.TimeOffsetNs`.** The shaping windows start at t = 0 and were set
+  for a beam born at −2.65 m. From −65.5 m the shower arrives 210 ns later and
+  nothing triggers. `job3_digitize.py` therefore subtracts
+  `max(0, −z₀ − 2650)/c`. z₀ is `BEAM_Z_MM` if set, otherwise the first primary
+  vertex of the input file, otherwise −2650 (no offset). It prints which one it
+  used.
+- **`AdcDigitizer.OccupancySlope`**: the chip's baseline sags under its own load.
+  - Model: B = k·Q, with Q the HG-ADC charge (reconstructed MIP × AdcPerMip) of the
+    chip's other kept hits ≥ 0.5 MIP.
+  - A cell read in the high gain loses |B| in amplitude and energy.
+  - Its trigger survives with P(a+B)/P(a): the per-slab erf turn-on at the
+    pre-sag amplitude, passed as `OccupancyTriggerAdc` / `OccupancyTriggerSigmaAdc`.
+  - The chip-level selection is redone with the surviving triggers.
+  - k = −1.5e-3 (`occupancy_slope` in `digi_calibration.yml`, one value for every
+    set). It was fitted on the electron chip-multiplicity spectrum; the pedestals
+    alone give −0.95e-3.
+  - `OCCUPANCY_SLOPE=0` switches it off.
+  - On the same Geant4 events it reproduces the post-hoc emulation
+    (`sim_tuning.apply_baseline`) to 0.3 % in hits and E/hit.
+
 ---
 
 ## Job 4 — Tracking

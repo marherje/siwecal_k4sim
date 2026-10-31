@@ -30,6 +30,12 @@ thresholds:
     saturation_order: 5.12
     gain_ratio: 0.0924
     gain_intercept: 2.35
+    occupancy_slope: 0.0
+    occupancy_sag_table: occupancy_sag_th210.txt
+    occupancy_sag_source: 'chip baseline sag B(Q_chip, Q_slab), MEASURED map (AdcDigitizer OccupancySagTable, replaces
+      B = k*Q): mean baseline of signal-free channels in bins of the chip-SCA charge and of the charge of the other
+      chips of the slab at the same BCID, from the th210 electron runs (analysis/cm_sag_collect.py + sag_table.py,
+      2026-10-29); chi2/ndf 22-89 against 2000-4000 for k*Q'
     slab_overrides:
       0:
         threshold_adc: 14.89
@@ -165,6 +171,12 @@ thresholds:
     saturation_order: 6.42
     gain_ratio: 0.0964
     gain_intercept: 1.81
+    occupancy_slope: 0.0
+    occupancy_sag_table: occupancy_sag_th220.txt
+    occupancy_sag_source: 'chip baseline sag B(Q_chip, Q_slab), MEASURED map (AdcDigitizer OccupancySagTable, replaces
+      B = k*Q): mean baseline of signal-free channels in bins of the chip-SCA charge and of the charge of the other
+      chips of the slab at the same BCID, from the th220 electron runs (analysis/cm_sag_collect.py + sag_table.py,
+      2026-10-29); chi2/ndf 22-89 against 2000-4000 for k*Q'
     slab_overrides:
       0:
         threshold_adc: 17.66
@@ -295,6 +307,12 @@ thresholds:
     saturation_order: 6.45
     gain_ratio: 0.0958
     gain_intercept: 1.62
+    occupancy_slope: 0.0
+    occupancy_sag_table: occupancy_sag_th230.txt
+    occupancy_sag_source: 'chip baseline sag B(Q_chip, Q_slab), MEASURED map (AdcDigitizer OccupancySagTable, replaces
+      B = k*Q): mean baseline of signal-free channels in bins of the chip-SCA charge and of the charge of the other
+      chips of the slab at the same BCID, from the th230 electron runs (analysis/cm_sag_collect.py + sag_table.py,
+      2026-10-29); chi2/ndf 22-89 against 2000-4000 for k*Q'
     slab_overrides:
       0:
         threshold_adc: 24.75
