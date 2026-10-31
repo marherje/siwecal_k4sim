@@ -66,8 +66,12 @@ ajusta sin corte, así que la calibración no se ve afectada; la resolución/lin
 - final_profiles.py: el cruce valtree ↔ ecal tree ahora tolera sucesos ausentes en el valtree (run_pid_batch descarta
   los vacíos; pasa en sim nodigi), siguen en orden y cada fila del valtree debe emparejarse.
 - validate_v8.py: --cache-tag (caché por campaña; "new" tenía la de la mini-validación) y --label.
-- **Job de plots** analysis/final_v9_plots_job.sh (cluster 21410521) → EOS tests/border_cut/figs_v9/{nocut, b50,
-  control_v7, validation}, datos desde el staging tests/border_cut/data. Probado en local con 3 grupos.
+- 31 Oct 14:34: el usuario ejecutó la sustitución (Reconstruction ya tiene barxy_min_border_distance), borró el
+  staging tests/border_cut/data, final_v8{,_bkg} y test_v8, e hizo los commits y el push (tb2026 3284095, k4sim
+  024d554..fab4b4d).
+- **Job de plots** analysis/final_v9_plots_job.sh → EOS tests/border_cut/figs_v9/{nocut, b50, control_v7,
+  validation}. Primer envío (21410521) cancelado: leía el staging, borrado a mitad. Reenviado leyendo Reconstruction:
+  **cluster 21410803**. Probado en local con 3 grupos.
 - Siguiente: revisar figuras; control_v7 debe dar a = 81.9/87.2/88.7; sección nueva del artefacto final
   (MdY3nMKMUyDs4cDWk6geG5, leerlo entero antes) con b50 + supervivencia + resolución/linealidad; sección 3 de la nota
   de upstream (FZqHXKJ…) con la validación de v9.

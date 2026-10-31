@@ -5,14 +5,14 @@
 #               summarized panels (final_panels_select.py) and the longitudinal profiles (final_profiles.py)
 #   control_v7  final_v7 against the current Reconstruction without the cut: must reproduce the final-sample report
 #   validation  validate_v8.py for final_v9 (hits, E/hit, profile chi2, R90 against data and sim_v7)
-# Data: the reprocessed PID outputs with barxy_min_border_distance (DATA, default the staging directory of
-# make_border_data_dag.py), hit-level trees from Reconstruction.
+# Data: Reconstruction, whose PID outputs carry barxy_min_border_distance since 2026-10-31
+# (replace_reconstruction_pid.sh); DATA overrides it.
 #
 #   bash analysis/final_v9_plots_job.sh <out>
 OUT=${1:?out}
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 B=/eos/experiment/drdcalo/siw-ecal/TB2026-06
-DATA=${DATA:-$B/Simulation/tests/border_cut/data}
+DATA=${DATA:-$B/Reconstruction}
 SIM=$B/Simulation/Processed/final_v9
 source "$R/init_key4hep.sh" >/dev/null 2>&1
 export MPLCONFIGDIR=${TMPDIR:-/tmp}/mpl_$USER
