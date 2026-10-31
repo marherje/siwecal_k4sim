@@ -6,8 +6,11 @@ Common plot style of the TB2026 notes, as in the final-sample report (final_pane
   simulation, digitised    red, hatched histogram; several digitised models (geometry variants, campaigns) take a
                            gradient of reds, light to dark, each with its own hatch and line style
 
-Binned quantities (per layer, per radial bin, per time bin) are drawn as histograms; ratios and trends with several
-curves (against energy, k, Q, distance) draw the simulations as lines and the data as points with error bars.
+Binned quantities (per layer, per radial bin, per time bin) are drawn as histograms; trends with several curves
+(against energy, k, Q, distance) draw the simulations as lines and the data as points with error bars. Ratios sim / data
+(and differences sim - data) show only the simulations, against a grey reference line at 1 (or 0): no data points there.
+When several digitised models overlap in one histogram panel, only the reference model keeps its hatch (fill=True);
+the others are drawn as outlines in their colour and line style, so the hatches do not mix. No hatch on a log axis.
 """
 import numpy as np
 
@@ -27,10 +30,11 @@ RC = {"font.size": 9, "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.col
 
 
 def reds(n):
-    """n digitised-model styles, light to dark: dicts with color, hatch, ls, marker."""
-    idx = np.linspace(0, len(REDS) - 1, n).round().astype(int) if n > 1 else [2]
-    return [{"color": REDS[i], "hatch": HATCHES[k % len(HATCHES)], "ls": LINESTYLES[k % len(LINESTYLES)],
-             "marker": MARKERS[k % len(MARKERS)]} for k, i in enumerate(idx)]
+    """Styles of digitised models 1..n, light to dark: model i always gets REDS[i], HATCHES[i], LINESTYLES[i],
+    MARKERS[i] (the table of the style page), whatever n is."""
+    if n > len(REDS):
+        raise ValueError(f"at most {len(REDS)} digitised models per figure")
+    return [{"color": REDS[i], "hatch": HATCHES[i], "ls": LINESTYLES[i], "marker": MARKERS[i]} for i in range(n)]
 
 
 def edges_of(x):

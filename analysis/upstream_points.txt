@@ -1,0 +1,10 @@
+# Beam points of the upstream-material / absorber-density scan (sim_tuning, 2026-10-16): a subset of beam_points.txt
+# (same beam centres and sigmas). th230 E4 covers 10-74 GeV at one position; th210 S1 20 GeV is the point of the
+# hit-excess studies. 10k e- per point and variant (make_sim_dag.py --nevents 10000 --compact <variant>).
+# name : <set>_<label>_e<E> with <label> the position of TB2026-Run_Summary.xlsx (E1..E5 energy scan, U1 uniformity);
+# name                          set    label  E     x     y     sx     sy     runs
+th210_e20_26_-52                th210  -      20      26   -52   17.6   13.0  e291
+th230_E4_e10                    th230  E4     10      -5   -35   22.2   20.1  42
+th230_E4_e20                    th230  E4     20       2   -34   17.6   13.0  43
+th230_E4_e52                    th230  E4     52       0   -33   11.1    6.4  45
+th230_E4_e74                    th230  E4     74       0   -32   10.7    5.9  46
