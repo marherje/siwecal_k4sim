@@ -199,25 +199,44 @@ def selection_label(border_cut=None):
                                    else "")
 
 
-def read_cal(path):
-    """mip_gev_line.txt: '<kind> <a [MIP/GeV]> <b [MIP]>' per line."""
-    cal = {}
+# Threshold sets with their own MIP -> GeV line, fitted on (set, scan label); the other sets use the th210 line.
+# The response of a threshold set bends differently with energy (th210 data lose ~9 % of MIP/GeV from 7.5 to 74 GeV,
+# th230 ~1 %), so a straight line from the th210 scan does not transfer to th230. th220 has no energy scan of its own.
+SET_LINES = {"th230": "E2"}
+
+
+def read_cal_all(path):
+    """mip_gev_line.txt: '<kind> <a [MIP/GeV]> <b [MIP]>' (the th210 line, used by default) and, for a threshold set
+    with its own line, '<set>:<kind> <a> <b>'. Returns {None: {kind: (a, b)}, <set>: {kind: (a, b)}, ...}."""
+    cals = {}
     for line in open(path):
         f = line.split("#")[0].split()
         if len(f) == 3:
-            cal[f[0]] = np.array([float(f[1]), float(f[2])])
-    missing = set(KINDS) - set(cal)
-    if missing:
-        raise SystemExit(f"{path}: no MIP -> GeV line for {sorted(missing)}")
-    return cal
+            st, k = f[0].split(":") if ":" in f[0] else (None, f[0])
+            cals.setdefault(st, {})[k] = np.array([float(f[1]), float(f[2])])
+    for st, cal in cals.items():
+        missing = set(KINDS) - set(cal)
+        if missing:
+            raise SystemExit(f"{path}: no MIP -> GeV line for {st or 'default'} {sorted(missing)}")
+    if None not in cals:
+        raise SystemExit(f"{path}: no default (th210) MIP -> GeV line")
+    return cals
 
 
-def write_cal(path, cal, source):
+def read_cal(path, threshold_set=None):
+    """The MIP -> GeV line of one threshold set (its own if the file has one, else the th210 line)."""
+    cals = read_cal_all(path)
+    return cals.get(threshold_set, cals[None])
+
+
+def write_cal(path, cals, source):
     with open(path, "w") as f:
-        f.write(f"# MIP -> GeV line, sum_w [MIP] = a * E [GeV] + b, th210 scan {CAL_E[0]}-{CAL_E[-1]} GeV, "
-                f"Gaussian-core mu; {source}\n# kind a b\n")
-        for k in KINDS:
-            f.write(f"{k} {cal[k][0]:.6g} {cal[k][1]:.6g}\n")
+        f.write(f"# MIP -> GeV line, sum_w [MIP] = a * E [GeV] + b, Gaussian-core mu, {CAL_E[0]}-{CAL_E[-1]} GeV; "
+                f"{source}\n# default: th210 scan; '<set>:<kind>': that threshold set's own line "
+                + ", ".join(f"{st} on {lab}" for st, lab in SET_LINES.items()) + "\n# kind a b\n")
+        for st in [None] + [s for s in cals if s is not None]:
+            for k in KINDS:
+                f.write(f"{(st + ':') if st else ''}{k} {cals[st][k][0]:.6g} {cals[st][k][1]:.6g}\n")
 
 
 def panel(g, s, outpath, border_cut=None):
@@ -287,24 +306,33 @@ def main(argv=None):
     groups = load_groups(args.groups_file)
     S = {g["name"]: group_samples(g, args.outdir, not args.no_cache, args.border_cut) for g in groups}
 
-    # MIP -> GeV per sample kind on the th210 scan
+    # MIP -> GeV per sample kind: the th210 scan (default), plus each SET_LINES set on its own scan
     scan = th210_scan(groups)
+    scans = {None: scan}
+    for st, lab in SET_LINES.items():
+        sc = set_scan(groups, st, lab)
+        if sc:
+            scans[st] = sc
     if args.cal_file:
-        cal = read_cal(args.cal_file)
+        cals = read_cal_all(args.cal_file)
         cal_source = f"read from {args.cal_file}"
     else:
-        cal = {}
-        for k in KINDS:
-            Es = np.array([float(E) for E in CAL_E if E in scan])
-            mu = np.array([gauss_core(S[scan[E]][k]["sum_w"])[0] for E in CAL_E if E in scan])
-            cal[k] = np.polyfit(Es, mu, 1)
+        cals = {}
+        for st, sc in scans.items():
+            cals[st] = {}
+            for k in KINDS:
+                Es = np.array([float(E) for E in CAL_E if E in sc])
+                mu = np.array([gauss_core(S[sc[E]][k]["sum_w"])[0] for E in CAL_E if E in sc])
+                cals[st][k] = np.polyfit(Es, mu, 1)
         cal_source = f"fitted on {SIM} and {RECO}"
-    write_cal(f"{args.outdir}/mip_gev_line.txt", cal, cal_source)
+    cal = cals[None]
+    write_cal(f"{args.outdir}/mip_gev_line.txt", cals, cal_source)
     if args.border_cut is not None:
         survival_table(groups, S, args.border_cut, f"{args.outdir}/border_survival.txt")
-    for s in S.values():
+    for g in groups:
+        c = cals.get(g["set"], cal)
         for k in KINDS:
-            s[k]["gev"] = (s[k]["sum_w"] - cal[k][1]) / cal[k][0]
+            S[g["name"]][k]["gev"] = (S[g["name"]][k]["sum_w"] - c[k][1]) / c[k][0]
 
     only = set(args.groups.split(",")) if args.groups else None
     txt = open(f"{args.outdir}/final_panels_summary.txt", "w")
@@ -313,9 +341,13 @@ def main(argv=None):
         print(line); txt.write(line + "\n")
 
     out(f"Selection: {selection_label(args.border_cut)}; simulation {SIM}; data {RECO}")
-    out("MIP -> GeV: sum_w [MIP] = a * E [GeV] + b, Gaussian-core mu of the th210 scan 7.5-74 GeV; " + cal_source)
-    for k in KINDS:
-        out(f"   {LABEL[k]:<24} a = {cal[k][0]:8.2f} MIP/GeV   b = {cal[k][1]:8.1f} MIP")
+    out("MIP -> GeV: sum_w [MIP] = a * E [GeV] + b, Gaussian-core mu 7.5-74 GeV, per threshold set: "
+        + ", ".join(f"{st} on its {lab} scan" for st, lab in SET_LINES.items() if st in cals)
+        + ", every other set on the th210 scan; " + cal_source)
+    for st in [None] + [s for s in cals if s is not None]:
+        for k in KINDS:
+            out(f"   {(st or 'th210 (default)'):<16}{LABEL[k]:<24} a = {cals[st][k][0]:8.2f} MIP/GeV"
+                f"   b = {cals[st][k][1]:8.1f} MIP")
     out("\nPer group: Gaussian-core mu and sigma/mu for the first four variables, median for the others;"
         " ratio = sim / data")
     RES = []
@@ -337,6 +369,10 @@ def main(argv=None):
     txt.close()
     resolution_plot(RES, f"{args.outdir}/resolution_vs_energy.png", args.border_cut)
     calibration_plot(S, groups, scan, cal, f"{args.outdir}/calibration_th210.png", args.border_cut)
+    for st, sc in scans.items():
+        if st is not None and st in cals:
+            calibration_plot(S, groups, sc, cals[st], f"{args.outdir}/calibration_{st}.png", args.border_cut,
+                             threshold_set=st, scan_label=SET_LINES[st])
 
 
 def survival_table(groups, S, border_cut, path, min_data=1000):
@@ -372,10 +408,16 @@ def th210_scan(groups):
     return scan
 
 
-def calibration_plot(S, groups, scan, cal, path, border_cut=None):
-    """The MIP -> GeV line: Gaussian-core mu of sum_w against beam energy on the th210 scan (fitted, 7.5-74 GeV),
+def set_scan(groups, threshold_set, label):
+    """Energy scan of one threshold set at one table position (label, e.g. E2): {E: group name} over CAL_E."""
+    return {g["E"]: g["name"] for g in groups
+            if g["set"] == threshold_set and g.get("label") == label and g["E"] in CAL_E}
+
+
+def calibration_plot(S, groups, scan, cal, path, border_cut=None, threshold_set="th210", scan_label=None):
+    """The MIP -> GeV line: Gaussian-core mu of sum_w against beam energy on the scan (fitted, 7.5-74 GeV), for th210
     with every th210 99 GeV group drawn on top (not fitted), and the residuals to the line."""
-    e99 = [g for g in groups if g["set"] == "th210" and g["E"] == "99"]
+    e99 = [g for g in groups if g["set"] == "th210" and g["E"] == "99"] if threshold_set == "th210" else []
     fig, (ax, axr) = plt.subplots(2, 1, figsize=(8.5, 7.5), sharex=True, gridspec_kw={"height_ratios": [2.2, 1]})
     xx = np.linspace(0, 105, 50)
     for i, k in enumerate(KINDS):
@@ -392,9 +434,10 @@ def calibration_plot(S, groups, scan, cal, path, border_cut=None):
         axr.plot(Es + dx, 100 * (mu - (a * Es + b)) / (a * Es + b), "o", color=COLOR[k], mfc=filled, mew=1.6, ms=7)
         axr.plot(np.full(len(mu99), 99.0) + dx, 100 * (mu99 - (a * 99 + b)) / (a * 99 + b), "D", color=COLOR[k],
                  mfc="none", mew=1.4, ms=7)
-    ax.plot([], [], "D", color="0.3", mfc="none", label=f"99 GeV, {len(e99)} positions (not fitted)")
+    if e99:
+        ax.plot([], [], "D", color="0.3", mfc="none", label=f"99 GeV, {len(e99)} positions (not fitted)")
     ax.set_ylabel("sum_w, Gaussian-core $\\mu$ [MIP]"); ax.grid(alpha=0.25); ax.legend(fontsize=9, loc="upper left")
-    ax.set_title("MIP → GeV calibration, th210 scan: sum_w = a E + b, fitted 7.5–74 GeV" +
+    ax.set_title(f"MIP → GeV calibration, {threshold_set} {scan_label or ''} scan: sum_w = a E + b, fitted 7.5–74 GeV" +
                  (f"\npoints: barxy_min_border_distance > {border_cut:g} mm; line without the cut"
                   if border_cut is not None else ""), fontsize=12)
     axr.axhline(0, color="0.5", lw=1, ls="--"); axr.grid(alpha=0.25)

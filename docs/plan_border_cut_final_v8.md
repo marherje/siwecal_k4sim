@@ -196,3 +196,32 @@ git commit -m "barxy_min_border_distance mirrors; --border-cut and MIP->GeV line
 - El clasificador de auto mode frena `make -jN` con N > 2 en nodos de login: usar `make -j2`.
 - Los chunks de cada campaña se borran al cerrar el grupo (`sim_reco_group.sh`); para pruebas cortas, extraer
   sucesos de `trees/` con `rooteventselector -l N`.
+
+## Estado 2026-10-31 16:30 — análisis de final_v9 hecho
+- Job de plots 21410803 terminado (30 min): EOS tests/border_cut/figs_v9/{nocut,b50,control_v7,validation}.
+- Recta MIP→GeV sin corte: data 81.92/42.1 (idéntica a la del informe), digi 83.74/8.4 (sim_v7 87.60/−9.5),
+  nodigi 89.34/−29.3.
+- **El corte de 50 mm solo vale para grupos con el centro del haz dentro del corte** (L − |x|, L − |y| ≥ 50): E3 7.5,
+  E4, E5, 99 GeV (1,−31), (28,−30), (−39,−30), U1 (−3,−1). El scan th210 (y≈−50, 37–39 mm), E1 y E2 quedan en colas
+  del haz; a alta energía los supervivientes no son electrones del haz (E1 74 y 99 (−40,52): energía data/sim 2.4–2.7).
+- Resolución de los contenidos (analysis/contained_resolution.py): E4 data≈digi (0.3–0.6 pt); E5 (centro) sim
+  demasiado ancha a alta E (5.3–5.7 % vs 3.6–4.4 %), también sin digitizar → geometría central (gap sensores?).
+  th210 99 (28,−30) y (−39,−30) siguen anchos en data pese a estar dentro.
+- Artefacto Final Sample v4.0 (sección 4) y nota de upstream v7 (sección 3 = validación final_v9) publicados.
+- Decisión pendiente del usuario: qué hacer con los grupos de borde (corte 40 mm, corte relativo al centro del haz…).
+
+## Estado 2026-10-31 18:30 — corte relajado a 40 mm
+- Job 21412227 (CUTS="40 35", CUTS_ONLY=1) → figs_v9/b40, b35. Elegido **40 mm**: a 35 mm el término constante de
+  datos th210 sube 2.65 → 3.39 % (fuga), la sim apenas cambia.
+- Ajustes σ/E (contained_resolution.py --cut 40 --margin 5, outliers fuera): th210 data 23.8 %/√E ⊕ 2.65 %, digi
+  23.3 ⊕ 2.86; th230 data 26.3 ⊕ 2.39, digi 26.2 ⊕ 2.87. Con contención la sim reproduce la resolución de los datos.
+- Artefacto Final Sample v4.1: sección 4 rehecha a 40 mm (comparativa 50/40/35).
+- **Outliers de datos a estudiar aparte** (σ/μ datos > 1.3 × digi con cualquier corte; fuera de los ajustes y de las
+  figuras de resolución): th210 99 GeV en (28, −30) e167 (13.9 %), (−39, −30) e168 (5.0 %), (−40, 52) e169 (30 % a
+  40 mm, 5.1 % a 35 mm: población no-electrón); th220 74 GeV U1 (−40, 37) runs 66, 68–72 (5.0 % vs 3.6 %).
+  Hipótesis: región muerta atravesada por la cascada, hadrones en el haz de 99 GeV.
+- 31 Oct 19:00 (usuario): la resolución/linealidad solo se estudia en E1 y E2 (en otras posiciones hay zonas muertas).
+  No hay datos th210 en E1/E2 (run summary: th210 normal solo S1 285–293 y 166–169) → solo th230.
+  analysis/position_scans.py → figs_v9/<cut>/{lin,res}_th230_E{1,2}.png, position_scans.txt.
+  40 mm: E2 data 25.8 %/√E ⊕ 1.98 %, digi 26.4 ⊕ 1.80 (≤5 % en cada energía); E1 data 25.3 ⊕ 2.59, digi 26.1 ⊕ 1.82
+  (datos más anchos a 52–74 GeV, también sin corte). Artefacto Final Sample v4.2.

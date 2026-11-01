@@ -235,13 +235,14 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.border_cut is not None and not a.cal_file:
         ap.error("--border-cut needs --cal-file: the MIP -> GeV line is fitted without the cut")
-    slope = {k: ab[0] for k, ab in read_cal(a.cal_file).items()} if a.cal_file else SLOPE
+    # slope of each group's own threshold-set line (final_panels.SET_LINES), else the th210 line
     os.makedirs(a.outdir, exist_ok=True)
     want = a.groups.split(",")
     groups = [g for g in load_groups() if g["name"] in want]
     rows = []
     for g in groups:
         s, x0 = group_profiles(g, a.outdir, a.max_data_events, not a.no_cache, a.border_cut)
+        slope = {k: ab[0] for k, ab in read_cal(a.cal_file, g["set"]).items()} if a.cal_file else SLOPE
         rows += plot_group(g, s, x0, f"{a.outdir}/profiles_{g['name']}.png", slope, a.border_cut)
         print(f"[{g['name']}] done")
     with open(f"{a.outdir}/profiles_summary.txt", "w") as f:

@@ -17,18 +17,29 @@ SIM=$B/Simulation/Processed/final_v9
 source "$R/init_key4hep.sh" >/dev/null 2>&1
 export MPLCONFIGDIR=${TMPDIR:-/tmp}/mpl_$USER
 cd "$R" || exit 1
-for d in "$OUT" "$OUT/nocut" "$OUT/b50" "$OUT/control_v7" "$OUT/validation"; do [ -d "$d" ] || mkdir "$d"; done
+for d in "$OUT" "$OUT/nocut" "$OUT/control_v7" "$OUT/validation"; do [ -d "$d" ] || mkdir "$d"; done
 step() { echo "=== $*"; "$@" || { echo "FAILED: $*"; exit 1; }; }
 
+# MIP -> GeV: one straight line per threshold set where final_panels.SET_LINES gives a scan (th230 on E2), the th210
+# scan line for the others. CUTS: border cuts to draw [mm] (default 50); CUTS_ONLY=1 skips the no-cut pass, the sim_v7 control and the
+# validation and reads the MIP -> GeV line of an earlier no-cut pass in <out>/nocut.
+CUTS=${CUTS:-50}
 export FINAL_SIM=$SIM FINAL_RECO=$DATA FINAL_RECO_TREES=$B/Reconstruction
-step python3 analysis/final_panels.py "$OUT/nocut"
+[ "${CUTS_ONLY:-0}" = 1 ] || step python3 analysis/final_panels.py "$OUT/nocut"
 CAL=$OUT/nocut/mip_gev_line.txt
-step python3 analysis/final_panels.py "$OUT/b50" --border-cut 50 --cal-file "$CAL"
-for g in th210_e20_26_-52 th210_e74_22_-49 th230_E4_e20 th230_E4_e74; do
-  step python3 analysis/final_panels_select.py "$OUT/b50" --group "$g" --border-cut 50 --cal-file "$CAL"
+for c in $CUTS; do
+  D=$OUT/b$c; [ -d "$D" ] || mkdir "$D"
+  step python3 analysis/final_panels.py "$D" --border-cut "$c" --cal-file "$CAL"
+  for g in th210_e20_26_-52 th210_e74_22_-49 th230_E4_e20 th230_E4_e74; do
+    step python3 analysis/final_panels_select.py "$D" --group "$g" --border-cut "$c" --cal-file "$CAL"
+  done
+  step python3 analysis/final_profiles.py "$D" --groups th210_e20_26_-52,th210_e74_22_-49,th230_E4_e20,th230_E4_e74 \
+    --border-cut "$c" --cal-file "$CAL"
+  step python3 analysis/contained_resolution.py "$D" "$OUT/nocut" --cut "$c" --margin 5
+  step python3 analysis/position_scans.py "$D" --title "shower-like events, barxy_min_border_distance > $c mm, final_v9"
 done
-step python3 analysis/final_profiles.py "$OUT/b50" --groups th210_e20_26_-52,th210_e74_22_-49,th230_E4_e20,th230_E4_e74 \
-  --border-cut 50 --cal-file "$CAL"
+# SKIP_CONTROL=1: no sim_v7 control pass and no validation (neither depends on the calibration of the panels)
+[ "${CUTS_ONLY:-0}" = 1 ] || [ "${SKIP_CONTROL:-0}" = 1 ] && { echo "DONE"; exit 0; }
 
 FINAL_SIM=$B/Simulation/Processed/final_v7 FINAL_RECO=$B/Reconstruction \
   step python3 analysis/final_panels.py "$OUT/control_v7"

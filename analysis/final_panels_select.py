@@ -49,7 +49,7 @@ def main(argv=None):
         ap.error("--border-cut needs --cal-file: the MIP -> GeV line is fitted without the cut")
     os.makedirs(a.outdir, exist_ok=True)
     g = next(x for x in load_groups() if x["name"] == a.group)
-    cal = read_cal(a.cal_file) if a.cal_file else CAL
+    cal = read_cal(a.cal_file, g["set"]) if a.cal_file else CAL
     s = {"data": load_valtrees([f"{RECO}/{r}/ecal_{r}.valtree.root" for r in g["runs"]], a.border_cut)}
     for k in ("nodigi", "digi"):
         s[k] = load_valtrees([sim_valtree(g, k)], a.border_cut)

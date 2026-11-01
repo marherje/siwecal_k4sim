@@ -48,7 +48,7 @@ def data_points(ax, x, y, yerr=None, edges=None, label="data", color=DATA, **kw)
     """Data: solid points with error bars; with edges, a horizontal bar across the bin."""
     xerr = kw.pop("xerr", None) if edges is None else [x - edges[:-1], edges[1:] - x]
     ax.errorbar(x, y, yerr=yerr, xerr=xerr, fmt=kw.pop("fmt", "o"), color=color, ms=kw.pop("ms", 5.5), mew=0,
-                elinewidth=1.3, capsize=0, label=label, zorder=5, **kw)
+                elinewidth=1.3, capsize=kw.pop("capsize", 0), label=label, zorder=5, **kw)
 
 
 def sim_hist(ax, values, edges, style, label=None, fill=True):
