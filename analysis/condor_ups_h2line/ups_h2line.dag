@@ -1,0 +1,95 @@
+JOB c_th210_e20_26_-52_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th210_e20_26_-52_000 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="41301000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c000" NAME="c_th210_e20_26_-52_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_000 2
+JOB c_th210_e20_26_-52_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th210_e20_26_-52_001 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="41301001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c001" NAME="c_th210_e20_26_-52_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_001 2
+JOB c_th210_e20_26_-52_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th210_e20_26_-52_002 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="41301002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c002" NAME="c_th210_e20_26_-52_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_002 2
+JOB c_th210_e20_26_-52_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th210_e20_26_-52_003 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="41301003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c003" NAME="c_th210_e20_26_-52_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_003 2
+JOB c_th210_e20_26_-52_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th210_e20_26_-52_004 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="41301004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c004" NAME="c_th210_e20_26_-52_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_004 2
+JOB g_th210_e20_26_-52 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/group.sub
+VARS g_th210_e20_26_-52 NAME="th210_e20_26_-52"
+RETRY g_th210_e20_26_-52 1
+PARENT c_th210_e20_26_-52_000 c_th210_e20_26_-52_001 c_th210_e20_26_-52_002 c_th210_e20_26_-52_003 c_th210_e20_26_-52_004 CHILD g_th210_e20_26_-52
+JOB c_th230_E4_e10_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e10_000 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="41302000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e10/ecal_th230_E4_e10_c000" NAME="c_th230_E4_e10_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_000 2
+JOB c_th230_E4_e10_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e10_001 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="41302001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e10/ecal_th230_E4_e10_c001" NAME="c_th230_E4_e10_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_001 2
+JOB c_th230_E4_e10_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e10_002 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="41302002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e10/ecal_th230_E4_e10_c002" NAME="c_th230_E4_e10_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_002 2
+JOB c_th230_E4_e10_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e10_003 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="41302003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e10/ecal_th230_E4_e10_c003" NAME="c_th230_E4_e10_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_003 2
+JOB c_th230_E4_e10_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e10_004 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="41302004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e10/ecal_th230_E4_e10_c004" NAME="c_th230_E4_e10_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_004 2
+JOB g_th230_E4_e10 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/group.sub
+VARS g_th230_E4_e10 NAME="th230_E4_e10"
+RETRY g_th230_E4_e10 1
+PARENT c_th230_E4_e10_000 c_th230_E4_e10_001 c_th230_E4_e10_002 c_th230_E4_e10_003 c_th230_E4_e10_004 CHILD g_th230_E4_e10
+JOB c_th230_E4_e20_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e20_000 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="41303000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e20/ecal_th230_E4_e20_c000" NAME="c_th230_E4_e20_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_000 2
+JOB c_th230_E4_e20_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e20_001 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="41303001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e20/ecal_th230_E4_e20_c001" NAME="c_th230_E4_e20_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_001 2
+JOB c_th230_E4_e20_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e20_002 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="41303002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e20/ecal_th230_E4_e20_c002" NAME="c_th230_E4_e20_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_002 2
+JOB c_th230_E4_e20_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e20_003 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="41303003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e20/ecal_th230_E4_e20_c003" NAME="c_th230_E4_e20_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_003 2
+JOB c_th230_E4_e20_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e20_004 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="41303004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e20/ecal_th230_E4_e20_c004" NAME="c_th230_E4_e20_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_004 2
+JOB g_th230_E4_e20 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/group.sub
+VARS g_th230_E4_e20 NAME="th230_E4_e20"
+RETRY g_th230_E4_e20 1
+PARENT c_th230_E4_e20_000 c_th230_E4_e20_001 c_th230_E4_e20_002 c_th230_E4_e20_003 c_th230_E4_e20_004 CHILD g_th230_E4_e20
+JOB c_th230_E4_e52_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e52_000 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="41304000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e52/ecal_th230_E4_e52_c000" NAME="c_th230_E4_e52_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_000 2
+JOB c_th230_E4_e52_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e52_001 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="41304001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e52/ecal_th230_E4_e52_c001" NAME="c_th230_E4_e52_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_001 2
+JOB c_th230_E4_e52_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e52_002 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="41304002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e52/ecal_th230_E4_e52_c002" NAME="c_th230_E4_e52_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_002 2
+JOB c_th230_E4_e52_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e52_003 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="41304003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e52/ecal_th230_E4_e52_c003" NAME="c_th230_E4_e52_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_003 2
+JOB c_th230_E4_e52_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e52_004 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="41304004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e52/ecal_th230_E4_e52_c004" NAME="c_th230_E4_e52_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_004 2
+JOB g_th230_E4_e52 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/group.sub
+VARS g_th230_E4_e52 NAME="th230_E4_e52"
+RETRY g_th230_E4_e52 1
+PARENT c_th230_E4_e52_000 c_th230_E4_e52_001 c_th230_E4_e52_002 c_th230_E4_e52_003 c_th230_E4_e52_004 CHILD g_th230_E4_e52
+JOB c_th230_E4_e74_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e74_000 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="41305000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e74/ecal_th230_E4_e74_c000" NAME="c_th230_E4_e74_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_000 2
+JOB c_th230_E4_e74_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e74_001 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="41305001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e74/ecal_th230_E4_e74_c001" NAME="c_th230_E4_e74_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_001 2
+JOB c_th230_E4_e74_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e74_002 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="41305002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e74/ecal_th230_E4_e74_c002" NAME="c_th230_E4_e74_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_002 2
+JOB c_th230_E4_e74_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e74_003 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="41305003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e74/ecal_th230_E4_e74_c003" NAME="c_th230_E4_e74_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_003 2
+JOB c_th230_E4_e74_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/chunk.sub
+VARS c_th230_E4_e74_004 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="41305004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/h2line/chunks/th230_E4_e74/ecal_th230_E4_e74_c004" NAME="c_th230_E4_e74_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_004 2
+JOB g_th230_E4_e74 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_h2line/group.sub
+VARS g_th230_E4_e74 NAME="th230_E4_e74"
+RETRY g_th230_E4_e74 1
+PARENT c_th230_E4_e74_000 c_th230_E4_e74_001 c_th230_E4_e74_002 c_th230_E4_e74_003 c_th230_E4_e74_004 CHILD g_th230_E4_e74

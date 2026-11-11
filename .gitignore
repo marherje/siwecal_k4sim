@@ -68,3 +68,39 @@ analysis/condor_final_v*/
 # Core dumps and Kerberos credential caches -- never commit
 /core.*
 /*.cc
+
+# Personal shell configuration
+.bash_profile
+.bashrc
+.zshrc
+.profile
+
+# IDE and AI assistant configuration
+.claude/
+.idea
+.vscode
+
+# Analysis logs and outputs
+*.log
+logs/
+log/
+analysis/logs/
+analysis/log/
+
+# Logs and analysis outputs
+*.log
+*.err
+*.out
+
+# Personal configuration
+.idea/
+.mcp.json
+.ripgreprc
+.vscode/
+.zprofile
+
+# Personal C++ analysis/macros
+marquezh.cc
+*marquezh.cc
+*.idea/
+*.vscode/

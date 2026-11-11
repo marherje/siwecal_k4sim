@@ -1,0 +1,15 @@
+universe                = vanilla
+executable              = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/simulation/run_script/sim_digi_chunk.sh
+arguments               = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim $(N) $(PARTICLE) $(E) $(X) $(Y) $(SX) $(SY) 0.02 $(SEED) $(SET) $(REMOTE)
+environment             = "COMPACT_FILE=SND_compact_beamline_pos10.xml BEAM_Z_MM=-35500 PHYSICS_LIST=QGSP_BERT_EMZ RECO_TABLE=th210"
+log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_pos10/logs/dag.log
+output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_pos10/logs/$(NAME).out
+error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_pos10/logs/$(NAME).err
+request_cpus            = 1
+request_memory          = 4 GB
+request_disk            = 15 GB
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_output_files   = ""
++JobFlavour             = "$(FLAVOUR)"
+queue

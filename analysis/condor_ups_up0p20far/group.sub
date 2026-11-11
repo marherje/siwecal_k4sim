@@ -1,0 +1,13 @@
+universe                = vanilla
+executable              = /bin/bash
+arguments               = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/sim_reco_group.sh $(NAME) /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/upstream/up0p20far 5
+log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_up0p20far/logs/dag.log
+output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_up0p20far/logs/group_$(NAME).out
+error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_ups_up0p20far/logs/group_$(NAME).err
+request_cpus            = 1
+request_memory          = 4000
+request_disk            = 20000M
+should_transfer_files   = NO
+getenv                  = False
++JobFlavour             = "workday"
+queue

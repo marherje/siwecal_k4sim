@@ -88,6 +88,11 @@ def main(argv=None):
     ap.add_argument("--scan", action="append", default=None, help="<set>:<position>, repeatable")
     ap.add_argument("--points", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "beam_points.txt"))
     ap.add_argument("--title", default="", help="selection note for the figure titles")
+    ap.add_argument("--exclude", default="", help="comma-separated groups to leave out (e.g. tail-only after a cut)")
+    ap.add_argument("--nofit", default="", help="comma-separated groups drawn (open data markers) but left out of the fits")
+    ap.add_argument("--extra", action="append", default=[],
+                    help="<set>:<pos>=<group>: draw a group of another position on that scan's plots, open marker, labelled, "
+                         "not fitted (e.g. th230:E1=th230_E5_e99_-40_40)")
     ap.add_argument("--recal", default=None, help="<set>:<pos> scan to refit the MIP -> GeV line on (e.g. th230:E2)")
     ap.add_argument("--recal-dir", default=None, help="final_panels outdir without the border cut (for --recal)")
     ap.add_argument("--out", default=None)
@@ -137,7 +142,11 @@ def main(argv=None):
     Ef = np.linspace(5, 105, 200)
     for sc in scans:
         st, pos = sc.split(":")
-        names = scan_groups(pts, summ, st, pos)
+        names = [g for g in scan_groups(pts, summ, st, pos) if g not in set(args.exclude.split(","))]
+        extras = [x.split("=", 1)[1] for x in args.extra if x.split("=", 1)[0] == sc and x.split("=", 1)[1] in summ]
+        names = sorted(names + extras, key=lambda g: pts[g]["E"])
+        nofit = set(args.nofit.split(",")) | set(extras)
+        F = np.array([g not in nofit for g in names])
         if not names:
             print(f"{sc}: no groups")
             continue
@@ -161,10 +170,14 @@ def main(argv=None):
         for k in KINDS:
             mu, dmu, _, _ = val[k]
             if k == "data":
-                ps.data_points(a1, E, mu, yerr=dmu, label=LABEL[k] + " (stat. errors)", ms=MS)
+                ps.data_points(a1, E[F], mu[F], yerr=dmu[F], label=LABEL[k] + " (stat. errors)", ms=MS)
                 data_errors(a1, E, mu, dmu)
-                ps.data_points(a2, E, mu / E - 1, yerr=dmu / E, label=None, ms=MS)
+                ps.data_points(a2, E[F], (mu / E - 1)[F], yerr=(dmu / E)[F], label=None, ms=MS)
                 data_errors(a2, E, mu / E - 1, dmu / E)
+                if (~F).any():
+                    for ax_, y_ in ((a1, mu), (a2, mu / E - 1)):
+                        ax_.plot(E[~F], y_[~F], "o", ms=MS + 2.5, mfc="white", mec=ps.DATA, mew=1.3, zorder=6,
+                                 label="Data, not fitted" if ax_ is a1 else None)
             else:
                 ps.sim_line(a1, E, mu, dict(color=COL[k], ls=LS[k], marker=None), label=LABEL[k])
                 ps.sim_line(a2, E, mu / E - 1, dict(color=COL[k], ls=LS[k], marker=None))
@@ -173,7 +186,8 @@ def main(argv=None):
         a1.plot([0, 105], [0, 105], color="0.5", lw=0.8, label="$\\mu$ = E")
         a1.set_ylabel("calibrated energy $\\mu$ [GeV]")
         a1.legend(frameon=False, fontsize=8)
-        a2.text(0.99, 0.04, "error bars: statistical only", transform=a2.transAxes, ha="right", fontsize=7.5, color="0.35")
+        a2.text(0.99, 0.92, "error bars: statistical only", transform=a2.transAxes, ha="right", va="top", fontsize=7.5,
+                color="0.35")
         a2.axhline(0, color="0.5", lw=0.8)
         a2.set_ylabel("($\\mu$ − E) / E")
         a2.set_xlabel("beam energy E [GeV]")
@@ -182,43 +196,65 @@ def main(argv=None):
         a2.set_ylim(lo, hi)
         for a in (a1, a2):
             a.grid(alpha=0.25)
+        for g, e in zip(names, E):
+            if g in extras:
+                P = pts[g]
+                a2.annotate(f"{e:g} GeV at ({P['x']:g}, {P['y']:g})", (e, val["data"][0][names.index(g)] / e - 1),
+                            xytext=(-6, 4), textcoords="offset points", ha="right", fontsize=7, color="0.3")
         a1.set_title(f"Linearity, {where}\n{args.title}", fontsize=9)
         fig.tight_layout()
         fig.savefig(f"{out}/lin_{tag}{suffix}.png", dpi=130)
         plt.close(fig)
 
-        # resolution: sigma/mu against E with a/sqrt(E) (+) c (top), sim/data (bottom)
+        # resolution: sigma/mu against 1/sqrt(E) (the stochastic term is a straight line there; beam energies on a
+        # second axis on top), a/sqrt(E) (+) c (top), sim/data (bottom)
         fig, (a1, a2) = plt.subplots(2, 1, figsize=(6.4, 5.6), sharex=True, gridspec_kw=dict(height_ratios=[2, 1.2]))
+        X = 1 / np.sqrt(E)
+        Xf = 1 / np.sqrt(Ef)
         for k in KINDS:
             _, _, res, dres = val[k]
             try:
-                (a, c), _ = curve_fit(stoch, E, res, sigma=dres, p0=(0.2, 0.01))
+                (a, c), _ = curve_fit(stoch, E[F], res[F], sigma=dres[F], p0=(0.2, 0.01))
                 fl = f": {100 * abs(a):.1f} %/$\\sqrt{{E}}$ $\\oplus$ {100 * abs(c):.2f} %"
                 lines.append(f"fit {sc} {k:7s} a = {100 * abs(a):5.1f} %/sqrt(GeV)  c = {100 * abs(c):4.2f} %")
-                a1.plot(Ef, 100 * stoch(Ef, a, c), color=COL[k], lw=1, ls=LS[k], alpha=0.8)
+                a1.plot(Xf, 100 * stoch(Ef, a, c), color=COL[k], lw=1, ls=LS[k], alpha=0.8)
             except RuntimeError:
                 fl = ""
             if k == "data":
-                ps.data_points(a1, E, 100 * res, yerr=100 * dres, label=LABEL[k] + fl, ms=MS)
-                data_errors(a1, E, 100 * res, 100 * dres)
+                ps.data_points(a1, X[F], 100 * res[F], yerr=100 * dres[F], label=LABEL[k] + fl, ms=MS)
+                data_errors(a1, X, 100 * res, 100 * dres)
+                if (~F).any():
+                    a1.plot(X[~F], 100 * res[~F], "o", ms=MS + 2.5, mfc="white", mec=ps.DATA, mew=1.3, zorder=6,
+                            label="Data, not fitted")
+                    for g, x_, r_ in zip(names, X, res):
+                        if g in extras:
+                            P = pts[g]
+                            a1.annotate(f"{P['E']:g} GeV at ({P['x']:g}, {P['y']:g})", (x_, 100 * r_), xytext=(4, 6),
+                                        textcoords="offset points", fontsize=7, color="0.3")
             else:
-                a1.errorbar(E, 100 * res, yerr=100 * dres, color=COL[k], ls="none", capsize=CAP, elinewidth=1,
+                a1.errorbar(X, 100 * res, yerr=100 * dres, color=COL[k], ls="none", capsize=CAP, elinewidth=1,
                             marker="o" if k == "digi" else "s", ms=MS, mfc=COL[k] if k == "digi" else "white",
                             label=LABEL[k] + fl)
                 r = res / val["data"][2]
                 dr = r * np.hypot(dres / res, val["data"][3] / val["data"][2])
-                ps.sim_line(a2, E, r, dict(color=COL[k], ls=LS[k], marker=None))
-                a2.errorbar(E, r, yerr=dr, color=COL[k], ls="none", marker="o" if k == "digi" else "s", ms=MS,
+                ps.sim_line(a2, X, r, dict(color=COL[k], ls=LS[k], marker=None))
+                a2.errorbar(X, r, yerr=dr, color=COL[k], ls="none", marker="o" if k == "digi" else "s", ms=MS,
                             mfc=COL[k] if k == "digi" else "white", capsize=CAP, elinewidth=1)
         a1.set_ylabel("energy resolution $\\sigma/\\mu$ [%]")
         a1.set_ylim(0, None)
         a1.legend(frameon=False, fontsize=8, title="error bars: statistical only", title_fontsize=7.5)
         a2.axhline(1, color="0.5", lw=0.8)
         a2.set_ylabel("sim / data")
-        a2.set_xlabel("beam energy E [GeV]")
+        a2.set_xlabel("1 / $\\sqrt{E}$  [GeV$^{-1/2}$]")
+        a2.set_xlim(0, 1 / np.sqrt(5))
+        top = a1.twiny()                    # beam energies on the same 1/sqrt(E) scale
+        top.set_xlim(a2.get_xlim())
+        top.set_xticks(1 / np.sqrt(E))
+        top.set_xticklabels([f"{e:g}" for e in E], fontsize=8)
+        top.set_xlabel("beam energy E [GeV]", fontsize=9)
         for a in (a1, a2):
             a.grid(alpha=0.25)
-        a1.set_title(f"Energy resolution, {where}\n{args.title}", fontsize=9)
+        fig.suptitle(f"Energy resolution, {where}\n{args.title}", fontsize=9)
         fig.tight_layout()
         fig.savefig(f"{out}/res_{tag}{suffix}.png", dpi=130)
         plt.close(fig)

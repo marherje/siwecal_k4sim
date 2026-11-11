@@ -94,6 +94,11 @@ PANELS = [("nhit_chan", "Number of hits"), ("sum_hg", "ADC sum (high gain) [ADC]
           ("shower_start", "Shower start [layer]"), ("shower_max", "Shower maximum [layer]"),
           ("shower_length", "Shower length [layers]"), ("n_layers_hit", "Layers hit"),
           ("mip_likeness", "MIP-likeness"), ("fractal_dimension", "Fractal dimension")]
+# The 9-variable panel (--panels9): response, resolution, hit spectrum, lateral and longitudinal shape, structure
+PANELS9 = [("nhit_chan", "Number of hits"), ("sum_hg", "ADC sum (high gain) [ADC]"), ("sum_energy", "Energy [MIP]"),
+           ("gev", "Calibrated energy [GeV]"), ("e_over_nhit", "Energy per hit [MIP]"),
+           ("moliere", "Molière radius (R90) [mm]"), ("zbary", "Longitudinal barycentre [layer]"),
+           ("mip_likeness", "MIP-likeness"), ("fractal_dimension", "Fractal dimension")]
 FIT_PANELS = ("nhit_chan", "sum_hg", "sum_energy", "gev")
 INTEGER_VARS = ("shower_start", "shower_max", "shower_length", "n_layers_hit")
 CAL_E = ["7.5", "10", "20", "34", "52", "74"]
@@ -239,10 +244,11 @@ def write_cal(path, cals, source):
                 f.write(f"{(st + ':') if st else ''}{k} {cals[st][k][0]:.6g} {cals[st][k][1]:.6g}\n")
 
 
-def panel(g, s, outpath, border_cut=None):
-    fig, axes = plt.subplots(3, 5, figsize=(24, 13.5))
+def panel(g, s, outpath, border_cut=None, panels=None, shape=(3, 5), figsize=(24, 13.5)):
+    panels = panels or PANELS
+    fig, axes = plt.subplots(*shape, figsize=figsize)
     stats = {}
-    for ax, (v, xl) in zip(axes.ravel(), PANELS):
+    for ax, (v, xl) in zip(axes.ravel(), panels):
         kinds = [k for k in KINDS if not (v == "sum_hg" and k == "nodigi")]
         xs = {k: s[k][v][np.isfinite(s[k][v])] for k in kinds}
         allx = np.concatenate([xs[k] for k in kinds])
@@ -297,6 +303,8 @@ def main(argv=None):
     p.add_argument("--no-cache", action="store_true")
     p.add_argument("--border-cut", type=float, default=None,
                    help="keep barxy_min_border_distance > MM among the shower-like events")
+    p.add_argument("--panels9", action="store_true",
+                   help="also draw panel9_<group>.png: the 9-variable panel (PANELS9) in a 3 x 3 grid")
     p.add_argument("--cal-file", default=None,
                    help="MIP -> GeV line (mip_gev_line.txt of a pass without --border-cut) instead of fitting it")
     args = p.parse_args(argv)
@@ -355,6 +363,9 @@ def main(argv=None):
         if only and g["name"] not in only:
             continue
         st = panel(g, S[g["name"]], f"{args.outdir}/panel_{g['name']}.png", args.border_cut)
+        if args.panels9:
+            panel(g, S[g["name"]], f"{args.outdir}/panel9_{g['name']}.png", args.border_cut, PANELS9, (3, 3),
+                  (17, 13.5))
         out(f"\n== {g['name']}  ({len(g['runs'])} run(s); N data/nodigi/digi = "
             f"{st[('nhit_chan', 'data')][2]}/{st[('nhit_chan', 'nodigi')][2]}/{st[('nhit_chan', 'digi')][2]})")
         out(f"   {'variable':<18}{'data':>10}{'nodigi':>10}{'digi':>10}{'res data':>10}{'res nodg':>10}"

@@ -1,0 +1,13 @@
+universe                = vanilla
+executable              = /bin/bash
+arguments               = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/note_figs_job.sh /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/figs_v2 /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/test_samples
+log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_note_figs/note_figs.log
+output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_note_figs/note_figs.out
+error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_note_figs/note_figs.err
+request_cpus            = 4
+request_memory          = 8000
+request_disk            = 20000M
+should_transfer_files   = NO
+getenv                  = False
++JobFlavour             = "workday"
+queue

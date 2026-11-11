@@ -1,0 +1,22 @@
+universe              = vanilla
+executable            = /bin/bash
+arguments             = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_cm_sag/job3.sh $(run) $(chunks)
+log                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_cm_sag/logs/cm_sag3.log
+output                = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_cm_sag/logs/$(run)_3.out
+error                 = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_cm_sag/logs/$(run)_3.err
+request_cpus          = 1
+request_memory        = 4000
+should_transfer_files = NO
+getenv                = False
++JobFlavour           = "workday"
+priority              = 10
+queue run, chunks from (
+  e291, 10-17
+  e287, 10-17
+  e286, 10-17
+  20, 10-17
+  13, 10-17
+  12, 10-17
+  67, 0-8
+  72, 10-17
+)

@@ -1,0 +1,266 @@
+JOB c_th210_e7.5_17_-50_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e7.5_17_-50_000 N="2000" E="7.5" X="17" Y="-50" SX="24.2" SY="23.0" SEED="10001000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e7.5_17_-50/ecal_th210_e7.5_17_-50_c000" NAME="c_th210_e7.5_17_-50_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e7.5_17_-50_000 2
+JOB c_th210_e7.5_17_-50_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e7.5_17_-50_001 N="2000" E="7.5" X="17" Y="-50" SX="24.2" SY="23.0" SEED="10001001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e7.5_17_-50/ecal_th210_e7.5_17_-50_c001" NAME="c_th210_e7.5_17_-50_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e7.5_17_-50_001 2
+JOB c_th210_e7.5_17_-50_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e7.5_17_-50_002 N="2000" E="7.5" X="17" Y="-50" SX="24.2" SY="23.0" SEED="10001002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e7.5_17_-50/ecal_th210_e7.5_17_-50_c002" NAME="c_th210_e7.5_17_-50_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e7.5_17_-50_002 2
+JOB c_th210_e7.5_17_-50_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e7.5_17_-50_003 N="2000" E="7.5" X="17" Y="-50" SX="24.2" SY="23.0" SEED="10001003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e7.5_17_-50/ecal_th210_e7.5_17_-50_c003" NAME="c_th210_e7.5_17_-50_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e7.5_17_-50_003 2
+JOB c_th210_e7.5_17_-50_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e7.5_17_-50_004 N="2000" E="7.5" X="17" Y="-50" SX="24.2" SY="23.0" SEED="10001004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e7.5_17_-50/ecal_th210_e7.5_17_-50_c004" NAME="c_th210_e7.5_17_-50_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e7.5_17_-50_004 2
+JOB g_th210_e7.5_17_-50 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e7.5_17_-50 NAME="th210_e7.5_17_-50"
+RETRY g_th210_e7.5_17_-50 1
+PARENT c_th210_e7.5_17_-50_000 c_th210_e7.5_17_-50_001 c_th210_e7.5_17_-50_002 c_th210_e7.5_17_-50_003 c_th210_e7.5_17_-50_004 CHILD g_th210_e7.5_17_-50
+JOB c_th210_e10_19_-51_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e10_19_-51_000 N="2000" E="10" X="19" Y="-51" SX="22.2" SY="20.1" SEED="10002000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e10_19_-51/ecal_th210_e10_19_-51_c000" NAME="c_th210_e10_19_-51_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e10_19_-51_000 2
+JOB c_th210_e10_19_-51_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e10_19_-51_001 N="2000" E="10" X="19" Y="-51" SX="22.2" SY="20.1" SEED="10002001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e10_19_-51/ecal_th210_e10_19_-51_c001" NAME="c_th210_e10_19_-51_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e10_19_-51_001 2
+JOB c_th210_e10_19_-51_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e10_19_-51_002 N="2000" E="10" X="19" Y="-51" SX="22.2" SY="20.1" SEED="10002002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e10_19_-51/ecal_th210_e10_19_-51_c002" NAME="c_th210_e10_19_-51_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e10_19_-51_002 2
+JOB c_th210_e10_19_-51_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e10_19_-51_003 N="2000" E="10" X="19" Y="-51" SX="22.2" SY="20.1" SEED="10002003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e10_19_-51/ecal_th210_e10_19_-51_c003" NAME="c_th210_e10_19_-51_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e10_19_-51_003 2
+JOB c_th210_e10_19_-51_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e10_19_-51_004 N="2000" E="10" X="19" Y="-51" SX="22.2" SY="20.1" SEED="10002004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e10_19_-51/ecal_th210_e10_19_-51_c004" NAME="c_th210_e10_19_-51_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e10_19_-51_004 2
+JOB g_th210_e10_19_-51 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e10_19_-51 NAME="th210_e10_19_-51"
+RETRY g_th210_e10_19_-51 1
+PARENT c_th210_e10_19_-51_000 c_th210_e10_19_-51_001 c_th210_e10_19_-51_002 c_th210_e10_19_-51_003 c_th210_e10_19_-51_004 CHILD g_th210_e10_19_-51
+JOB c_th210_e20_26_-52_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e20_26_-52_000 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="10003000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c000" NAME="c_th210_e20_26_-52_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_000 2
+JOB c_th210_e20_26_-52_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e20_26_-52_001 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="10003001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c001" NAME="c_th210_e20_26_-52_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_001 2
+JOB c_th210_e20_26_-52_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e20_26_-52_002 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="10003002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c002" NAME="c_th210_e20_26_-52_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_002 2
+JOB c_th210_e20_26_-52_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e20_26_-52_003 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="10003003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c003" NAME="c_th210_e20_26_-52_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_003 2
+JOB c_th210_e20_26_-52_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e20_26_-52_004 N="2000" E="20" X="26" Y="-52" SX="17.6" SY="13.0" SEED="10003004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e20_26_-52/ecal_th210_e20_26_-52_c004" NAME="c_th210_e20_26_-52_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e20_26_-52_004 2
+JOB g_th210_e20_26_-52 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e20_26_-52 NAME="th210_e20_26_-52"
+RETRY g_th210_e20_26_-52 1
+PARENT c_th210_e20_26_-52_000 c_th210_e20_26_-52_001 c_th210_e20_26_-52_002 c_th210_e20_26_-52_003 c_th210_e20_26_-52_004 CHILD g_th210_e20_26_-52
+JOB c_th210_e34_27_-53_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e34_27_-53_000 N="2000" E="34" X="27" Y="-53" SX="13.7" SY="9.5" SEED="10004000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e34_27_-53/ecal_th210_e34_27_-53_c000" NAME="c_th210_e34_27_-53_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e34_27_-53_000 2
+JOB c_th210_e34_27_-53_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e34_27_-53_001 N="2000" E="34" X="27" Y="-53" SX="13.7" SY="9.5" SEED="10004001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e34_27_-53/ecal_th210_e34_27_-53_c001" NAME="c_th210_e34_27_-53_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e34_27_-53_001 2
+JOB c_th210_e34_27_-53_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e34_27_-53_002 N="2000" E="34" X="27" Y="-53" SX="13.7" SY="9.5" SEED="10004002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e34_27_-53/ecal_th210_e34_27_-53_c002" NAME="c_th210_e34_27_-53_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e34_27_-53_002 2
+JOB c_th210_e34_27_-53_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e34_27_-53_003 N="2000" E="34" X="27" Y="-53" SX="13.7" SY="9.5" SEED="10004003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e34_27_-53/ecal_th210_e34_27_-53_c003" NAME="c_th210_e34_27_-53_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e34_27_-53_003 2
+JOB c_th210_e34_27_-53_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e34_27_-53_004 N="2000" E="34" X="27" Y="-53" SX="13.7" SY="9.5" SEED="10004004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e34_27_-53/ecal_th210_e34_27_-53_c004" NAME="c_th210_e34_27_-53_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th210_e34_27_-53_004 2
+JOB g_th210_e34_27_-53 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e34_27_-53 NAME="th210_e34_27_-53"
+RETRY g_th210_e34_27_-53 1
+PARENT c_th210_e34_27_-53_000 c_th210_e34_27_-53_001 c_th210_e34_27_-53_002 c_th210_e34_27_-53_003 c_th210_e34_27_-53_004 CHILD g_th210_e34_27_-53
+JOB c_th210_e52_24_-51_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e52_24_-51_000 N="2000" E="52" X="24" Y="-51" SX="11.1" SY="6.4" SEED="10005000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e52_24_-51/ecal_th210_e52_24_-51_c000" NAME="c_th210_e52_24_-51_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e52_24_-51_000 2
+JOB c_th210_e52_24_-51_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e52_24_-51_001 N="2000" E="52" X="24" Y="-51" SX="11.1" SY="6.4" SEED="10005001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e52_24_-51/ecal_th210_e52_24_-51_c001" NAME="c_th210_e52_24_-51_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e52_24_-51_001 2
+JOB c_th210_e52_24_-51_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e52_24_-51_002 N="2000" E="52" X="24" Y="-51" SX="11.1" SY="6.4" SEED="10005002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e52_24_-51/ecal_th210_e52_24_-51_c002" NAME="c_th210_e52_24_-51_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e52_24_-51_002 2
+JOB c_th210_e52_24_-51_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e52_24_-51_003 N="2000" E="52" X="24" Y="-51" SX="11.1" SY="6.4" SEED="10005003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e52_24_-51/ecal_th210_e52_24_-51_c003" NAME="c_th210_e52_24_-51_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e52_24_-51_003 2
+JOB c_th210_e52_24_-51_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e52_24_-51_004 N="2000" E="52" X="24" Y="-51" SX="11.1" SY="6.4" SEED="10005004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e52_24_-51/ecal_th210_e52_24_-51_c004" NAME="c_th210_e52_24_-51_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e52_24_-51_004 2
+JOB g_th210_e52_24_-51 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e52_24_-51 NAME="th210_e52_24_-51"
+RETRY g_th210_e52_24_-51 1
+PARENT c_th210_e52_24_-51_000 c_th210_e52_24_-51_001 c_th210_e52_24_-51_002 c_th210_e52_24_-51_003 c_th210_e52_24_-51_004 CHILD g_th210_e52_24_-51
+JOB c_th210_e74_22_-49_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e74_22_-49_000 N="2000" E="74" X="22" Y="-49" SX="10.7" SY="5.9" SEED="10006000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e74_22_-49/ecal_th210_e74_22_-49_c000" NAME="c_th210_e74_22_-49_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e74_22_-49_000 2
+JOB c_th210_e74_22_-49_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e74_22_-49_001 N="2000" E="74" X="22" Y="-49" SX="10.7" SY="5.9" SEED="10006001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e74_22_-49/ecal_th210_e74_22_-49_c001" NAME="c_th210_e74_22_-49_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e74_22_-49_001 2
+JOB c_th210_e74_22_-49_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e74_22_-49_002 N="2000" E="74" X="22" Y="-49" SX="10.7" SY="5.9" SEED="10006002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e74_22_-49/ecal_th210_e74_22_-49_c002" NAME="c_th210_e74_22_-49_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e74_22_-49_002 2
+JOB c_th210_e74_22_-49_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e74_22_-49_003 N="2000" E="74" X="22" Y="-49" SX="10.7" SY="5.9" SEED="10006003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e74_22_-49/ecal_th210_e74_22_-49_c003" NAME="c_th210_e74_22_-49_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e74_22_-49_003 2
+JOB c_th210_e74_22_-49_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e74_22_-49_004 N="2000" E="74" X="22" Y="-49" SX="10.7" SY="5.9" SEED="10006004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e74_22_-49/ecal_th210_e74_22_-49_c004" NAME="c_th210_e74_22_-49_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e74_22_-49_004 2
+JOB g_th210_e74_22_-49 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e74_22_-49 NAME="th210_e74_22_-49"
+RETRY g_th210_e74_22_-49 1
+PARENT c_th210_e74_22_-49_000 c_th210_e74_22_-49_001 c_th210_e74_22_-49_002 c_th210_e74_22_-49_003 c_th210_e74_22_-49_004 CHILD g_th210_e74_22_-49
+JOB c_th210_e99_22_-48_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e99_22_-48_000 N="2000" E="99" X="22" Y="-48" SX="12.1" SY="6.1" SEED="10007000" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e99_22_-48/ecal_th210_e99_22_-48_c000" NAME="c_th210_e99_22_-48_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e99_22_-48_000 2
+JOB c_th210_e99_22_-48_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e99_22_-48_001 N="2000" E="99" X="22" Y="-48" SX="12.1" SY="6.1" SEED="10007001" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e99_22_-48/ecal_th210_e99_22_-48_c001" NAME="c_th210_e99_22_-48_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e99_22_-48_001 2
+JOB c_th210_e99_22_-48_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e99_22_-48_002 N="2000" E="99" X="22" Y="-48" SX="12.1" SY="6.1" SEED="10007002" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e99_22_-48/ecal_th210_e99_22_-48_c002" NAME="c_th210_e99_22_-48_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e99_22_-48_002 2
+JOB c_th210_e99_22_-48_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e99_22_-48_003 N="2000" E="99" X="22" Y="-48" SX="12.1" SY="6.1" SEED="10007003" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e99_22_-48/ecal_th210_e99_22_-48_c003" NAME="c_th210_e99_22_-48_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e99_22_-48_003 2
+JOB c_th210_e99_22_-48_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th210_e99_22_-48_004 N="2000" E="99" X="22" Y="-48" SX="12.1" SY="6.1" SEED="10007004" SET="th210" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th210_e99_22_-48/ecal_th210_e99_22_-48_c004" NAME="c_th210_e99_22_-48_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th210_e99_22_-48_004 2
+JOB g_th210_e99_22_-48 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th210_e99_22_-48 NAME="th210_e99_22_-48"
+RETRY g_th210_e99_22_-48 1
+PARENT c_th210_e99_22_-48_000 c_th210_e99_22_-48_001 c_th210_e99_22_-48_002 c_th210_e99_22_-48_003 c_th210_e99_22_-48_004 CHILD g_th210_e99_22_-48
+JOB c_th230_E4_e7.5_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e7.5_000 N="2000" E="7.5" X="-8" Y="-34" SX="24.2" SY="23.0" SEED="10030000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e7.5/ecal_th230_E4_e7.5_c000" NAME="c_th230_E4_e7.5_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e7.5_000 2
+JOB c_th230_E4_e7.5_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e7.5_001 N="2000" E="7.5" X="-8" Y="-34" SX="24.2" SY="23.0" SEED="10030001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e7.5/ecal_th230_E4_e7.5_c001" NAME="c_th230_E4_e7.5_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e7.5_001 2
+JOB c_th230_E4_e7.5_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e7.5_002 N="2000" E="7.5" X="-8" Y="-34" SX="24.2" SY="23.0" SEED="10030002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e7.5/ecal_th230_E4_e7.5_c002" NAME="c_th230_E4_e7.5_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e7.5_002 2
+JOB c_th230_E4_e7.5_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e7.5_003 N="2000" E="7.5" X="-8" Y="-34" SX="24.2" SY="23.0" SEED="10030003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e7.5/ecal_th230_E4_e7.5_c003" NAME="c_th230_E4_e7.5_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e7.5_003 2
+JOB c_th230_E4_e7.5_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e7.5_004 N="2000" E="7.5" X="-8" Y="-34" SX="24.2" SY="23.0" SEED="10030004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e7.5/ecal_th230_E4_e7.5_c004" NAME="c_th230_E4_e7.5_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e7.5_004 2
+JOB g_th230_E4_e7.5 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e7.5 NAME="th230_E4_e7.5"
+RETRY g_th230_E4_e7.5 1
+PARENT c_th230_E4_e7.5_000 c_th230_E4_e7.5_001 c_th230_E4_e7.5_002 c_th230_E4_e7.5_003 c_th230_E4_e7.5_004 CHILD g_th230_E4_e7.5
+JOB c_th230_E4_e10_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e10_000 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="10031000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e10/ecal_th230_E4_e10_c000" NAME="c_th230_E4_e10_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_000 2
+JOB c_th230_E4_e10_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e10_001 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="10031001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e10/ecal_th230_E4_e10_c001" NAME="c_th230_E4_e10_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_001 2
+JOB c_th230_E4_e10_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e10_002 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="10031002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e10/ecal_th230_E4_e10_c002" NAME="c_th230_E4_e10_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_002 2
+JOB c_th230_E4_e10_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e10_003 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="10031003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e10/ecal_th230_E4_e10_c003" NAME="c_th230_E4_e10_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_003 2
+JOB c_th230_E4_e10_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e10_004 N="2000" E="10" X="-5" Y="-35" SX="22.2" SY="20.1" SEED="10031004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e10/ecal_th230_E4_e10_c004" NAME="c_th230_E4_e10_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e10_004 2
+JOB g_th230_E4_e10 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e10 NAME="th230_E4_e10"
+RETRY g_th230_E4_e10 1
+PARENT c_th230_E4_e10_000 c_th230_E4_e10_001 c_th230_E4_e10_002 c_th230_E4_e10_003 c_th230_E4_e10_004 CHILD g_th230_E4_e10
+JOB c_th230_E4_e20_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e20_000 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="10032000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e20/ecal_th230_E4_e20_c000" NAME="c_th230_E4_e20_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_000 2
+JOB c_th230_E4_e20_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e20_001 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="10032001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e20/ecal_th230_E4_e20_c001" NAME="c_th230_E4_e20_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_001 2
+JOB c_th230_E4_e20_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e20_002 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="10032002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e20/ecal_th230_E4_e20_c002" NAME="c_th230_E4_e20_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_002 2
+JOB c_th230_E4_e20_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e20_003 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="10032003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e20/ecal_th230_E4_e20_c003" NAME="c_th230_E4_e20_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_003 2
+JOB c_th230_E4_e20_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e20_004 N="2000" E="20" X="2" Y="-34" SX="17.6" SY="13.0" SEED="10032004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e20/ecal_th230_E4_e20_c004" NAME="c_th230_E4_e20_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e20_004 2
+JOB g_th230_E4_e20 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e20 NAME="th230_E4_e20"
+RETRY g_th230_E4_e20 1
+PARENT c_th230_E4_e20_000 c_th230_E4_e20_001 c_th230_E4_e20_002 c_th230_E4_e20_003 c_th230_E4_e20_004 CHILD g_th230_E4_e20
+JOB c_th230_E4_e34_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e34_000 N="2000" E="34" X="3" Y="-34" SX="13.7" SY="9.5" SEED="10033000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e34/ecal_th230_E4_e34_c000" NAME="c_th230_E4_e34_000" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e34_000 2
+JOB c_th230_E4_e34_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e34_001 N="2000" E="34" X="3" Y="-34" SX="13.7" SY="9.5" SEED="10033001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e34/ecal_th230_E4_e34_c001" NAME="c_th230_E4_e34_001" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e34_001 2
+JOB c_th230_E4_e34_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e34_002 N="2000" E="34" X="3" Y="-34" SX="13.7" SY="9.5" SEED="10033002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e34/ecal_th230_E4_e34_c002" NAME="c_th230_E4_e34_002" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e34_002 2
+JOB c_th230_E4_e34_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e34_003 N="2000" E="34" X="3" Y="-34" SX="13.7" SY="9.5" SEED="10033003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e34/ecal_th230_E4_e34_c003" NAME="c_th230_E4_e34_003" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e34_003 2
+JOB c_th230_E4_e34_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e34_004 N="2000" E="34" X="3" Y="-34" SX="13.7" SY="9.5" SEED="10033004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e34/ecal_th230_E4_e34_c004" NAME="c_th230_E4_e34_004" FLAVOUR="workday" PARTICLE="e-"
+RETRY c_th230_E4_e34_004 2
+JOB g_th230_E4_e34 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e34 NAME="th230_E4_e34"
+RETRY g_th230_E4_e34 1
+PARENT c_th230_E4_e34_000 c_th230_E4_e34_001 c_th230_E4_e34_002 c_th230_E4_e34_003 c_th230_E4_e34_004 CHILD g_th230_E4_e34
+JOB c_th230_E4_e52_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e52_000 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="10034000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e52/ecal_th230_E4_e52_c000" NAME="c_th230_E4_e52_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_000 2
+JOB c_th230_E4_e52_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e52_001 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="10034001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e52/ecal_th230_E4_e52_c001" NAME="c_th230_E4_e52_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_001 2
+JOB c_th230_E4_e52_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e52_002 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="10034002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e52/ecal_th230_E4_e52_c002" NAME="c_th230_E4_e52_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_002 2
+JOB c_th230_E4_e52_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e52_003 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="10034003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e52/ecal_th230_E4_e52_c003" NAME="c_th230_E4_e52_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_003 2
+JOB c_th230_E4_e52_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e52_004 N="2000" E="52" X="0" Y="-33" SX="11.1" SY="6.4" SEED="10034004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e52/ecal_th230_E4_e52_c004" NAME="c_th230_E4_e52_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e52_004 2
+JOB g_th230_E4_e52 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e52 NAME="th230_E4_e52"
+RETRY g_th230_E4_e52 1
+PARENT c_th230_E4_e52_000 c_th230_E4_e52_001 c_th230_E4_e52_002 c_th230_E4_e52_003 c_th230_E4_e52_004 CHILD g_th230_E4_e52
+JOB c_th230_E4_e74_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e74_000 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="10035000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e74/ecal_th230_E4_e74_c000" NAME="c_th230_E4_e74_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_000 2
+JOB c_th230_E4_e74_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e74_001 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="10035001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e74/ecal_th230_E4_e74_c001" NAME="c_th230_E4_e74_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_001 2
+JOB c_th230_E4_e74_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e74_002 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="10035002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e74/ecal_th230_E4_e74_c002" NAME="c_th230_E4_e74_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_002 2
+JOB c_th230_E4_e74_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e74_003 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="10035003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e74/ecal_th230_E4_e74_c003" NAME="c_th230_E4_e74_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_003 2
+JOB c_th230_E4_e74_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E4_e74_004 N="2000" E="74" X="0" Y="-32" SX="10.7" SY="5.9" SEED="10035004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E4_e74/ecal_th230_E4_e74_c004" NAME="c_th230_E4_e74_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E4_e74_004 2
+JOB g_th230_E4_e74 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E4_e74 NAME="th230_E4_e74"
+RETRY g_th230_E4_e74 1
+PARENT c_th230_E4_e74_000 c_th230_E4_e74_001 c_th230_E4_e74_002 c_th230_E4_e74_003 c_th230_E4_e74_004 CHILD g_th230_E4_e74
+JOB c_th230_E5_e99_000 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E5_e99_000 N="2000" E="99" X="-1" Y="10" SX="12.1" SY="6.1" SEED="10042000" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E5_e99/ecal_th230_E5_e99_c000" NAME="c_th230_E5_e99_000" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E5_e99_000 2
+JOB c_th230_E5_e99_001 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E5_e99_001 N="2000" E="99" X="-1" Y="10" SX="12.1" SY="6.1" SEED="10042001" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E5_e99/ecal_th230_E5_e99_c001" NAME="c_th230_E5_e99_001" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E5_e99_001 2
+JOB c_th230_E5_e99_002 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E5_e99_002 N="2000" E="99" X="-1" Y="10" SX="12.1" SY="6.1" SEED="10042002" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E5_e99/ecal_th230_E5_e99_c002" NAME="c_th230_E5_e99_002" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E5_e99_002 2
+JOB c_th230_E5_e99_003 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E5_e99_003 N="2000" E="99" X="-1" Y="10" SX="12.1" SY="6.1" SEED="10042003" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E5_e99/ecal_th230_E5_e99_c003" NAME="c_th230_E5_e99_003" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E5_e99_003 2
+JOB c_th230_E5_e99_004 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/chunk.sub
+VARS c_th230_E5_e99_004 N="2000" E="99" X="-1" Y="10" SX="12.1" SY="6.1" SEED="10042004" SET="th230" REMOTE="/eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/sim_tuning/validation/chunks/th230_E5_e99/ecal_th230_E5_e99_c004" NAME="c_th230_E5_e99_004" FLAVOUR="tomorrow" PARTICLE="e-"
+RETRY c_th230_E5_e99_004 2
+JOB g_th230_E5_e99 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_val_v8/group.sub
+VARS g_th230_E5_e99 NAME="th230_E5_e99"
+RETRY g_th230_E5_e99 1
+PARENT c_th230_E5_e99_000 c_th230_E5_e99_001 c_th230_E5_e99_002 c_th230_E5_e99_003 c_th230_E5_e99_004 CHILD g_th230_E5_e99

@@ -1,0 +1,309 @@
+JOB TB2026CERN_eudaq_run_000166 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000166 RUN="TB2026CERN_eudaq_run_000166" MEM="4000" CPUS="2"
+RETRY TB2026CERN_eudaq_run_000166 1
+JOB TB2026CERN_eudaq_run_000167 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000167 RUN="TB2026CERN_eudaq_run_000167" MEM="4000" CPUS="2"
+RETRY TB2026CERN_eudaq_run_000167 1
+JOB TB2026CERN_eudaq_run_000168 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000168 RUN="TB2026CERN_eudaq_run_000168" MEM="4000" CPUS="2"
+RETRY TB2026CERN_eudaq_run_000168 1
+JOB TB2026CERN_eudaq_run_000169 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000169 RUN="TB2026CERN_eudaq_run_000169" MEM="4500" CPUS="3"
+RETRY TB2026CERN_eudaq_run_000169 1
+JOB TB2026CERN_eudaq_run_000285 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000285 RUN="TB2026CERN_eudaq_run_000285" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000285 1
+JOB TB2026CERN_eudaq_run_000286 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000286 RUN="TB2026CERN_eudaq_run_000286" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000286 1
+JOB TB2026CERN_eudaq_run_000287 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000287 RUN="TB2026CERN_eudaq_run_000287" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000287 1
+JOB TB2026CERN_eudaq_run_000288 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000288 RUN="TB2026CERN_eudaq_run_000288" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000288 1
+JOB TB2026CERN_eudaq_run_000291 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000291 RUN="TB2026CERN_eudaq_run_000291" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000291 1
+JOB TB2026CERN_eudaq_run_000292 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000292 RUN="TB2026CERN_eudaq_run_000292" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000292 1
+JOB TB2026CERN_eudaq_run_000293 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_eudaq_run_000293 RUN="TB2026CERN_eudaq_run_000293" MEM="2000" CPUS="1"
+RETRY TB2026CERN_eudaq_run_000293 1
+JOB TB2026CERN_run_000012 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000012 RUN="TB2026CERN_run_000012" MEM="4500" CPUS="3"
+RETRY TB2026CERN_run_000012 1
+JOB TB2026CERN_run_000013 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000013 RUN="TB2026CERN_run_000013" MEM="5500" CPUS="3"
+RETRY TB2026CERN_run_000013 1
+JOB TB2026CERN_run_000015 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000015 RUN="TB2026CERN_run_000015" MEM="13000" CPUS="7"
+RETRY TB2026CERN_run_000015 1
+JOB TB2026CERN_run_000020 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000020 RUN="TB2026CERN_run_000020" MEM="4500" CPUS="3"
+RETRY TB2026CERN_run_000020 1
+JOB TB2026CERN_run_000021 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000021 RUN="TB2026CERN_run_000021" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000021 1
+JOB TB2026CERN_run_000022 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000022 RUN="TB2026CERN_run_000022" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000022 1
+JOB TB2026CERN_run_000024 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000024 RUN="TB2026CERN_run_000024" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000024 1
+JOB TB2026CERN_run_000025 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000025 RUN="TB2026CERN_run_000025" MEM="3500" CPUS="2"
+RETRY TB2026CERN_run_000025 1
+JOB TB2026CERN_run_000026 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000026 RUN="TB2026CERN_run_000026" MEM="6500" CPUS="4"
+RETRY TB2026CERN_run_000026 1
+JOB TB2026CERN_run_000027 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000027 RUN="TB2026CERN_run_000027" MEM="6000" CPUS="3"
+RETRY TB2026CERN_run_000027 1
+JOB TB2026CERN_run_000028 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000028 RUN="TB2026CERN_run_000028" MEM="5500" CPUS="3"
+RETRY TB2026CERN_run_000028 1
+JOB TB2026CERN_run_000029 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000029 RUN="TB2026CERN_run_000029" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000029 1
+JOB TB2026CERN_run_000030 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000030 RUN="TB2026CERN_run_000030" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000030 1
+JOB TB2026CERN_run_000031 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000031 RUN="TB2026CERN_run_000031" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000031 1
+JOB TB2026CERN_run_000032 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000032 RUN="TB2026CERN_run_000032" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000032 1
+JOB TB2026CERN_run_000035 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000035 RUN="TB2026CERN_run_000035" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000035 1
+JOB TB2026CERN_run_000036 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000036 RUN="TB2026CERN_run_000036" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000036 1
+JOB TB2026CERN_run_000040 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000040 RUN="TB2026CERN_run_000040" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000040 1
+JOB TB2026CERN_run_000041 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000041 RUN="TB2026CERN_run_000041" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000041 1
+JOB TB2026CERN_run_000042 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000042 RUN="TB2026CERN_run_000042" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000042 1
+JOB TB2026CERN_run_000043 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000043 RUN="TB2026CERN_run_000043" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000043 1
+JOB TB2026CERN_run_000044 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000044 RUN="TB2026CERN_run_000044" MEM="4500" CPUS="3"
+RETRY TB2026CERN_run_000044 1
+JOB TB2026CERN_run_000045 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000045 RUN="TB2026CERN_run_000045" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000045 1
+JOB TB2026CERN_run_000046 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000046 RUN="TB2026CERN_run_000046" MEM="7000" CPUS="4"
+RETRY TB2026CERN_run_000046 1
+JOB TB2026CERN_run_000047 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000047 RUN="TB2026CERN_run_000047" MEM="6000" CPUS="3"
+RETRY TB2026CERN_run_000047 1
+JOB TB2026CERN_run_000048 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000048 RUN="TB2026CERN_run_000048" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000048 1
+JOB TB2026CERN_run_000050 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000050 RUN="TB2026CERN_run_000050" MEM="4000" CPUS="2"
+RETRY TB2026CERN_run_000050 1
+JOB TB2026CERN_run_000051 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000051 RUN="TB2026CERN_run_000051" MEM="5000" CPUS="3"
+RETRY TB2026CERN_run_000051 1
+JOB TB2026CERN_run_000055 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000055 RUN="TB2026CERN_run_000055" MEM="4000" CPUS="2"
+RETRY TB2026CERN_run_000055 1
+JOB TB2026CERN_run_000056 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000056 RUN="TB2026CERN_run_000056" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000056 1
+JOB TB2026CERN_run_000057 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000057 RUN="TB2026CERN_run_000057" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000057 1
+JOB TB2026CERN_run_000058 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000058 RUN="TB2026CERN_run_000058" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000058 1
+JOB TB2026CERN_run_000065 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000065 RUN="TB2026CERN_run_000065" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000065 1
+JOB TB2026CERN_run_000066 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000066 RUN="TB2026CERN_run_000066" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000066 1
+JOB TB2026CERN_run_000067 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000067 RUN="TB2026CERN_run_000067" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000067 1
+JOB TB2026CERN_run_000068 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000068 RUN="TB2026CERN_run_000068" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000068 1
+JOB TB2026CERN_run_000069 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000069 RUN="TB2026CERN_run_000069" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000069 1
+JOB TB2026CERN_run_000070 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000070 RUN="TB2026CERN_run_000070" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000070 1
+JOB TB2026CERN_run_000071 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000071 RUN="TB2026CERN_run_000071" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000071 1
+JOB TB2026CERN_run_000072 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000072 RUN="TB2026CERN_run_000072" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000072 1
+JOB TB2026CERN_run_000073 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000073 RUN="TB2026CERN_run_000073" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000073 1
+JOB TB2026CERN_run_000074 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000074 RUN="TB2026CERN_run_000074" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000074 1
+JOB TB2026CERN_run_000075 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000075 RUN="TB2026CERN_run_000075" MEM="9000" CPUS="5"
+RETRY TB2026CERN_run_000075 1
+JOB TB2026CERN_run_000076 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000076 RUN="TB2026CERN_run_000076" MEM="7500" CPUS="4"
+RETRY TB2026CERN_run_000076 1
+JOB TB2026CERN_run_000077 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000077 RUN="TB2026CERN_run_000077" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000077 1
+JOB TB2026CERN_run_000078 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000078 RUN="TB2026CERN_run_000078" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000078 1
+JOB TB2026CERN_run_000079 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000079 RUN="TB2026CERN_run_000079" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000079 1
+JOB TB2026CERN_run_000080 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000080 RUN="TB2026CERN_run_000080" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000080 1
+JOB TB2026CERN_run_000091 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000091 RUN="TB2026CERN_run_000091" MEM="5500" CPUS="3"
+RETRY TB2026CERN_run_000091 1
+JOB TB2026CERN_run_000092 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000092 RUN="TB2026CERN_run_000092" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000092 1
+JOB TB2026CERN_run_000093 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000093 RUN="TB2026CERN_run_000093" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000093 1
+JOB TB2026CERN_run_000094 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000094 RUN="TB2026CERN_run_000094" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000094 1
+JOB TB2026CERN_run_000095 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000095 RUN="TB2026CERN_run_000095" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000095 1
+JOB TB2026CERN_run_000096 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000096 RUN="TB2026CERN_run_000096" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000096 1
+JOB TB2026CERN_run_000097 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000097 RUN="TB2026CERN_run_000097" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000097 1
+JOB TB2026CERN_run_000098 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000098 RUN="TB2026CERN_run_000098" MEM="5000" CPUS="3"
+RETRY TB2026CERN_run_000098 1
+JOB TB2026CERN_run_000099 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000099 RUN="TB2026CERN_run_000099" MEM="3500" CPUS="2"
+RETRY TB2026CERN_run_000099 1
+JOB TB2026CERN_run_000100 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000100 RUN="TB2026CERN_run_000100" MEM="5000" CPUS="3"
+RETRY TB2026CERN_run_000100 1
+JOB TB2026CERN_run_000101 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000101 RUN="TB2026CERN_run_000101" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000101 1
+JOB TB2026CERN_run_000105 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000105 RUN="TB2026CERN_run_000105" MEM="5500" CPUS="3"
+RETRY TB2026CERN_run_000105 1
+JOB TB2026CERN_run_000106 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000106 RUN="TB2026CERN_run_000106" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000106 1
+JOB TB2026CERN_run_000107 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000107 RUN="TB2026CERN_run_000107" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000107 1
+JOB TB2026CERN_run_000108 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000108 RUN="TB2026CERN_run_000108" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000108 1
+JOB TB2026CERN_run_000109 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000109 RUN="TB2026CERN_run_000109" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000109 1
+JOB TB2026CERN_run_000110 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000110 RUN="TB2026CERN_run_000110" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000110 1
+JOB TB2026CERN_run_000111 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000111 RUN="TB2026CERN_run_000111" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000111 1
+JOB TB2026CERN_run_000112 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000112 RUN="TB2026CERN_run_000112" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000112 1
+JOB TB2026CERN_run_000113 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000113 RUN="TB2026CERN_run_000113" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000113 1
+JOB TB2026CERN_run_000114 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000114 RUN="TB2026CERN_run_000114" MEM="3500" CPUS="2"
+RETRY TB2026CERN_run_000114 1
+JOB TB2026CERN_run_000115 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000115 RUN="TB2026CERN_run_000115" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000115 1
+JOB TB2026CERN_run_000116 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000116 RUN="TB2026CERN_run_000116" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000116 1
+JOB TB2026CERN_run_000117 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000117 RUN="TB2026CERN_run_000117" MEM="5000" CPUS="3"
+RETRY TB2026CERN_run_000117 1
+JOB TB2026CERN_run_000118 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000118 RUN="TB2026CERN_run_000118" MEM="5500" CPUS="3"
+RETRY TB2026CERN_run_000118 1
+JOB TB2026CERN_run_000119 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000119 RUN="TB2026CERN_run_000119" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000119 1
+JOB TB2026CERN_run_000120 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000120 RUN="TB2026CERN_run_000120" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000120 1
+JOB TB2026CERN_run_000121 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000121 RUN="TB2026CERN_run_000121" MEM="4000" CPUS="2"
+RETRY TB2026CERN_run_000121 1
+JOB TB2026CERN_run_000122 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000122 RUN="TB2026CERN_run_000122" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000122 1
+JOB TB2026CERN_run_000123 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000123 RUN="TB2026CERN_run_000123" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000123 1
+JOB TB2026CERN_run_000124 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000124 RUN="TB2026CERN_run_000124" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000124 1
+JOB TB2026CERN_run_000125 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000125 RUN="TB2026CERN_run_000125" MEM="3500" CPUS="2"
+RETRY TB2026CERN_run_000125 1
+JOB TB2026CERN_run_000126 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000126 RUN="TB2026CERN_run_000126" MEM="6500" CPUS="4"
+RETRY TB2026CERN_run_000126 1
+JOB TB2026CERN_run_000127 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000127 RUN="TB2026CERN_run_000127" MEM="4000" CPUS="2"
+RETRY TB2026CERN_run_000127 1
+JOB TB2026CERN_run_000128 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000128 RUN="TB2026CERN_run_000128" MEM="4500" CPUS="3"
+RETRY TB2026CERN_run_000128 1
+JOB TB2026CERN_run_000129 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000129 RUN="TB2026CERN_run_000129" MEM="5000" CPUS="3"
+RETRY TB2026CERN_run_000129 1
+JOB TB2026CERN_run_000130 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000130 RUN="TB2026CERN_run_000130" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000130 1
+JOB TB2026CERN_run_000131 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000131 RUN="TB2026CERN_run_000131" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000131 1
+JOB TB2026CERN_run_000132 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000132 RUN="TB2026CERN_run_000132" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000132 1
+JOB TB2026CERN_run_000133 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000133 RUN="TB2026CERN_run_000133" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000133 1
+JOB TB2026CERN_run_000134 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000134 RUN="TB2026CERN_run_000134" MEM="3000" CPUS="2"
+RETRY TB2026CERN_run_000134 1
+JOB TB2026CERN_run_000135 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000135 RUN="TB2026CERN_run_000135" MEM="3500" CPUS="2"
+RETRY TB2026CERN_run_000135 1
+JOB TB2026CERN_run_000138 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000138 RUN="TB2026CERN_run_000138" MEM="2500" CPUS="2"
+RETRY TB2026CERN_run_000138 1
+JOB TB2026CERN_run_000141 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border2/node.sub
+VARS TB2026CERN_run_000141 RUN="TB2026CERN_run_000141" MEM="2000" CPUS="1"
+RETRY TB2026CERN_run_000141 1

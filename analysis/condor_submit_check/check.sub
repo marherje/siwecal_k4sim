@@ -1,0 +1,9 @@
+universe     = vanilla
+initialdir   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_submit_check
+executable   = /bin/hostname
+output       = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_submit_check/check.out
+error        = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_submit_check/check.err
+log          = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_submit_check/check.log
+request_cpus = 1
++JobFlavour  = "espresso"
+queue

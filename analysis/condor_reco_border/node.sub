@@ -1,0 +1,13 @@
+universe                = vanilla
+executable              = /bin/bash
+arguments               = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/border_data_node.sh $(RUN) /eos/experiment/drdcalo/siw-ecal/TB2026-06/Reconstruction /eos/experiment/drdcalo/siw-ecal/TB2026-06/Simulation/tests/border_cut/data
+log                     = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border/logs/dag.log
+output                  = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border/logs/$(RUN).out
+error                   = /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_reco_border/logs/$(RUN).err
+request_cpus            = 1
+request_memory          = 8000
+request_disk            = 10000M
+should_transfer_files   = NO
+getenv                  = False
++JobFlavour             = "workday"
+queue

@@ -1,0 +1,3 @@
+JOB TB2026CERN_run_000020 /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_border_data_test/node.sub
+VARS TB2026CERN_run_000020 RUN="TB2026CERN_run_000020"
+RETRY TB2026CERN_run_000020 1

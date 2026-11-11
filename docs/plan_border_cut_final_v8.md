@@ -225,3 +225,20 @@ git commit -m "barxy_min_border_distance mirrors; --border-cut and MIP->GeV line
   analysis/position_scans.py → figs_v9/<cut>/{lin,res}_th230_E{1,2}.png, position_scans.txt.
   40 mm: E2 data 25.8 %/√E ⊕ 1.98 %, digi 26.4 ⊕ 1.80 (≤5 % en cada energía); E1 data 25.3 ⊕ 2.59, digi 26.1 ⊕ 1.82
   (datos más anchos a 52–74 GeV, también sin corte). Artefacto Final Sample v4.2.
+
+## Estado 2026-11-03
+- Calibración por umbral (final_panels.SET_LINES): th210 en S1, th230 en E2, th220 con la de th210. Paneles en
+  EOS figs_v9_setcal/{nocut,b40}; paneles de 9 variables (--panels9) en figs_v9_p9/{b40,b45,b50}.
+- Corte de borde por posición, elegido con barrido 35–50 mm: E1 45 mm, E2 y resto 40 mm. E1 a 52/74 GeV sin
+  selección limpia (fuga borde superior + haz más sucio en runs 12–13, antes de cerrar el colimador XCSH ±30→±20 mm
+  hacia el run 17); se dibujan huecos, fuera del ajuste. E1 45 mm: datos 24.9 %/√E ⊕ 1.67 %, digi 25.2 ⊕ 1.58;
+  E2 40 mm: datos 24.0 ⊕ 2.33, digi 24.7 ⊕ 2.11.
+- Halo del haz (E2 74 GeV): la energía de los datos baja con la distancia al eje del haz por igual a ambos lados,
+  forma de electrón → electrones degradados aguas arriba; la sim (haz monoenergético gaussiano) no lo tiene.
+- Fuga trasera (74 GeV, cuartiles de hits en capas 12–14): la sim la reproduce (−2–3 % en μ, σ/μ 3.3→3.8 %); en datos
+  el corte en actividad trasera mete eventos de halo (media 0.953 en el cuartil bajo). Pendiente: prueba combinada
+  núcleo del haz + actividad trasera.
+- Nota de upstream (FZqHXKJ…) v22: figura del mapa del sag rehecha (analysis/sag_map_fig.py), sección 2.3 reescrita,
+  tabla χ² con binning independiente. Final Sample (MdY3n…) v4.14.
+- Sin commitear: analysis/{final_panels,final_panels_select,final_profiles,position_scans,contained_resolution,
+  sag_map_fig}.py, final_v9_plots_job.sh, este plan.

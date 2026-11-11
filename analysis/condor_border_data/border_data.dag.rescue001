@@ -1,0 +1,11 @@
+# Rescue DAG file, created after running
+#   the /afs/cern.ch/user/m/marquezh/public/siwecal_k4sim/analysis/condor_border_data/border_data.dag DAG file
+# Created 10/28/2026 21:49:20 UTC
+# Rescue DAG version: 2.1.0
+#
+# Total number of Nodes: 103
+# Nodes premarked DONE: 1
+# Nodes that failed: 0
+#   <ENDLIST>
+
+DONE TB2026CERN_run_000020
